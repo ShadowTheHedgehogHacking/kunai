@@ -1,4 +1,4 @@
-﻿using ImGuiNET;
+﻿using Hexa.NET.ImGui;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
@@ -16,6 +16,7 @@ namespace Kunai
         float test = 1;
         ImGuiController _controller;
         public static ShurikenRenderHelper renderer;
+        public static ImGuiWindowFlags flags = ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse;
         public MainWindow() : base(GameWindowSettings.Default, new NativeWindowSettings(){ Size = new Vector2i(1600, 900), APIVersion = new Version(3, 3) })
         { }
         protected override void OnLoad()
@@ -31,7 +32,7 @@ namespace Kunai
         public static void SetupImGuiStyle()
         {
             // AdobeInspired stylenexacopic from ImThemes
-            var style = ImGuiNET.ImGui.GetStyle();
+            var style = ImGui.GetStyle();
 
             style.Alpha = 1.0f;
             style.DisabledAlpha = 0.6000000238418579f;
@@ -148,7 +149,7 @@ namespace Kunai
             base.OnRenderFrame(e);
             _controller.Update(this, (float)e.Time);
 
-            GL.ClearColor(new Color4(0, 32, 48, 255));
+            GL.ClearColor(new Color4(0, 0, 0, 255));
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
             GL.Enable(EnableCap.Blend);
             GL.Disable(EnableCap.CullFace);
@@ -164,15 +165,15 @@ namespace Kunai
             MenuBarWindow.Render(renderer);
             if (renderer.WorkProjectCsd != null)
             {
-
                 float deltaTime = (float)(e.Time);
                 renderer.Render(renderer.WorkProjectCsd, (float)deltaTime);
 
-                HierarchyWindow.Render(renderer.WorkProjectCsd);
-                InspectorWindow.Render(renderer.WorkProjectCsd);
-                ViewportWindow.Render(renderer);
-                AnimationsWindow.Render(renderer);
+                
             }
+            HierarchyWindow.Render(renderer.WorkProjectCsd);
+            InspectorWindow.Render(renderer.WorkProjectCsd);
+            ViewportWindow.Render(renderer);
+            AnimationsWindow.Render(renderer);
             //if (ImGui.Begin("Testtt"))
             //{
             //    ImGui.End();

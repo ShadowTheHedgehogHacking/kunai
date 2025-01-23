@@ -1,4 +1,4 @@
-﻿using ImGuiNET;
+﻿using Hexa.NET.ImGui;
 using Kunai.ShurikenRenderer;
 using SharpNeedle.Ninja.Csd;
 
@@ -23,56 +23,60 @@ namespace Kunai.Window
                 }
                 ImGui.TreePop();
             }
-            if(selectedcast)
+            if (selectedcast)
             {
                 InspectorWindow.SelectCast(in_Cast);
             }
         }
         public static void Render(CsdProject in_Proj)
-        {            
+        {
             ImGui.SetNextWindowPos(new System.Numerics.Vector2(0, MenuBarWindow.menuBarHeight), ImGuiCond.Always);
             ImGui.SetNextWindowSize(new System.Numerics.Vector2(ImGui.GetWindowViewport().Size.X / 4.5f, ImGui.GetWindowViewport().Size.Y), ImGuiCond.Always);
-            if (ImGui.Begin("Hierarchy"))
+            if (ImGui.Begin("Hierarchy", MainWindow.flags))
             {
-                foreach (SVisibilityData.SNode f in MainWindow.renderer.sVisibilityData.Nodes)
+                if (in_Proj != null)
                 {
-                    bool selectedNode = false;
-                    bool selectedScene = false;
-                    if (ImguiControls.CollapsingHeaderVisibility(f.Node.Key, ref f.Active,ref selectedNode))
+                    foreach (SVisibilityData.SNode f in MainWindow.renderer.sVisibilityData.Nodes)
                     {
-                        foreach (var g in f.Scene)
+                        bool selectedNode = false;
+                        bool selectedScene = false;
+                        if (ImguiControls.CollapsingHeaderVisibility(f.Node.Key, ref f.Active, ref selectedNode))
                         {
-                            if (ImguiControls.CollapsingHeaderVisibility(g.Scene.Key, ref g.Active, ref selectedScene))
+                            foreach (var g in f.Scene)
                             {
-                                for (int i = 0; i < g.Scene.Value.Families.Count; i++)
+                                if (ImguiControls.CollapsingHeaderVisibility(g.Scene.Key, ref g.Active, ref selectedScene))
                                 {
-                                    var family = g.Scene.Value.Families[i];
-                                    
+                                    for (int i = 0; i < g.Scene.Value.Families.Count; i++)
+                                    {
+                                        var family = g.Scene.Value.Families[i];
+
                                         var castFamilyRoot = family.Casts[0];
                                         RecursiveCastWidget(g, castFamilyRoot);
-                                    
+
+                                    }
+                                    ImGui.TreePop();
                                 }
-                                ImGui.TreePop();
+                                if (selectedScene)
+                                {
+                                    InspectorWindow.SelectScene(g.Scene);
+                                }
                             }
-                            if(selectedScene)
-                            {
-                                InspectorWindow.SelectScene(g.Scene);
-                            }
+                            ImGui.TreePop();
                         }
-                        ImGui.TreePop();
+                        //if (ImGui.TreeNodeEx(f.Node.Key))
+                        //{
+                        //    foreach (var g in f.Scene)
+                        //    {
+                        //        if (ImGui.TreeNodeEx(f.Node.Key))
+                        //        {
+                        //            ImGui.Checkbox($"##{g.Scene.Key}togg", ref g.Active);
+                        //        ImGui.SameLine();
+                        //        ImGui.Text(g.Scene.Key);
+                        //    }
+                        //    ImGui.TreePop();
+                        //}
                     }
-                    //if (ImGui.TreeNodeEx(f.Node.Key))
-                    //{
-                    //    foreach (var g in f.Scene)
-                    //    {
-                    //        if (ImGui.TreeNodeEx(f.Node.Key))
-                    //        {
-                    //            ImGui.Checkbox($"##{g.Scene.Key}togg", ref g.Active);
-                    //        ImGui.SameLine();
-                    //        ImGui.Text(g.Scene.Key);
-                    //    }
-                    //    ImGui.TreePop();
-                    //}
+
                 }
             }
             ImGui.End();

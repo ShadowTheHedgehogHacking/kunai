@@ -1,8 +1,10 @@
 ﻿using Kunai.ShurikenRenderer;
-using ImGuiNET;
+using Hexa.NET.ImGui;
+using Hexa.NET.Utilities;
 using SharpNeedle.Ninja.Csd;
 using Shuriken.Rendering;
 using Sprite = Shuriken.Rendering.Sprite;
+using Hexa.NET.Utilities.Text;
 
 namespace Kunai.Window
 {
@@ -35,9 +37,9 @@ namespace Kunai.Window
             var vers = SelectedScene.Value.Version;
             var priority = (int)SelectedScene.Value.Priority;
             ImGui.InputText("Name", ref name, 256);
-            ImGui.InputInt("Version", ref vers);    
-            ImGui.InputInt("Priority", ref priority);    
-            ImGui.InputInt("Priority", ref priority);    
+            ImGui.InputInt("Version", ref vers);
+            ImGui.InputInt("Priority", ref priority);
+            ImGui.InputInt("Priority", ref priority);
             ImGui.Text(SelectedScene.Key);
         }
         public static void DrawCastInspector()
@@ -142,41 +144,53 @@ namespace Kunai.Window
                 ImGui.BeginDisabled(type != (int)DrawType.Sprite);
                 ImGui.InputInt("Selected Sprite", ref spriteIndex);
                 spriteIndex = Math.Clamp(spriteIndex, -1, 32); //can go over 32 for scu
-
-                //Draw Pattern selector
-                for (int i = 0; i < SelectedCast.SpriteIndices.Length; i++)
+                if (ImGui.BeginListBox("##listpatterns", new System.Numerics.Vector2(-1, 100)))
                 {
-                    int patternIdx = Math.Min(SelectedCast.SpriteIndices.Length - 1, (int)SelectedCast.SpriteIndices[i]);
-
-                    //Draw button with a different color if its the currently active pattern
-                    if (i == spriteIndex) ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(200, 200, 200, 255));
-                    // Draw sprite preview if it isnt set to the default square
-                    if (patternIdx == -1)
+                    //Draw Pattern selector
+                    for (int i = 0; i < SelectedCast.SpriteIndices.Length; i++)
                     {
-                        ImGui.Button($"##pattern{i}", new System.Numerics.Vector2(55, 55));
-                        ImGui.SameLine();
-                    }
-                    else
-                    {
-                        Sprite spriteReference = SpriteHelper.TryGetSprite(SelectedCast.SpriteIndices[i]);
-                        if (spriteReference == null) continue;
+                        int patternIdx = Math.Min(SelectedCast.SpriteIndices.Length - 1, (int)SelectedCast.SpriteIndices[i]);
 
-                        ShurikenRenderer.Vector2 uvTL = new ShurikenRenderer.Vector2(
-                        spriteReference.Start.X / spriteReference.Texture.Width,
-                        -(spriteReference.Start.Y / spriteReference.Texture.Height));
-
-                        ShurikenRenderer.Vector2 uvBR = uvTL + new ShurikenRenderer.Vector2(
-                        spriteReference.Dimensions.X / spriteReference.Texture.Width,
-                        -(spriteReference.Dimensions.Y / spriteReference.Texture.Height));
-
-                        //Draw sprite
-                        ImGui.ImageButton($"##pattern{i}", (IntPtr)spriteReference.Texture.GlTex.ID, new System.Numerics.Vector2(50, 50), uvTL, uvBR);
-
-                        if (i != SelectedCast.SpriteIndices.Length - 1)
+                        //Draw button with a different color if its the currently active pattern
+                        if (i == spriteIndex) ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(200, 200, 200, 255));
+                        // Draw sprite preview if it isnt set to the default square
+                        if (patternIdx == -1)
+                        {
+                            ImGui.Button($"##pattern{i}", new System.Numerics.Vector2(55, 55));
                             ImGui.SameLine();
+                        }
+                        else
+                        {
+                            Sprite spriteReference = SpriteHelper.TryGetSprite(SelectedCast.SpriteIndices[i]);
+                            if (spriteReference == null) continue;
+
+                            ShurikenRenderer.Vector2 uvTL = new ShurikenRenderer.Vector2(
+                            spriteReference.Start.X / spriteReference.Texture.Width,
+                            -(spriteReference.Start.Y / spriteReference.Texture.Height));
+
+                            ShurikenRenderer.Vector2 uvBR = uvTL + new ShurikenRenderer.Vector2(
+                            spriteReference.Dimensions.X / spriteReference.Texture.Width,
+                            -(spriteReference.Dimensions.Y / spriteReference.Texture.Height));
+
+                            //This is so stupid, this is how youre supposed to do it according to the HexaNET issues
+                            unsafe
+                            {
+                                const int bufferSize = 256;
+                                byte* buffer = stackalloc byte[bufferSize];
+                                StrBuilder sb = new(buffer, bufferSize);
+                                sb.Append($"##pattern{i}");
+                                sb.End();
+                                //Draw sprite
+                                ImGui.ImageButton(sb, new ImTextureID(spriteReference.Texture.GlTex.ID), new System.Numerics.Vector2(50, 50), uvTL, uvBR);
+
+                            }
+                            if (i != SelectedCast.SpriteIndices.Length - 1)
+                                ImGui.SameLine();
+                        }
+                        if (i == spriteIndex)
+                            ImGui.PopStyleColor();
                     }
-                    if (i == spriteIndex)
-                        ImGui.PopStyleColor();
+                    ImGui.EndListBox();
                 }
                 ImGui.EndDisabled();
             }
@@ -219,23 +233,26 @@ namespace Kunai.Window
         {
             ImGui.SetNextWindowPos(new System.Numerics.Vector2((ImGui.GetWindowViewport().Size.X / 4.5f) * 3.5f, MenuBarWindow.menuBarHeight), ImGuiCond.Always);
             ImGui.SetNextWindowSize(new System.Numerics.Vector2(ImGui.GetWindowViewport().Size.X / 4.5f, ImGui.GetWindowViewport().Size.Y), ImGuiCond.Always);
-            if (ImGui.Begin("Inspector"))
+            if (ImGui.Begin("Inspector", MainWindow.flags))
             {
-                switch (eSelectionType)
+                if (in_Proj != null)
                 {
-                    case ESelectionType.Scene:
-                        {
-                            DrawSceneInspector();
-                            break;
-                        }
-                    case ESelectionType.Cast:
-                        {
-                            DrawCastInspector();
-                            break;
-                        }
+                    switch (eSelectionType)
+                    {
+                        case ESelectionType.Scene:
+                            {
+                                DrawSceneInspector();
+                                break;
+                            }
+                        case ESelectionType.Cast:
+                            {
+                                DrawCastInspector();
+                                break;
+                            }
+                    }
                 }
+                ImGui.End();
             }
-            ImGui.End();
         }
     }
 }

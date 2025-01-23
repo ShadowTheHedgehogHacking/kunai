@@ -1,6 +1,6 @@
 ﻿
 
-using ImGuiNET;
+using Hexa.NET.ImGui;
 using Kunai.ShurikenRenderer;
 
 namespace Kunai.Window
@@ -13,26 +13,30 @@ namespace Kunai.Window
             var size1 = ImGui.GetWindowViewport().Size.X / 4.5f;
             ImGui.SetNextWindowPos(new System.Numerics.Vector2(size1, ImGui.GetWindowViewport().Size.Y / 1.5f), ImGuiCond.Always);
             ImGui.SetNextWindowSize(new System.Numerics.Vector2(size1 * 2.5f, ImGui.GetWindowViewport().Size.Y/3), ImGuiCond.Always);
-            if (ImGui.Begin("Animations"))
+            if (ImGui.Begin("Animations", MainWindow.flags))
             {
                 if (InspectorWindow.SelectedScene.Value != null)
                 {
-                    var scene = in_Renderer.sVisibilityData.GetScene(InspectorWindow.SelectedScene.Value);
-                    foreach (var item in scene.Animation)
+                    if (ImGui.BeginListBox("##animlist"))
                     {
-                        bool selected = false;
-                        if(ImguiControls.CollapsingHeaderVisibility(item.Motion.Key, ref item.Active, ref selected, true))
+                        var scene = in_Renderer.sVisibilityData.GetScene(InspectorWindow.SelectedScene.Value);
+                        foreach (var item in scene.Animation)
                         {
-                            foreach (SharpNeedle.Ninja.Csd.Motions.FamilyMotion item2 in item.Motion.Value.FamilyMotions)
+                            bool selected = false;
+                            if (ImguiControls.CollapsingHeaderVisibility(item.Motion.Key, ref item.Active, ref selected, true))
                             {
-                                foreach (var item3 in item2.CastMotions)
+                                foreach (SharpNeedle.Ninja.Csd.Motions.FamilyMotion item2 in item.Motion.Value.FamilyMotions)
                                 {
+                                    foreach (var item3 in item2.CastMotions)
+                                    {
 
-                                    ImGui.Text(item3.Cast.Name);
+                                        ImGui.Text(item3.Cast.Name);
+                                    }
                                 }
+                                ImGui.TreePop();
                             }
-                            ImGui.TreePop();
-                        }                        
+                        }
+                        ImGui.EndListBox();
                     }
                 }
                 ImGui.End();

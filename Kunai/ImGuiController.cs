@@ -1,4 +1,4 @@
-﻿using ImGuiNET;
+﻿//using Hexa.NET.ImGui;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -7,6 +7,7 @@ using OpenTK.Mathematics;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using System.Diagnostics;
+using Hexa.NET.ImGui;
 using ErrorCode = OpenTK.Graphics.OpenGL4.ErrorCode;
 using System.IO;
 
@@ -57,7 +58,7 @@ namespace Kunai
 
             CompatibilityProfile = (GL.GetInteger((GetPName)All.ContextProfileMask) & (int)All.ContextCompatibilityProfileBit) != 0;
 
-            IntPtr context = ImGui.CreateContext();
+            var context = ImGui.CreateContext();
             ImGui.SetCurrentContext(context);
             var io = ImGui.GetIO();
             //io.Fonts.AddFontDefault();
@@ -162,10 +163,13 @@ void main()
         /// <summary>
         /// Recreates the device texture used to render text.
         /// </summary>
-        public void RecreateFontDeviceTexture()
+        public unsafe void RecreateFontDeviceTexture()
         {
             ImGuiIOPtr io = ImGui.GetIO();
-            io.Fonts.GetTexDataAsRGBA32(out IntPtr pixels, out int width, out int height, out int bytesPerPixel);
+            byte* pixels;
+            int width;
+            int height;
+            ImGui.GetTexDataAsRGBA32(io.Fonts, &pixels, &width, &height, null);
 
             int mips = (int)Math.Floor(Math.Log(Math.Max(width, height), 2));
 
@@ -178,7 +182,7 @@ void main()
             GL.TexStorage2D(TextureTarget2d.Texture2D, mips, SizedInternalFormat.Rgba8, width, height);
             LabelObject(ObjectLabelIdentifier.Texture, _fontTexture, "ImGui Text Atlas");
 
-            GL.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, width, height, PixelFormat.Bgra, PixelType.UnsignedByte, pixels);
+            GL.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, width, height, PixelFormat.Bgra, PixelType.UnsignedByte, (IntPtr)pixels);
 
             GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
 
@@ -194,7 +198,7 @@ void main()
             GL.BindTexture(TextureTarget.Texture2D, prevTexture2D);
             GL.ActiveTexture((TextureUnit)prevActiveTexture);
 
-            io.Fonts.SetTexID((IntPtr)_fontTexture);
+            io.Fonts.SetTexID(new ImTextureID(_fontTexture));
 
             io.Fonts.ClearTexData();
         }
@@ -296,7 +300,7 @@ void main()
             io.MouseWheelH = offset.X;
         }
 
-        private void RenderImDrawData(ImDrawDataPtr draw_data)
+        private unsafe void RenderImDrawData(ImDrawDataPtr draw_data)
         {
             if (draw_data.CmdListsCount == 0)
             {
@@ -410,23 +414,23 @@ void main()
             {
                 ImDrawListPtr cmd_list = draw_data.CmdLists[n];
 
-                GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, cmd_list.VtxBuffer.Size * Unsafe.SizeOf<ImDrawVert>(), cmd_list.VtxBuffer.Data);
+                GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, cmd_list.VtxBuffer.Size * Unsafe.SizeOf<ImDrawVert>(), (IntPtr)cmd_list.VtxBuffer.Data);
                 CheckGLError($"Data Vert {n}");
 
-                GL.BufferSubData(BufferTarget.ElementArrayBuffer, IntPtr.Zero, cmd_list.IdxBuffer.Size * sizeof(ushort), cmd_list.IdxBuffer.Data);
+                GL.BufferSubData(BufferTarget.ElementArrayBuffer, IntPtr.Zero, cmd_list.IdxBuffer.Size * sizeof(ushort), (IntPtr)cmd_list.IdxBuffer.Data);
                 CheckGLError($"Data Idx {n}");
 
                 for (int cmd_i = 0; cmd_i < cmd_list.CmdBuffer.Size; cmd_i++)
                 {
-                    ImDrawCmdPtr pcmd = cmd_list.CmdBuffer[cmd_i];
-                    if (pcmd.UserCallback != IntPtr.Zero)
+                    var pcmd = cmd_list.CmdBuffer[cmd_i];
+                    if (pcmd.UserCallback != null)
                     {
                         throw new NotImplementedException();
                     }
                     else
                     {
                         GL.ActiveTexture(TextureUnit.Texture0);
-                        GL.BindTexture(TextureTarget.Texture2D, (int)pcmd.TextureId);
+                        GL.BindTexture(TextureTarget.Texture2D, (int)pcmd.TextureId.Handle);
                         CheckGLError("Texture");
 
                         // We do _windowHeight - (int)clip.W instead of (int)clip.Y because gl has flipped Y when it comes to these coordinates
@@ -569,7 +573,7 @@ void main()
         public static ImGuiKey TranslateKey(Keys key)
         {
             if (key >= Keys.D0 && key <= Keys.D9)
-                return key - Keys.D0 + ImGuiKey._0;
+                return key - Keys.D0 + ImGuiKey.Key0;
 
             if (key >= Keys.A && key <= Keys.Z)
                 return key - Keys.A + ImGuiKey.A;

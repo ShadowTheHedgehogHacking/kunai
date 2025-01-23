@@ -11,7 +11,11 @@ namespace Kunai.Window
     {
         public static bool CollapsingHeaderVisibility(string name, ref bool visibile, ref bool isSelected, bool showArrow = true)
         {
-            bool returnVal = ImGui.TreeNodeEx($"##{name}header", !showArrow ? ImGuiTreeNodeFlags.Leaf : ImGuiTreeNodeFlags.None);
+            bool returnVal = true;
+            ImGui.BeginDisabled(!showArrow);
+            
+            returnVal = ImGui.TreeNodeEx($"##{name}header", !showArrow ? ImGuiTreeNodeFlags.Leaf : ImGuiTreeNodeFlags.None);
+            ImGui.EndDisabled();
             ImGui.SameLine(0, 1 * ImGui.GetStyle().ItemSpacing.X);
             ImGui.Checkbox($"##{name}togg", ref visibile);
             ImGui.SameLine(0, 1 * ImGui.GetStyle().ItemSpacing.X);

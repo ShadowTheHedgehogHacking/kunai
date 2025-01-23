@@ -217,6 +217,8 @@ namespace Kunai.Window
 
         public static void Render(CsdProject in_Proj)
         {
+            ImGui.SetNextWindowPos(new System.Numerics.Vector2((ImGui.GetWindowViewport().Size.X / 4.5f) * 3.5f, MenuBarWindow.menuBarHeight), ImGuiCond.Always);
+            ImGui.SetNextWindowSize(new System.Numerics.Vector2(ImGui.GetWindowViewport().Size.X / 4.5f, ImGui.GetWindowViewport().Size.Y), ImGuiCond.Always);
             if (ImGui.Begin("Inspector"))
             {
                 switch (eSelectionType)

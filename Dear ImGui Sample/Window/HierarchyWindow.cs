@@ -29,7 +29,9 @@ namespace Kunai.Window
             }
         }
         public static void Render(CsdProject in_Proj)
-        {
+        {            
+            ImGui.SetNextWindowPos(new System.Numerics.Vector2(0, MenuBarWindow.menuBarHeight), ImGuiCond.Always);
+            ImGui.SetNextWindowSize(new System.Numerics.Vector2(ImGui.GetWindowViewport().Size.X / 4.5f, ImGui.GetWindowViewport().Size.Y), ImGuiCond.Always);
             if (ImGui.Begin("Hierarchy"))
             {
                 foreach (SVisibilityData.SNode f in MainWindow.renderer.sVisibilityData.Nodes)

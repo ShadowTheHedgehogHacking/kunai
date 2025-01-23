@@ -1,11 +1,36 @@
-﻿using SharpNeedle.Ninja.Csd;
+﻿using ImGuiNET;
+using OpenTK.Graphics.OpenGL;
+using OpenTK.Mathematics;
+using OpenTK.Windowing.Desktop;
+using SharpNeedle.Ninja.Csd;
+using SharpNeedle.Ninja.Csd.Motions;
 using Shuriken.Models;
 using Shuriken.Rendering;
 using System.IO;
 using static Kunai.ShurikenRenderer.SVisibilityData;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 
 namespace Kunai.ShurikenRenderer
 {
+    [Flags]
+    public enum AnimationType : uint
+    {
+        None = 0,
+        HideFlag = 1,
+        XPosition = 2,
+        YPosition = 4,
+        Rotation = 8,
+        XScale = 16,
+        YScale = 32,
+        SubImage = 64,
+        Color = 128,
+        GradientTL = 256,
+        GradientBL = 512,
+        GradientTR = 1024,
+        GradientBR = 2048
+    }
+   
     public class SVisibilityData
     {
         public class SCast
@@ -17,8 +42,41 @@ namespace Kunai.ShurikenRenderer
                 Cast = in_Scene;
             }
         }
+        public class SAnimation
+        {
+            public KeyValuePair<string,Motion> Motion;
+            public bool Active = true;
+            public SAnimation(KeyValuePair<string,Motion> in_Scene)
+            {
+                Motion = in_Scene;
+            
+            }
+            public KeyFrameList GetTrack(Cast layer, AnimationType type)
+            {
+                foreach (SharpNeedle.Ninja.Csd.Motions.FamilyMotion animation in Motion.Value.FamilyMotions)
+                {
+                    foreach (SharpNeedle.Ninja.Csd.Motions.CastMotion animtrack in animation.CastMotions)
+                    {
+                        if (layer == animtrack.Cast)
+                        {
+                            if (animtrack.Capacity != 0)
+                            {
+                                foreach (var track in animtrack)
+                                {
+                                    if (track.Property.ToShurikenAnimationType() == type)
+                                        return track;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return null;
+            }
+        }
         public class SScene
         {
+            public List<SAnimation> Animation = new List<SAnimation>();
             public List<SCast> Casts = new List<SCast>();
             public KeyValuePair<string, Scene> Scene;
             public bool Active = true;
@@ -31,6 +89,10 @@ namespace Kunai.ShurikenRenderer
                     {
                         Casts.Add(new SCast(cast));
                     }
+                }
+                foreach(var mot in Scene.Value.Motions)
+                {
+                    Animation.Add(new SAnimation(mot));
                 }
             }
             public SCast GetVisibility(Cast cast)
@@ -79,6 +141,16 @@ namespace Kunai.ShurikenRenderer
             }
             return null;
         }
+        public SScene GetScene(Scene scene)
+        {
+            foreach (var node in Nodes)
+            {
+                foreach(var scene2 in node.Scene)
+                    if(scene2.Scene.Value == scene)
+                        return scene2;
+            }
+            return null;
+        }
     }
     public class ShurikenRenderHelper
     {
@@ -86,11 +158,20 @@ namespace Kunai.ShurikenRenderer
         public Vector2 size;
         public SVisibilityData sVisibilityData;
         public CsdProject WorkProjectCsd;
-        public ShurikenRenderHelper(Vector2 in_ViewportSize)
+        int fbo;
+        public float time;
+        public bool playingAnimations;
+        int rbo;
+        public int texColor;
+        //int texDepth;
+        Vector2i fboSize = default;
+        public GameWindow window;
+        public ShurikenRenderHelper(GameWindow window2, Vector2 in_ViewportSize)
         {
             size = in_ViewportSize;
             renderer = new Renderer((int)size.X, (int)size.Y);
             renderer.SetShader(renderer.shaderDictionary["basic"]);
+            window = window2;
         }
         public void LoadFile(string in_Path)
         {
@@ -127,18 +208,92 @@ namespace Kunai.ShurikenRenderer
         }
         public void Render(CsdProject in_CsdProject, float in_DeltaTime)
         {
-            renderer.Width = (int)size.X;
-            renderer.Height = (int)size.Y;
-            renderer.Start();
+            // Get the size of the child (i.e. the whole draw size of the windows).
+            System.Numerics.Vector2 wsize = ImGui.GetWindowSize();
 
-            RenderNode(in_CsdProject.Project.Root, in_DeltaTime);
-            foreach (KeyValuePair<string, SceneNode> node in in_CsdProject.Project.Root.Children)
+            // make sure the buffers are the currect size
+            Vector2i wsizei = new((int)wsize.X, (int)wsize.Y);
+            if (fboSize != wsizei)
             {
-                if (!sVisibilityData.GetVisibility(node.Value).Active) continue;
-                RenderNode(node.Value, in_DeltaTime);
+                fboSize = wsizei;
+
+                // create our frame buffer if needed
+                if (fbo == 0)
+                {
+                    fbo = GL.GenFramebuffer();
+                    // bind our frame buffer
+                    GL.BindFramebuffer(FramebufferTarget.Framebuffer, fbo);
+                    GL.ObjectLabel(ObjectLabelIdentifier.Framebuffer, fbo, 10, "GameWindow");
+                }
+
+                // bind our frame buffer
+                GL.BindFramebuffer(FramebufferTarget.Framebuffer, fbo);
+
+                if (texColor > 0)
+                    GL.DeleteTexture(texColor);
+
+                texColor = GL.GenTexture();
+                GL.BindTexture(TextureTarget.Texture2D, texColor);
+                GL.ObjectLabel(ObjectLabelIdentifier.Texture, texColor, 16, "GameWindow:Color");
+                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb, wsizei.X, wsizei.Y, 0, PixelFormat.Rgb, PixelType.UnsignedByte, IntPtr.Zero);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+                GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, texColor, 0);
+
+                if (rbo > 0)
+                    GL.DeleteRenderbuffer(rbo);
+
+                rbo = GL.GenRenderbuffer();
+                GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, rbo);
+                GL.ObjectLabel(ObjectLabelIdentifier.Renderbuffer, rbo, 16, "GameWindow:Depth");
+                GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.DepthComponent32f, wsizei.X, wsizei.Y);
+                GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, rbo);
+                //GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, 0);
+
+                //texDepth = GL.GenTexture();
+                //GL.BindTexture(TextureTarget.Texture2D, texDepth);
+                //GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.DepthComponent32f, 800, 600, 0, PixelFormat.DepthComponent, PixelType.Float, IntPtr.Zero);
+                //GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, texDepth, 0);
+
+                // make sure the frame buffer is complete
+                FramebufferErrorCode errorCode = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
+                if (errorCode != FramebufferErrorCode.FramebufferComplete)
+                    throw new Exception();
+            }
+            else
+            {
+                // bind our frame and depth buffer
+                GL.BindFramebuffer(FramebufferTarget.Framebuffer, fbo);
+                GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, rbo);
             }
 
-            renderer.End();
+            GL.Viewport(0, 0, wsizei.X, wsizei.Y); // change the viewport to window
+
+            // actually draw the scene
+            {
+                GL.ClearColor(Color4.BlueViolet);
+                GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+                renderer.Width = (int)size.X;
+                renderer.Height = (int)size.Y;
+                renderer.Start();
+                if(playingAnimations)
+                time += in_DeltaTime;
+                RenderNode(in_CsdProject.Project.Root, time);
+                foreach (KeyValuePair<string, SceneNode> node in in_CsdProject.Project.Root.Children)
+                {
+                    if (!sVisibilityData.GetVisibility(node.Value).Active) continue;
+                    RenderNode(node.Value, time);
+                }
+
+                renderer.End();
+            }
+
+            // unbind our bo so nothing else uses it
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+
+            GL.Viewport(0, 0, window.ClientSize.X, window.ClientSize.Y); // back to full screen size
+            
         }
         public void RenderNode(SceneNode in_Node, float in_DeltaTime)
         {
@@ -160,7 +315,7 @@ namespace Kunai.ShurikenRenderer
                 var transform = new CastTransform();
                 Cast cast = family.Casts[0];
 
-                UpdateCast(in_Scene, cast, transform, idx, in_DeltaTime, vis);
+                UpdateCast(in_Scene, cast, transform, idx, in_DeltaTime * in_Scene.FrameRate, vis);
                 idx += cast.Children.Count + 1;
             }
             priority = idx++;
@@ -178,71 +333,71 @@ namespace Kunai.ShurikenRenderer
             var gradientTopRight = in_UiElement.Info.GradientTopRight;
             var gradientBottomRight = in_UiElement.Info.GradientBottomRight;
 
-            //foreach (var animation in scene.Animations)
-            //{
-            //    if (!animation.Enabled)
-            //        continue;
-            //
-            //    for (int i = 0; i < 12; i++)
-            //    {
-            //        var type = (AnimationType)(1 << i);
-            //        var track = animation.GetTrack(in_UiElement, type);
-            //
-            //        if (track == null)
-            //            continue;
-            //
-            //        switch (type)
-            //        {
-            //            case AnimationType.HideFlag:
-            //                hideFlag = track.GetSingle(time) != 0;
-            //                break;
-            //
-            //            case AnimationType.XPosition:
-            //                position.X = track.GetSingle(time);
-            //                break;
-            //
-            //            case AnimationType.YPosition:
-            //                position.Y = track.GetSingle(time);
-            //                break;
-            //
-            //            case AnimationType.Rotation:
-            //                rotation = track.GetSingle(time);
-            //                break;
-            //
-            //            case AnimationType.XScale:
-            //                scale.X = track.GetSingle(time);
-            //                break;
-            //
-            //            case AnimationType.YScale:
-            //                scale.Y = track.GetSingle(time);
-            //                break;
-            //
-            //            case AnimationType.SubImage:
-            //                sprID = track.GetSingle(time);
-            //                break;
-            //
-            //            case AnimationType.Color:
-            //                color = track.GetColor(time);
-            //                break;
-            //
-            //            case AnimationType.GradientTL:
-            //                gradientTopLeft = track.GetColor(time);
-            //                break;
-            //
-            //            case AnimationType.GradientBL:
-            //                gradientBottomLeft = track.GetColor(time);
-            //                break;
-            //
-            //            case AnimationType.GradientTR:
-            //                gradientTopRight = track.GetColor(time);
-            //                break;
-            //
-            //            case AnimationType.GradientBR:
-            //                gradientBottomRight = track.GetColor(time);
-            //                break;
-            //        }
-            //    }
-            //}
+            foreach (var animation in vis.Animation)
+            {
+                if (!animation.Active)
+                    continue;
+            
+                for (int i = 0; i < 12; i++)
+                {
+                    var type = (AnimationType)(1 << i);
+                    var track = animation.GetTrack(in_UiElement, type);
+            
+                    if (track == null)
+                        continue;
+            
+                    switch (type)
+                    {
+                        case AnimationType.HideFlag:
+                            hideFlag = track.GetSingle(time) != 0;
+                            break;
+            
+                        case AnimationType.XPosition:
+                            position.X = track.GetSingle(time);
+                            break;
+            
+                        case AnimationType.YPosition:
+                            position.Y = track.GetSingle(time);
+                            break;
+            
+                        case AnimationType.Rotation:
+                            rotation = track.GetSingle(time);
+                            break;
+            
+                        case AnimationType.XScale:
+                            scale.X = track.GetSingle(time);
+                            break;
+            
+                        case AnimationType.YScale:
+                            scale.Y = track.GetSingle(time);
+                            break;
+            
+                        case AnimationType.SubImage:
+                            sprID = track.GetSingle(time);
+                            break;
+            
+                        case AnimationType.Color:
+                            color = track.GetColor(time);
+                            break;
+            
+                        case AnimationType.GradientTL:
+                            gradientTopLeft = track.GetColor(time);
+                            break;
+            
+                        case AnimationType.GradientBL:
+                            gradientBottomLeft = track.GetColor(time);
+                            break;
+            
+                        case AnimationType.GradientTR:
+                            gradientTopRight = track.GetColor(time);
+                            break;
+            
+                        case AnimationType.GradientBR:
+                            gradientBottomRight = track.GetColor(time);
+                            break;
+                    }
+                }
+            }
 
             if (hideFlag)
                 return;

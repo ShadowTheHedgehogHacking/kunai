@@ -8,6 +8,7 @@ using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using System.Diagnostics;
 using ErrorCode = OpenTK.Graphics.OpenGL4.ErrorCode;
+using System.IO;
 
 namespace Kunai
 {
@@ -59,8 +60,8 @@ namespace Kunai
             IntPtr context = ImGui.CreateContext();
             ImGui.SetCurrentContext(context);
             var io = ImGui.GetIO();
-            io.Fonts.AddFontDefault();
-
+            //io.Fonts.AddFontDefault();
+            io.Fonts.AddFontFromFileTTF(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RobotoVariable.ttf"), 20);
             io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
             // Enable Docking
             io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;

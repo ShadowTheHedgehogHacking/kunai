@@ -154,24 +154,35 @@ namespace Kunai.ShurikenRenderer
     }
     public class ShurikenRenderHelper
     {
+        public struct SViewportData
+        {
+            public int csdRenderTextureHandle;
+            public Vector2i framebufferSize;
+            public int renderbufferHandle;
+            public int framebufferHandle;
+        }
+        public struct SProjectConfig
+        {
+            public string WorkFilePath;
+            public bool playingAnimations;
+            public bool showQuads;
+            public double time;
+        }
         public Renderer renderer;
-        public Vector2 size;
-        public SVisibilityData sVisibilityData;
+        public Vector2 viewportSize;
+        public SVisibilityData visibilityData;
         public CsdProject WorkProjectCsd;
-        int fbo;
-        public double time;
-        public bool playingAnimations;
-        int rbo;
-        public int texColor;
-        //int texDepth;
-        Vector2i fboSize = default;
-        public GameWindow window;
+        public SProjectConfig config;
+        private SViewportData viewportData;
+        private GameWindow window;
         public ShurikenRenderHelper(GameWindow window2, Vector2 in_ViewportSize)
         {
-            size = in_ViewportSize;
-            renderer = new Renderer((int)size.X, (int)size.Y);
+            viewportSize = in_ViewportSize;
+            renderer = new Renderer((int)viewportSize.X, (int)viewportSize.Y);
             renderer.SetShader(renderer.shaderDictionary["basic"]);
             window = window2;
+            viewportData = new SViewportData();
+            config = new SProjectConfig(); 
         }
         public void LoadFile(string in_Path)
         {
@@ -179,6 +190,7 @@ namespace Kunai.ShurikenRenderer
             ITextureList xTextures = WorkProjectCsd.Textures;
             CsdDictionary<SharpNeedle.Ninja.Csd.Font> xFontList = WorkProjectCsd.Project.Fonts;
 
+            config.WorkFilePath = in_Path;
             string root = System.IO.Path.GetDirectoryName(System.IO.Path.GetFullPath(@in_Path));
             SpriteHelper.textureList = new TextureList("textures");
             if (xTextures != null)
@@ -204,8 +216,14 @@ namespace Kunai.ShurikenRenderer
                 }
             }
             SpriteHelper.LoadTextures(WorkProjectCsd);
-            sVisibilityData = new SVisibilityData(WorkProjectCsd);
+            visibilityData = new SVisibilityData(WorkProjectCsd);
         }
+        /// <summary>
+        /// Renders contents of a CsdProject to a GL texture for use in ImGui
+        /// </summary>
+        /// <param name="in_CsdProject"></param>
+        /// <param name="in_DeltaTime"></param>
+        /// <exception cref="Exception"></exception>
         public void Render(CsdProject in_CsdProject, float in_DeltaTime)
         {
             // Get the size of the child (i.e. the whole draw size of the windows).
@@ -213,41 +231,41 @@ namespace Kunai.ShurikenRenderer
 
             // make sure the buffers are the currect size
             Vector2i wsizei = new((int)wsize.X, (int)wsize.Y);
-            if (fboSize != wsizei)
+            if (viewportData.framebufferSize != wsizei)
             {
-                fboSize = wsizei;
+                viewportData.framebufferSize = wsizei;
 
                 // create our frame buffer if needed
-                if (fbo == 0)
+                if (viewportData.framebufferHandle == 0)
                 {
-                    fbo = GL.GenFramebuffer();
+                    viewportData.framebufferHandle = GL.GenFramebuffer();
                     // bind our frame buffer
-                    GL.BindFramebuffer(FramebufferTarget.Framebuffer, fbo);
-                    GL.ObjectLabel(ObjectLabelIdentifier.Framebuffer, fbo, 10, "GameWindow");
+                    GL.BindFramebuffer(FramebufferTarget.Framebuffer, viewportData.framebufferHandle);
+                    GL.ObjectLabel(ObjectLabelIdentifier.Framebuffer, viewportData.framebufferHandle, 10, "GameWindow");
                 }
 
                 // bind our frame buffer
-                GL.BindFramebuffer(FramebufferTarget.Framebuffer, fbo);
+                GL.BindFramebuffer(FramebufferTarget.Framebuffer, viewportData.framebufferHandle);
 
-                if (texColor > 0)
-                    GL.DeleteTexture(texColor);
+                if (viewportData.csdRenderTextureHandle > 0)
+                    GL.DeleteTexture(viewportData.csdRenderTextureHandle);
 
-                texColor = GL.GenTexture();
-                GL.BindTexture(TextureTarget.Texture2D, texColor);
-                GL.ObjectLabel(ObjectLabelIdentifier.Texture, texColor, 16, "GameWindow:Color");
+                viewportData.csdRenderTextureHandle = GL.GenTexture();
+                GL.BindTexture(TextureTarget.Texture2D, viewportData.csdRenderTextureHandle);
+                GL.ObjectLabel(ObjectLabelIdentifier.Texture, viewportData.csdRenderTextureHandle, 16, "GameWindow:Color");
                 GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb, wsizei.X, wsizei.Y, 0, PixelFormat.Rgb, PixelType.UnsignedByte, IntPtr.Zero);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-                GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, texColor, 0);
+                GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, viewportData.csdRenderTextureHandle, 0);
 
-                if (rbo > 0)
-                    GL.DeleteRenderbuffer(rbo);
+                if (viewportData.renderbufferHandle > 0)
+                    GL.DeleteRenderbuffer(viewportData.renderbufferHandle);
 
-                rbo = GL.GenRenderbuffer();
-                GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, rbo);
-                GL.ObjectLabel(ObjectLabelIdentifier.Renderbuffer, rbo, 16, "GameWindow:Depth");
+                viewportData.renderbufferHandle = GL.GenRenderbuffer();
+                GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, viewportData.renderbufferHandle);
+                GL.ObjectLabel(ObjectLabelIdentifier.Renderbuffer, viewportData.renderbufferHandle, 16, "GameWindow:Depth");
                 GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.DepthComponent32f, wsizei.X, wsizei.Y);
-                GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, rbo);
+                GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, viewportData.renderbufferHandle);
                 //GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, 0);
 
                 //texDepth = GL.GenTexture();
@@ -263,30 +281,16 @@ namespace Kunai.ShurikenRenderer
             else
             {
                 // bind our frame and depth buffer
-                GL.BindFramebuffer(FramebufferTarget.Framebuffer, fbo);
-                GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, rbo);
+                GL.BindFramebuffer(FramebufferTarget.Framebuffer, viewportData.framebufferHandle);
+                GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, viewportData.renderbufferHandle);
             }
 
             GL.Viewport(0, 0, wsizei.X, wsizei.Y); // change the viewport to window
 
             // actually draw the scene
             {
-                GL.ClearColor(Color4.BlueViolet);
-                GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
-                renderer.Width = (int)size.X;
-                renderer.Height = (int)size.Y;
-                renderer.Start();
-                if(playingAnimations)
-                time += in_DeltaTime;
-                RenderNode(in_CsdProject.Project.Root, time);
-                foreach (KeyValuePair<string, SceneNode> node in in_CsdProject.Project.Root.Children)
-                {
-                    if (!sVisibilityData.GetVisibility(node.Value).Active) continue;
-                    RenderNode(node.Value, time);
-                }
-
-                renderer.End();
+                RenderToViewport(in_CsdProject, in_DeltaTime);
+                
             }
 
             // unbind our bo so nothing else uses it
@@ -295,9 +299,46 @@ namespace Kunai.ShurikenRenderer
             GL.Viewport(0, 0, window.ClientSize.X, window.ClientSize.Y); // back to full screen size
             
         }
+
+        private void RenderToViewport(CsdProject in_CsdProject, float in_DeltaTime)
+        {
+            GL.ClearColor(Color4.BlueViolet);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+            renderer.Width = (int)viewportSize.X;
+            renderer.Height = (int)viewportSize.Y;
+            renderer.Start();
+            if (config.playingAnimations)
+                config.time += in_DeltaTime;
+            RenderNode(in_CsdProject.Project.Root, config.time);
+            foreach (KeyValuePair<string, SceneNode> node in in_CsdProject.Project.Root.Children)
+            {
+                if (!visibilityData.GetVisibility(node.Value).Active) continue;
+                RenderNode(node.Value, config.time);
+            }
+            //if (ImGui.Begin("teatatat"))
+            //{
+            //    foreach (var f in renderer.GetQuads())
+            //    {
+            //
+            //        var tl = new Vector2(size.X * f.TopLeft.UV.X, size.Y * f.TopLeft.UV.Y);
+            //        var br = new Vector2(size.X * f.BottomRight.UV.X, size.Y * f.BottomRight.UV.Y);
+            //        ImGui.GetWindowDrawList().AddLine(tl, br, ImGui.GetColorU32(new System.Numerics.Vector4(255, 255, 255, 255)), 2);
+            //
+            //
+            //
+            //        var tr = new Vector2(size.X * f.TopRight.UV.X, size.Y * f.TopRight.UV.Y);
+            //        var bl = new Vector2(size.X * f.BottomLeft.UV.X, size.Y * f.BottomLeft.UV.Y);
+            //        ImGui.GetWindowDrawList().AddLine(tr, bl, ImGui.GetColorU32(new System.Numerics.Vector4(255, 255, 255, 255)), 2);
+            //    }
+            //    ImGui.End();
+            //}
+            renderer.End();
+        }
+
         public void RenderNode(SceneNode in_Node, double in_DeltaTime)
         {
-            SVisibilityData.SNode vis = sVisibilityData.GetVisibility(in_Node);
+            SVisibilityData.SNode vis = visibilityData.GetVisibility(in_Node);
             int idx = 0;
             foreach (var scene in in_Node.Scenes)
             {
@@ -452,7 +493,11 @@ namespace Kunai.ShurikenRenderer
                     int test2 = Math.Min(in_UiElement.SpriteIndices.Length - 1, (int)sprID + 1);
                     Shuriken.Rendering.Sprite spr = sprID >= 0 ? SpriteHelper.TryGetSprite(in_UiElement.SpriteIndices[test]) : null;
                     Shuriken.Rendering.Sprite nextSpr = sprID >= 0 ? SpriteHelper.TryGetSprite(in_UiElement.SpriteIndices[test2]) : null;
-
+                    if(config.showQuads)
+                    {
+                        spr = null;
+                        nextSpr = null;
+                    }
                     spr ??= nextSpr;
                     nextSpr ??= spr;
                     renderer.DrawSprite(
@@ -511,6 +556,15 @@ namespace Kunai.ShurikenRenderer
                 foreach (var child in in_UiElement.Children)
                     UpdateCast(scene, child, childTransform, priority++, time, vis);
             }
+        }
+
+        public int GetViewportImageHandle()
+        {
+            return viewportData.csdRenderTextureHandle;
+        }
+        public void SaveCurrentFile(string in_Path)
+        {
+            WorkProjectCsd.Write(in_Path == null ? config.WorkFilePath : in_Path);
         }
     }
 }

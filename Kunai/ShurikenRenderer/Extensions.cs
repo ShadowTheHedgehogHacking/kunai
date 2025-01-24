@@ -20,6 +20,14 @@ public static class ExtensionKillMe
     {
         return new System.Numerics.Vector4(value.R / 255.0f, value.G / 255.0f, value.B / 255.0f, value.A / 255.0f);
     }
+    public static System.Numerics.Vector4 Invert_ToVec4(this Color<byte> value)
+    {
+        return new System.Numerics.Vector4(value.A / 255.0f, value.B / 255.0f, value.G / 255.0f, value.R / 255.0f);
+    }
+    public static Color<byte> Invert_ToColor(this System.Numerics.Vector4 value)
+    {
+        return new Color<byte>((byte)(value.W * 255), (byte)(value.Z * 255), (byte)(value.Y * 255), (byte)(value.X * 255));
+    }
     public static double Magnitude(this Color<byte> value)
     {
         return Math.Sqrt(value.R * value.R + value.G * value.G + value.B * value.B + value.A * value.A);

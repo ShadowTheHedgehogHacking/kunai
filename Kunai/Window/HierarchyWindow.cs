@@ -36,7 +36,7 @@ namespace Kunai.Window
             {
                 if (in_Proj != null)
                 {
-                    foreach (SVisibilityData.SNode f in MainWindow.renderer.sVisibilityData.Nodes)
+                    foreach (SVisibilityData.SNode f in MainWindow.renderer.visibilityData.Nodes)
                     {
                         bool selectedNode = false;
                         bool selectedScene = false;

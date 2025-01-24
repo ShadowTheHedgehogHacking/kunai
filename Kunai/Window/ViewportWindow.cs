@@ -13,12 +13,14 @@ namespace Kunai.Window
             ImGui.SetNextWindowSize(new System.Numerics.Vector2(size1 * 2.5f, ImGui.GetWindowViewport().Size.Y / 1.5f), ImGuiCond.Always);
             if (ImGui.Begin("Viewport", MainWindow.flags))
             {
-                ImGui.Checkbox("Play", ref in_Renderer.playingAnimations);
+                ImGui.Checkbox("Play", ref in_Renderer.config.playingAnimations);
                 ImGui.SameLine();
-                ImGui.InputDouble("Time", ref in_Renderer.time);
+                ImGui.Checkbox("Show Quads", ref in_Renderer.config.showQuads);
+                ImGui.SameLine();
+                ImGui.InputDouble("Time", ref in_Renderer.config.time);
                 zoomFactor += ImGui.GetIO().MouseWheel / 5;
                 zoomFactor = Math.Clamp(zoomFactor, 0.5f, 5);
-                float windowHeight = ImGui.GetWindowWidth() * (in_Renderer.size.Y / in_Renderer.size.X);
+                float windowHeight = ImGui.GetWindowWidth() * (in_Renderer.viewportSize.Y / in_Renderer.viewportSize.X);
                 ImGui.SliderFloat("Zoom", ref zoomFactor, 0.5f, 5);
                 var size = new System.Numerics.Vector2(ImGui.GetWindowWidth(), windowHeight) * zoomFactor;
 
@@ -29,7 +31,7 @@ namespace Kunai.Window
                 {
                     ImGui.SetCursorPos((ImGui.GetWindowSize() - size) * 0.5f);
                     ImGui.Image(
-                        new ImTextureID(in_Renderer.texColor), size,
+                        new ImTextureID(in_Renderer.GetViewportImageHandle()), size,
                         new System.Numerics.Vector2(0, 1), new System.Numerics.Vector2(1, 0));
                     ImGui.EndListBox();
                 }

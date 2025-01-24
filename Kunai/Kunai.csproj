@@ -35,6 +35,9 @@
   <Folder Include="Resources\" />
 </ItemGroup>
 <ItemGroup>
+  <None Update="Resources\fa-regular-400.ttf">
+    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+  </None>
   <None Update="Resources\RobotoVariable.ttf">
     <CopyToOutputDirectory>Always</CopyToOutputDirectory>
   </None>

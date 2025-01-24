@@ -11,6 +11,7 @@ using Hexa.NET.ImGui;
 using ErrorCode = OpenTK.Graphics.OpenGL4.ErrorCode;
 using System.IO;
 using Hexa.NET.ImPlot;
+using IconFonts;
 
 namespace Kunai
 {
@@ -66,7 +67,15 @@ namespace Kunai
             ImPlot.SetImGuiContext(ImGui.GetCurrentContext());
             var io = ImGui.GetIO();
             //io.Fonts.AddFontDefault();
+
+            
+            //io.Fonts.AddFontFromFileTTF(IconFonts.FontAwesome6.FontIconFileNameFAR, 16, icons_config, new uint[64]{ Icon });
             io.Fonts.AddFontFromFileTTF(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RobotoVariable.ttf"), 20);
+            //unsafe
+            //{
+            //    io.Fonts.AddFontFromFileTTF(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, IconFonts.FontAwesome6.FontIconFileNameFAR), 16, &icons_config, ranges.Data);
+            //
+            //}
             io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
             // Enable Docking
             io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;

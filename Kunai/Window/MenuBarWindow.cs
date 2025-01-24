@@ -1,4 +1,5 @@
 ﻿using Hexa.NET.ImGui;
+using IconFonts;
 using Kunai.ShurikenRenderer;
 using Shuriken.Rendering;
 using System;
@@ -12,33 +13,33 @@ namespace Kunai.Window
     public static class MenuBarWindow
     {
         public static float menuBarHeight = 32;
+        private static readonly string filters = "xncp,yncp,gncp;xncp;yncp;gncp";
 
         public static void Render(ShurikenRenderHelper in_Renderer)
         {
             if (ImGui.BeginMainMenuBar())
             {
                 MenuBarWindow.menuBarHeight = ImGui.GetWindowSize().Y;
-                uint test = ImGui.GetWindowDockID();
-                ImGui.Text(test.ToString());
-                if (ImGui.Button("Trigger load prompt"))
+
+                MenuBarWindow.menuBarHeight = ImGui.GetWindowSize().Y;
+                if (ImGui.BeginMenu($"File"))
                 {
-                    var testdial = NativeFileDialogSharp.Dialog.FileOpen();
-                    if (testdial.IsOk)
+                    if (ImGui.MenuItem("Open CSD Project..."))
                     {
-                        in_Renderer.LoadFile(@testdial.Path);
-                        //else
-                        //{
-                        //    //GNCP/SNCP requires TXDs
-                        //    if (extension == ".gncp" || extension == ".sncp")
-                        //    {
-                        //        GSncpImportWindow windowImport = new GSncpImportWindow();
-                        //        windowImport.ShowDialog();
-                        //    }
-                        //    else
-                        //        MessageBox.Show("The loaded UI file has an invalid texture list, textures will not load.", "", MessageBoxButton.OK, MessageBoxImage.Warning);
-                        //}
+                        var testdial = NativeFileDialogSharp.Dialog.FileOpen(filters);
+                        if (testdial.IsOk)
+                        {
+                            in_Renderer.LoadFile(@testdial.Path);
+                        }
                     }
+                    if (ImGui.MenuItem("Save", "Ctrl + S"))
+                    {
+                        in_Renderer.SaveCurrentFile(null);
+                    }
+                    ImGui.EndMenu();
                 }
+
+
             }
             ImGui.EndMainMenuBar();
         }

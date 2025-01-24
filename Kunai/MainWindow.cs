@@ -168,7 +168,7 @@ namespace Kunai
             {
                 float deltaTime = (float)(e.Time);
                 renderer.Render(renderer.WorkProjectCsd, (float)deltaTime);
-
+                
                 
             }
             HierarchyWindow.Render(renderer.WorkProjectCsd);

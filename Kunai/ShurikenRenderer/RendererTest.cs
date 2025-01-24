@@ -104,6 +104,10 @@ namespace Shuriken.Rendering
             Width = width;
             Height = height;
         }
+        public List<Quad> GetQuads()
+        {
+            return quads;
+        }
 
         private void Init()
         {

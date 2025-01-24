@@ -8,12 +8,15 @@ using Kunai.ShurikenRenderer;
 using Kunai.Window;
 using System.Windows;
 using Hexa.NET.ImPlot;
+using OpenTK.Windowing.Common.Input;
+using System.Configuration;
 
 
 namespace Kunai
 {
     public class MainWindow : GameWindow
     {
+        public static readonly string applicationName = "Kunai";
         float test = 1;
         ImGuiController _controller;
         public static ShurikenRenderHelper renderer;
@@ -25,7 +28,7 @@ namespace Kunai
             base.OnLoad();
             renderer = new ShurikenRenderHelper(this, new ShurikenRenderer.Vector2(1280, 720), new ShurikenRenderer.Vector2(ClientSize.X, ClientSize.Y));
 
-            Title = "Kunai";
+            Title = applicationName;
 
             _controller = new ImGuiController(ClientSize.X, ClientSize.Y);
             if (Program.arguments.Length > 0)
@@ -170,10 +173,9 @@ namespace Kunai
             MenuBarWindow.Render(renderer);
             if (renderer.WorkProjectCsd != null)
             {
+                Title = applicationName + $" - [{renderer.config.WorkFilePath}]";
                 float deltaTime = (float)(e.Time);
-                renderer.Render(renderer.WorkProjectCsd, (float)deltaTime);
-                
-                
+                renderer.Render(renderer.WorkProjectCsd, (float)deltaTime);                
             }
             HierarchyWindow.Render(renderer.WorkProjectCsd);
             InspectorWindow.Render(renderer.WorkProjectCsd);

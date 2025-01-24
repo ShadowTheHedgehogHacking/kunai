@@ -46,6 +46,42 @@ namespace Kunai
         /// <summary>
         /// Constructs a new ImGuiController.
         /// </summary>
+        /// 
+        const int MDT_EFFECTIVE_DPI = 0;
+        [DllImport("Shcore.dll")]
+        private static extern int GetDpiForMonitor(
+            IntPtr hmonitor,
+            int dpiType,
+            out uint dpiX,
+            out uint dpiY);
+
+        [DllImport("User32.dll")]
+        private static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint dwFlags);
+
+        public static float GetDpiScaling()
+        {
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+
+                IntPtr hMonitor = MonitorFromWindow(IntPtr.Zero, 2); // Primary monitor
+                uint dpiX, dpiY;
+
+                int result = GetDpiForMonitor(hMonitor, MDT_EFFECTIVE_DPI, out dpiX, out dpiY);
+
+                if (result == 0) // S_OK
+                {
+                    Console.WriteLine($"DPI Scale: {dpiX}x{dpiY}");
+                }
+                else
+                {
+                    Console.WriteLine("Error retrieving DPI.");
+                }
+                return dpiX / 100.0f;
+            }
+
+            return 1;
+        }
         public ImGuiController(int width, int height)
         {
             _windowWidth = width;
@@ -70,7 +106,7 @@ namespace Kunai
 
             
             //io.Fonts.AddFontFromFileTTF(IconFonts.FontAwesome6.FontIconFileNameFAR, 16, icons_config, new uint[64]{ Icon });
-            io.Fonts.AddFontFromFileTTF(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RobotoVariable.ttf"), 20);
+            io.Fonts.AddFontFromFileTTF(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RobotoVariable.ttf"), 16 * GetDpiScaling());
             //unsafe
             //{
             //    io.Fonts.AddFontFromFileTTF(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, IconFonts.FontAwesome6.FontIconFileNameFAR), 16, &icons_config, ranges.Data);

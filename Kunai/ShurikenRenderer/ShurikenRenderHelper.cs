@@ -1,4 +1,5 @@
 ﻿using Hexa.NET.ImGui;
+using Kunai.Window;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Desktop;
@@ -6,6 +7,7 @@ using SharpNeedle.Ninja.Csd;
 using SharpNeedle.Ninja.Csd.Motions;
 using Shuriken.Models;
 using Shuriken.Rendering;
+using System.Diagnostics;
 using System.IO;
 
 namespace Kunai.ShurikenRenderer
@@ -27,7 +29,7 @@ namespace Kunai.ShurikenRenderer
         GradientTR = 1024,
         GradientBR = 2048
     }
-   
+
     public class SVisibilityData
     {
         public class SCast
@@ -41,12 +43,12 @@ namespace Kunai.ShurikenRenderer
         }
         public class SAnimation
         {
-            public KeyValuePair<string,Motion> Motion;
+            public KeyValuePair<string, Motion> Motion;
             public bool Active = true;
-            public SAnimation(KeyValuePair<string,Motion> in_Scene)
+            public SAnimation(KeyValuePair<string, Motion> in_Scene)
             {
                 Motion = in_Scene;
-            
+
             }
             public KeyFrameList GetTrack(Cast layer, AnimationType type)
             {
@@ -80,14 +82,14 @@ namespace Kunai.ShurikenRenderer
             public SScene(KeyValuePair<string, Scene> in_Scene)
             {
                 Scene = in_Scene;
-                foreach(var group in Scene.Value.Families)
+                foreach (var group in Scene.Value.Families)
                 {
-                    foreach(var cast in group.Casts)
+                    foreach (var cast in group.Casts)
                     {
                         Casts.Add(new SCast(cast));
                     }
                 }
-                foreach(var mot in Scene.Value.Motions)
+                foreach (var mot in Scene.Value.Motions)
                 {
                     Animation.Add(new SAnimation(mot));
                 }
@@ -104,11 +106,11 @@ namespace Kunai.ShurikenRenderer
             public KeyValuePair<string, SceneNode> Node;
             public bool Active = true;
 
-            
+
             public SNode(KeyValuePair<string, SceneNode> in_Node)
             {
                 Node = in_Node;
-                foreach(var scene in Node.Value.Scenes)
+                foreach (var scene in Node.Value.Scenes)
                 {
                     Scene.Add(new SScene(scene));
                 }
@@ -142,8 +144,8 @@ namespace Kunai.ShurikenRenderer
         {
             foreach (var node in Nodes)
             {
-                foreach(var scene2 in node.Scene)
-                    if(scene2.Scene.Value == scene)
+                foreach (var scene2 in node.Scene)
+                    if (scene2.Scene.Value == scene)
                         return scene2;
             }
             return null;
@@ -187,10 +189,10 @@ namespace Kunai.ShurikenRenderer
 
         public void ShowMessageBoxCross(string title, string message, bool isWarning)
         {
-#if WINDOWS
-            System.Windows.MessageBox.Show(message, title, System.Windows.MessageBoxButton.OK, isWarning ? System.Windows.MessageBoxImage.Warning : System.Windows.MessageBoxImage.Information);
-#else
-#endif
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                System.Windows.MessageBox.Show(message, title, System.Windows.MessageBoxButton.OK, isWarning ? System.Windows.MessageBoxImage.Warning : System.Windows.MessageBoxImage.Information);
+            }
         }
         public void LoadFile(string in_Path)
         {
@@ -204,6 +206,8 @@ namespace Kunai.ShurikenRenderer
                 ShowMessageBoxCross("Error", ex.Message, true);
                 return;
             }
+            visibilityData = null;
+            InspectorWindow.Reset();
             ITextureList xTextures = WorkProjectCsd.Textures;
             CsdDictionary<SharpNeedle.Ninja.Csd.Font> xFontList = WorkProjectCsd.Project.Fonts;
             SpriteHelper.ClearTextures();
@@ -228,11 +232,12 @@ namespace Kunai.ShurikenRenderer
                         SpriteHelper.textureList.Textures.Add(new Texture(texPath, tempChangeExtension));
                     else
                     {
+                        SpriteHelper.textureList.Textures.Add(new Texture("", tempChangeExtension));
                         missingTextures.Add(texture.Name);
                     }
                     //    MissingTextures.Add(texture.Name);
                 }
-                if(missingTextures.Count > 0)
+                if (missingTextures.Count > 0)
                 {
                     string textureNames = "";
                     foreach (string textureName in missingTextures)
@@ -315,14 +320,14 @@ namespace Kunai.ShurikenRenderer
             // actually draw the scene
             {
                 RenderToViewport(in_CsdProject, in_DeltaTime);
-                
+
             }
 
             // unbind our bo so nothing else uses it
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
 
             GL.Viewport(0, 0, window.ClientSize.X, window.ClientSize.Y); // back to full screen size
-            
+
         }
         private void RenderToViewport(CsdProject in_CsdProject, float in_DeltaTime)
         {
@@ -367,7 +372,7 @@ namespace Kunai.ShurikenRenderer
             foreach (var scene in in_Node.Scenes)
             {
                 if (!vis.GetVisibility(scene.Value).Active) continue;
-                RenderScenes(scene.Value,vis, ref idx, in_DeltaTime);
+                RenderScenes(scene.Value, vis, ref idx, in_DeltaTime);
                 // = true;
             }
         }
@@ -385,7 +390,7 @@ namespace Kunai.ShurikenRenderer
             }
             priority = idx++;
         }
-        private void UpdateCast(Scene scene, Cast in_UiElement, CastTransform transform,int priority, float time, SVisibilityData.SScene vis)
+        private void UpdateCast(Scene scene, Cast in_UiElement, CastTransform transform, int priority, float time, SVisibilityData.SScene vis)
         {
             bool hideFlag = in_UiElement.Info.HideFlag != 0;
             var position = new System.Numerics.Vector2(in_UiElement.Info.Translation.X, in_UiElement.Info.Translation.Y);
@@ -402,61 +407,61 @@ namespace Kunai.ShurikenRenderer
             {
                 if (!animation.Active)
                     continue;
-            
+
                 for (int i = 0; i < 12; i++)
                 {
                     var type = (AnimationType)(1 << i);
                     var track = animation.GetTrack(in_UiElement, type);
-            
+
                     if (track == null)
                         continue;
-            
+
                     switch (type)
                     {
                         case AnimationType.HideFlag:
                             hideFlag = track.GetSingle(time) != 0;
                             break;
-            
+
                         case AnimationType.XPosition:
                             position.X = track.GetSingle(time);
                             break;
-            
+
                         case AnimationType.YPosition:
                             position.Y = track.GetSingle(time);
                             break;
-            
+
                         case AnimationType.Rotation:
                             rotation = track.GetSingle(time);
                             break;
-            
+
                         case AnimationType.XScale:
                             scale.X = track.GetSingle(time);
                             break;
-            
+
                         case AnimationType.YScale:
                             scale.Y = track.GetSingle(time);
                             break;
-            
+
                         case AnimationType.SubImage:
                             sprID = track.GetSingle(time);
                             break;
-            
+
                         case AnimationType.Color:
                             color = track.GetColor(time);
                             break;
-            
+
                         case AnimationType.GradientTL:
                             gradientTopLeft = track.GetColor(time);
                             break;
-            
+
                         case AnimationType.GradientBL:
                             gradientBottomLeft = track.GetColor(time);
                             break;
-            
+
                         case AnimationType.GradientTR:
                             gradientTopRight = track.GetColor(time);
                             break;
-            
+
                         case AnimationType.GradientBR:
                             gradientBottomRight = track.GetColor(time);
                             break;
@@ -503,21 +508,21 @@ namespace Kunai.ShurikenRenderer
             // Inherit color
             if (InheritanceFlags.HasFlag(ElementInheritanceFlags.InheritColor))
             {
-                var cF = color.ToVec4() * transform.Color;
+                var cF = color.ToVec4() * transform.Color.Invert();
                 color = cF.ToSharpNeedleColor();
             }
             var Type = (DrawType)in_UiElement.Field04;
             var Flags = (ElementMaterialFlags)in_UiElement.Field38;
 
-            if (vis.GetVisibility(in_UiElement).Active &&  in_UiElement.Enabled)
+            if (vis.GetVisibility(in_UiElement).Active && in_UiElement.Enabled)
             {
                 if (Type == DrawType.Sprite)
                 {
-                    int test = Math.Min(in_UiElement.SpriteIndices.Length - 1, (int)sprID);
-                    int test2 = Math.Min(in_UiElement.SpriteIndices.Length - 1, (int)sprID + 1);
-                    Shuriken.Rendering.Sprite spr = sprID >= 0 ? SpriteHelper.TryGetSprite(in_UiElement.SpriteIndices[test]) : null;
-                    Shuriken.Rendering.Sprite nextSpr = sprID >= 0 ? SpriteHelper.TryGetSprite(in_UiElement.SpriteIndices[test2]) : null;
-                    if(config.showQuads)
+                    int spriteIdx1 = Math.Min(in_UiElement.SpriteIndices.Length - 1, (int)sprID);
+                    int spriteIdx2 = Math.Min(in_UiElement.SpriteIndices.Length - 1, (int)sprID + 1);
+                    Shuriken.Rendering.Sprite spr = sprID >= 0 ? SpriteHelper.TryGetSprite(in_UiElement.SpriteIndices[spriteIdx1]) : null;
+                    Shuriken.Rendering.Sprite nextSpr = sprID >= 0 ? SpriteHelper.TryGetSprite(in_UiElement.SpriteIndices[spriteIdx2]) : null;
+                    if (config.showQuads)
                     {
                         spr = null;
                         nextSpr = null;
@@ -532,47 +537,47 @@ namespace Kunai.ShurikenRenderer
                 }
                 else if (Type == DrawType.Font)
                 {
-                    //float xOffset = 0.0f;
-                    //if (in_UiElement.FontCharacters == null)
-                    //    in_UiElement.FontCharacters = "";
-                    //for (var i = 0; i < in_UiElement.FontCharacters.Length; i++)
-                    //{
-                    //    var font = Project.TryGetFont(in_UiElement.FontID);
-                    //    if (font == null)
-                    //        continue;
-                    //
-                    //    Sprite spr = null;
-                    //
-                    //    foreach (var mapping in font.Mappings)
-                    //    {
-                    //        if (mapping.Character != in_UiElement.FontCharacters[i])
-                    //            continue;
-                    //
-                    //        spr = Project.TryGetSprite(mapping.Sprite);
-                    //        break;
-                    //    }
-                    //
-                    //    if (spr == null)
-                    //        continue;
-                    //
-                    //    float width = spr.Dimensions.X / renderer.Width;
-                    //    float height = spr.Dimensions.Y / renderer.Height;
-                    //
-                    //    var begin = (Vector2)in_UiElement.TopLeft;
-                    //    var end = begin + new Vector2(width, height);
-                    //
-                    //    renderer.DrawSprite(
-                    //        new Vector2(begin.X + xOffset, begin.Y),
-                    //        new Vector2(begin.X + xOffset, end.Y),
-                    //        new Vector2(end.X + xOffset, begin.Y),
-                    //        new Vector2(end.X + xOffset, end.Y),
-                    //        position, Utilities.ToRadians(rotation), scale, scene.AspectRatio, spr, spr, 0, color,
-                    //        gradientTopLeft, gradientBottomLeft, gradientTopRight, gradientBottomRight,
-                    //        in_UiElement.ZIndex, in_UiElement.Flags
-                    //    );
-                    //
-                    //    xOffset += width + in_UiElement.FontSpacingAdjustment;
-                    //}
+                    float xOffset = 0.0f;
+                    if (string.IsNullOrEmpty(in_UiElement.Text)) in_UiElement.Text = "";
+                    foreach(char character in in_UiElement.Text)
+                    {
+
+                        var font = WorkProjectCsd.Project.Fonts[in_UiElement.FontName];
+                        if (font == null)
+                            continue;
+
+                        Shuriken.Rendering.Sprite spr = null;
+
+                        foreach (var mapping in font)
+                        {
+                            if (mapping.SourceIndex != character)
+                                continue;
+
+                            spr = SpriteHelper.TryGetSprite(mapping.DestinationIndex);
+                            break;
+                        }
+
+                        if (spr == null)
+                            continue;
+
+                        float width = spr.Dimensions.X / renderer.Width;
+                        float height = spr.Dimensions.Y / renderer.Height;
+
+                        var begin = (Vector2)in_UiElement.TopLeft;
+                        var end = begin + new Vector2(width, height);
+
+                        renderer.DrawSprite(
+                            new Vector2(begin.X + xOffset, begin.Y),
+                            new Vector2(begin.X + xOffset, end.Y),
+                            new Vector2(end.X + xOffset, begin.Y),
+                            new Vector2(end.X + xOffset, end.Y),
+                             position, rotation * MathF.PI / 180.0f, scale, scene.AspectRatio, spr, spr, 0, color.ToVec4(),
+                        gradientTopLeft.ToVec4(), gradientBottomLeft.ToVec4(), gradientTopRight.ToVec4(), gradientBottomRight.ToVec4(),
+                        in_UiElement.Priority, Flags
+                        );
+                        //in_UiElement.Field4C = kerning (space between letters)
+                        xOffset += width + BitConverter.ToSingle(BitConverter.GetBytes(in_UiElement.Field4C));
+                    }
                 }
 
                 var childTransform = new CastTransform(position, rotation, scale, color.Invert());
@@ -580,6 +585,7 @@ namespace Kunai.ShurikenRenderer
                 foreach (var child in in_UiElement.Children)
                     UpdateCast(scene, child, childTransform, priority++, time, vis);
             }
+
         }
 
         public int GetViewportImageHandle()

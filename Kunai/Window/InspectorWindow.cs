@@ -14,13 +14,12 @@ namespace Kunai.Window
         {
             None,
             Scene,
-            Family,
+            Node,
             Cast
         }
         public static ESelectionType eSelectionType;
         public static Cast SelectedCast;
         public static KeyValuePair<string, Scene> SelectedScene;
-        public static Family SelectedFamily;
         public static void SelectCast(Cast in_Cast)
         {
             SelectedCast = in_Cast;
@@ -33,6 +32,8 @@ namespace Kunai.Window
         }
         public static void DrawSceneInspector()
         {
+            if (SelectedScene.Value == null)
+                return;
             string name = SelectedScene.Key;
             var vers = SelectedScene.Value.Version;
             var priority = (int)SelectedScene.Value.Priority;
@@ -44,6 +45,8 @@ namespace Kunai.Window
         }
         public static void DrawCastInspector()
         {
+            if (SelectedCast == null)
+                return;
             string[] typeStrings = { "No Draw", "Sprite", "Font" };
             var materialFlags = (ElementMaterialFlags)SelectedCast.Field38;
             var info = SelectedCast.Info;
@@ -236,7 +239,7 @@ namespace Kunai.Window
         public static void Render(CsdProject in_Proj)
         {
             ImGui.SetNextWindowPos(new System.Numerics.Vector2((ImGui.GetWindowViewport().Size.X / 4.5f) * 3.5f, MenuBarWindow.menuBarHeight), ImGuiCond.Always);
-            ImGui.SetNextWindowSize(new System.Numerics.Vector2(ImGui.GetWindowViewport().Size.X / 4.5f, ImGui.GetWindowViewport().Size.Y), ImGuiCond.Always);
+            ImGui.SetNextWindowSize(new System.Numerics.Vector2(ImGui.GetWindowViewport().Size.X / 4.5f, ImGui.GetWindowViewport().Size.Y- MenuBarWindow.menuBarHeight), ImGuiCond.Always);
             if (ImGui.Begin("Inspector", MainWindow.flags))
             {
                 if (in_Proj != null)
@@ -257,6 +260,12 @@ namespace Kunai.Window
                 }
                 ImGui.End();
             }
+        }
+
+        internal static void Reset()
+        {
+            SelectedCast = null;
+            SelectedScene = new();
         }
     }
 }

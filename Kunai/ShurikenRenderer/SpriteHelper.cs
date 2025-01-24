@@ -3,6 +3,7 @@ using SharpNeedle.SurfRide.Draw;
 using Shuriken.Rendering;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Windows.Media;
 using Sprite = Shuriken.Rendering.Sprite;
 using Texture = Shuriken.Rendering.Texture;
 namespace Kunai.ShurikenRenderer
@@ -34,11 +35,64 @@ namespace Kunai.ShurikenRenderer
             Textures = new List<Texture>();
         }
     }
+    public class UIFont
+    {
+        public int ID { get; private set; }
+
+        private string name;
+        public string Name
+        {
+            get => name;
+            set
+            {
+                if (!string.IsNullOrEmpty(value))
+                    name = value;
+            }
+        }
+
+        public List<CharacterMapping> Mappings { get; set; }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public UIFont(string name, int id)
+        {
+            ID = id;
+            Name = name;
+            Mappings = new List<CharacterMapping>();
+        }
+    }
+    public class CharacterMapping
+    {
+        private char character;
+        public char Character
+        {
+            get => character;
+            set
+            {
+                if (!string.IsNullOrEmpty(value.ToString()))
+                    character = value;
+            }
+        }
+
+        public int Sprite { get; set; }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public CharacterMapping(char c, int sprID)
+        {
+            Character = c;
+            Sprite = sprID;
+        }
+
+        public CharacterMapping()
+        {
+            Sprite = -1;
+        }
+    }
     public static class SpriteHelper
     {
         public static Dictionary<int, Shuriken.Rendering.Sprite> Sprites { get; set; } = new Dictionary<int, Sprite>();
         private static int NextSpriteID = 1;
-        private static int NextFontID = 1;
         private static List<Crop> ncpSubimages = new List<Crop>();
         public static TextureList textureList;
         public static Sprite TryGetSprite(int id)
@@ -56,6 +110,7 @@ namespace Kunai.ShurikenRenderer
             Sprite spr = new Sprite(NextSpriteID, tex, top, left, bottom, right);
             return AppendSprite(spr);
         }
+
         public static void LoadTextures(CsdProject in_CsdProject)
         {
             ncpSubimages.Clear();

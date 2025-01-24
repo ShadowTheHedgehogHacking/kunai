@@ -276,7 +276,7 @@ namespace Shuriken.Rendering
         /// </summary>
         public void End()
         {
-            quads.Sort((x, y) => x.ZIndex.CompareTo(y.ZIndex));
+            //quads.Sort((x, y) => x.ZIndex.CompareTo(y.ZIndex));
 
             foreach (var quad in quads)
             {

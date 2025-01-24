@@ -42,6 +42,7 @@ namespace Shuriken.Rendering
 
         public void Destroy()
         {
+            if(GlTex != null)
             GL.DeleteTexture(GlTex.ID);
         }
         /// <summary>
@@ -136,6 +137,10 @@ namespace Shuriken.Rendering
         public Texture(string filename, bool gvrTex = false) : this()
         {
             FullName = filename;
+            if(string.IsNullOrEmpty(filename))
+            {
+                return;
+            }
             Name = Path.GetFileNameWithoutExtension(filename);
             if (gvrTex)
             {

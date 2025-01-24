@@ -20,6 +20,10 @@ public static class ExtensionKillMe
     {
         return new System.Numerics.Vector4(value.R / 255.0f, value.G / 255.0f, value.B / 255.0f, value.A / 255.0f);
     }
+    public static System.Numerics.Vector4 Invert(this System.Numerics.Vector4 value)
+    {
+        return new System.Numerics.Vector4(value.W, value.Z, value.Y, value.X);
+    }
     public static System.Numerics.Vector4 Invert_ToVec4(this Color<byte> value)
     {
         return new System.Numerics.Vector4(value.A / 255.0f, value.B / 255.0f, value.G / 255.0f, value.R / 255.0f);
@@ -119,8 +123,6 @@ public static class AnimationTypeMethods
     public static Color<byte> Invert(this Color<byte> color)
     {
         return new Color<byte>(color.A, color.B, color.G, color.R);
-
-
     }
     public static Color<byte> GetColor(this SharpNeedle.Ninja.Csd.Motions.KeyFrameList list, float frame)
     {
@@ -133,7 +135,7 @@ public static class AnimationTypeMethods
         int index = list.FindKeyframe(frame);
 
         if (index == 0)
-            return list.Frames[index].Value.Color;
+            return list.Frames[index].Value.Color.Invert();
 
         var keyframe = list.Frames[index - 1];
         var nextKeyframe = list.Frames[index];
@@ -146,14 +148,14 @@ public static class AnimationTypeMethods
             factor = 0.0f;
 
         // Color values always use linear interpolation regardless of the type.
-        var swappedCurrent = keyframe.Value.Color;
-        var swappedNext = nextKeyframe.Value.Color;
+        var swappedCurrent = keyframe.Value.Color.Invert();
+        var swappedNext = nextKeyframe.Value.Color.Invert();
         return new Color<byte>
         {
-            A = (byte)((1.0f - factor) * swappedCurrent.R + swappedNext.R * factor),
-            B = (byte)((1.0f - factor) * swappedCurrent.G + swappedNext.G * factor),
-            G = (byte)((1.0f - factor) * swappedCurrent.B + swappedNext.B * factor),
-            R = (byte)((1.0f - factor) * swappedCurrent.A + swappedNext.A * factor)
+            R = (byte)((1.0f - factor) * swappedCurrent.R + swappedNext.R * factor),
+            G = (byte)((1.0f - factor) * swappedCurrent.G + swappedNext.G * factor),
+            B = (byte)((1.0f - factor) * swappedCurrent.B + swappedNext.B * factor),
+            A = (byte)((1.0f - factor) * swappedCurrent.A + swappedNext.A * factor)
         };
     }
     public static AnimationType ToShurikenAnimationType(this SharpNeedle.Ninja.Csd.Motions.KeyProperty test)

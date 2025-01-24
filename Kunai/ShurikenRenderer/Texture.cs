@@ -39,6 +39,11 @@ namespace Shuriken.Rendering
 
             img.Dispose();
         }
+
+        public void Destroy()
+        {
+            GL.DeleteTexture(GlTex.ID);
+        }
         /// <summary>
         /// Used for GVR textures for GNCPs, converts GVR's to BitmapSource and output a pixel array for the GL WPF Control
         /// </summary>

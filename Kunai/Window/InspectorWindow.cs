@@ -66,11 +66,11 @@ namespace Kunai.Window
             var rotation = info.Rotation;
             var origin = SelectedCast.Origin;
             var translation = info.Translation;
-            var color = info.Color.ToVec4();
-            var colorTL = info.GradientTopLeft.ToVec4();
-            var colorTR = info.GradientTopRight.ToVec4();
-            var colorBL = info.GradientBottomLeft.ToVec4();
-            var colorBR = info.GradientBottomRight.ToVec4();
+            var color = info.Color.Invert_ToVec4();
+            var colorTL = info.GradientTopLeft.Invert_ToVec4();
+            var colorTR = info.GradientTopRight.Invert_ToVec4();
+            var colorBL = info.GradientBottomLeft.Invert_ToVec4();
+            var colorBR = info.GradientBottomRight.Invert_ToVec4();
 
             bool inheritPosX = inheritanceFlags.HasFlag(ElementInheritanceFlags.InheritXPosition);
             bool inheritPosY = inheritanceFlags.HasFlag(ElementInheritanceFlags.InheritYPosition);
@@ -162,26 +162,30 @@ namespace Kunai.Window
                         else
                         {
                             Sprite spriteReference = SpriteHelper.TryGetSprite(SelectedCast.SpriteIndices[i]);
-                            if (spriteReference == null) continue;
-
-                            ShurikenRenderer.Vector2 uvTL = new ShurikenRenderer.Vector2(
-                            spriteReference.Start.X / spriteReference.Texture.Width,
-                            -(spriteReference.Start.Y / spriteReference.Texture.Height));
-
-                            ShurikenRenderer.Vector2 uvBR = uvTL + new ShurikenRenderer.Vector2(
-                            spriteReference.Dimensions.X / spriteReference.Texture.Width,
-                            -(spriteReference.Dimensions.Y / spriteReference.Texture.Height));
-
-                            //This is so stupid, this is how youre supposed to do it according to the HexaNET issues
-                            unsafe
+                            if (spriteReference != null)
                             {
-                                const int bufferSize = 256;
-                                byte* buffer = stackalloc byte[bufferSize];
-                                StrBuilder sb = new(buffer, bufferSize);
-                                sb.Append($"##pattern{i}");
-                                sb.End();
-                                //Draw sprite
-                                ImGui.ImageButton(sb, new ImTextureID(spriteReference.Texture.GlTex.ID), new System.Numerics.Vector2(50, 50), uvTL, uvBR);
+
+                                ShurikenRenderer.Vector2 uvTL = new ShurikenRenderer.Vector2(
+                                spriteReference.Start.X / spriteReference.Texture.Width,
+                                -(spriteReference.Start.Y / spriteReference.Texture.Height));
+
+                                ShurikenRenderer.Vector2 uvBR = uvTL + new ShurikenRenderer.Vector2(
+                                spriteReference.Dimensions.X / spriteReference.Texture.Width,
+                                -(spriteReference.Dimensions.Y / spriteReference.Texture.Height));
+
+                                //This is so stupid, this is how youre supposed to do it according to the HexaNET issues
+                                unsafe
+                                {
+                                    const int bufferSize = 256;
+                                    byte* buffer = stackalloc byte[bufferSize];
+                                    StrBuilder sb = new(buffer, bufferSize);
+                                    sb.Append($"##pattern{i}");
+                                    sb.End();
+                                    //Draw sprite
+                                    ImGui.ImageButton(sb, new ImTextureID(spriteReference.Texture.GlTex.ID), new System.Numerics.Vector2(50, 50), uvTL, uvBR);
+
+                                }
+
 
                             }
                             if (i != SelectedCast.SpriteIndices.Length - 1)
@@ -211,11 +215,11 @@ namespace Kunai.Window
             info.Rotation = rotation;
             SelectedCast.Origin = origin;
             info.Translation = translation;
-            info.Color = color.ToSharpNeedleColor();
-            info.GradientTopLeft = colorTL.ToSharpNeedleColor();
-            info.GradientTopRight = colorTR.ToSharpNeedleColor();
-            info.GradientBottomLeft = colorBL.ToSharpNeedleColor();
-            info.GradientBottomRight = colorBR.ToSharpNeedleColor();
+            info.Color = color.ToSharpNeedleColorInverted();
+            info.GradientTopLeft = colorTL.ToSharpNeedleColorInverted();
+            info.GradientTopRight = colorTR.ToSharpNeedleColorInverted();
+            info.GradientBottomLeft = colorBL.ToSharpNeedleColorInverted();
+            info.GradientBottomRight = colorBR.ToSharpNeedleColorInverted();
             info.SpriteIndex = spriteIndex;
 
             if (inheritPosX) inheritanceFlags |= ElementInheritanceFlags.InheritXPosition; else inheritanceFlags &= ~ElementInheritanceFlags.InheritXPosition;

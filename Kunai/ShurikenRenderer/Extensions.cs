@@ -36,7 +36,11 @@ public static class ExtensionKillMe
     {
         return new Color<byte>((byte)(value.X * 255), (byte)(value.Y * 255), (byte)(value.Z * 255), (byte)(value.W * 255));
     }
-    
+    public static Color<byte> ToSharpNeedleColorInverted(this System.Numerics.Vector4 value)
+    {
+        return new Color<byte>((byte)(value.W * 255), (byte)(value.Z * 255), (byte)(value.Y * 255), (byte)(value.X * 255));
+    }
+
 }
 public static class AnimationTypeMethods
 {
@@ -112,13 +116,19 @@ public static class AnimationTypeMethods
                 return keyframe.Value.Float;
         }
     }
+    public static Color<byte> Invert(this Color<byte> color)
+    {
+        return new Color<byte>(color.A, color.B, color.G, color.R);
+
+
+    }
     public static Color<byte> GetColor(this SharpNeedle.Ninja.Csd.Motions.KeyFrameList list, float frame)
     {
         if (list.Count == 0)
             return new Color<byte>();
 
         if (frame >= list.Frames[^1].Frame)
-            return new Color<byte>(list.Frames[^1].Value.Color.A, list.Frames[^1].Value.Color.B, list.Frames[^1].Value.Color.G, list.Frames[^1].Value.Color.R);
+            return list.Frames[^1].Value.Color.Invert();
 
         int index = list.FindKeyframe(frame);
 

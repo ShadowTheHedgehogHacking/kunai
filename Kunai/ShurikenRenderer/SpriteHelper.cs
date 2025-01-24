@@ -34,10 +34,6 @@ namespace Kunai.ShurikenRenderer
             Textures = new List<Texture>();
         }
     }
-    public class NewTexture
-    {
-
-    }
     public static class SpriteHelper
     {
         public static Dictionary<int, Shuriken.Rendering.Sprite> Sprites { get; set; } = new Dictionary<int, Sprite>();
@@ -106,6 +102,20 @@ namespace Kunai.ShurikenRenderer
                     texList.Textures[textureIndex].Sprites.Add(id);
                 }
             }
+        }
+
+        internal static void ClearTextures()
+        {
+            if (textureList == null)
+                return;
+            foreach(var f in textureList.Textures)
+            {
+                f.Destroy();
+            }
+            textureList.Textures.Clear();
+            ncpSubimages.Clear();
+            Sprites.Clear();
+            NextSpriteID = 1;
         }
     }
 }

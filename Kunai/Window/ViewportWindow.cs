@@ -12,12 +12,7 @@ namespace Kunai.Window
             ImGui.SetNextWindowPos(new System.Numerics.Vector2(size1, MenuBarWindow.menuBarHeight), ImGuiCond.Always);
             ImGui.SetNextWindowSize(new System.Numerics.Vector2(size1 * 2.5f, ImGui.GetWindowViewport().Size.Y / 1.5f), ImGuiCond.Always);
             if (ImGui.Begin("Viewport", MainWindow.flags))
-            {
-                ImGui.Checkbox("Play", ref in_Renderer.config.playingAnimations);
-                ImGui.SameLine();
-                ImGui.Checkbox("Show Quads", ref in_Renderer.config.showQuads);
-                ImGui.SameLine();
-                ImGui.InputDouble("Time", ref in_Renderer.config.time);
+            {                
                 zoomFactor += ImGui.GetIO().MouseWheel / 5;
                 zoomFactor = Math.Clamp(zoomFactor, 0.5f, 5);
                 float windowHeight = ImGui.GetWindowWidth() * (in_Renderer.viewportSize.Y / in_Renderer.viewportSize.X);
@@ -25,8 +20,8 @@ namespace Kunai.Window
                 var size = new System.Numerics.Vector2(ImGui.GetWindowWidth(), windowHeight) * zoomFactor;
 
                 if(in_Renderer.WorkProjectCsd == null)
-
                     ImGui.Text("Open a XNCP, YNCP, GNCP or SNCP file to edit it.");
+
                 if (ImGui.BeginListBox("##list", new System.Numerics.Vector2(-1, -1)))
                 {
                     ImGui.SetCursorPos((ImGui.GetWindowSize() - size) * 0.5f);

@@ -7,9 +7,6 @@ using SharpNeedle.Ninja.Csd.Motions;
 using Shuriken.Models;
 using Shuriken.Rendering;
 using System.IO;
-using static Kunai.ShurikenRenderer.SVisibilityData;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 
 namespace Kunai.ShurikenRenderer
 {
@@ -170,28 +167,49 @@ namespace Kunai.ShurikenRenderer
         }
         public Renderer renderer;
         public Vector2 viewportSize;
+        public Vector2 screenSize;
         public SVisibilityData visibilityData;
         public CsdProject WorkProjectCsd;
         public SProjectConfig config;
         private SViewportData viewportData;
         private GameWindow window;
-        public ShurikenRenderHelper(GameWindow window2, Vector2 in_ViewportSize)
+        private int currentDrawPriority;
+        public ShurikenRenderHelper(GameWindow window2, Vector2 in_ViewportSize, Vector2 clientSize)
         {
             viewportSize = in_ViewportSize;
             renderer = new Renderer((int)viewportSize.X, (int)viewportSize.Y);
             renderer.SetShader(renderer.shaderDictionary["basic"]);
             window = window2;
             viewportData = new SViewportData();
-            config = new SProjectConfig(); 
+            config = new SProjectConfig();
+            screenSize = clientSize;
+        }
+
+        public void ShowMessageBoxCross(string title, string message, bool isWarning)
+        {
+#if WINDOWS
+            System.Windows.MessageBox.Show(message, title, System.Windows.MessageBoxButton.OK, isWarning ? System.Windows.MessageBoxImage.Warning : System.Windows.MessageBoxImage.Information);
+#else
+#endif
         }
         public void LoadFile(string in_Path)
         {
-            WorkProjectCsd = ResourceUtility.Open<CsdProject>(@in_Path);
+            try
+            {
+                WorkProjectCsd = ResourceUtility.Open<CsdProject>(@in_Path);
+            }
+            catch (Exception ex)
+            {
+                //Implement cross platform messagebox
+                ShowMessageBoxCross("Error", ex.Message, true);
+                return;
+            }
             ITextureList xTextures = WorkProjectCsd.Textures;
             CsdDictionary<SharpNeedle.Ninja.Csd.Font> xFontList = WorkProjectCsd.Project.Fonts;
-
+            SpriteHelper.ClearTextures();
             config.WorkFilePath = in_Path;
-            string root = System.IO.Path.GetDirectoryName(System.IO.Path.GetFullPath(@in_Path));
+            string root = Path.GetDirectoryName(Path.GetFullPath(@in_Path));
+            List<string> missingTextures = new List<string>();
             SpriteHelper.textureList = new TextureList("textures");
             if (xTextures != null)
             {
@@ -210,9 +228,16 @@ namespace Kunai.ShurikenRenderer
                         SpriteHelper.textureList.Textures.Add(new Texture(texPath, tempChangeExtension));
                     else
                     {
-                        Console.WriteLine("AAA");
+                        missingTextures.Add(texture.Name);
                     }
                     //    MissingTextures.Add(texture.Name);
+                }
+                if(missingTextures.Count > 0)
+                {
+                    string textureNames = "";
+                    foreach (string textureName in missingTextures)
+                        textureNames += "-" + textureName + "\n";
+                    ShowMessageBoxCross("Warning", $"The file uses textures that could not be found, they will be replaced with squares.\n\nMissing Textures:\n{textureNames}", true);
                 }
             }
             SpriteHelper.LoadTextures(WorkProjectCsd);
@@ -227,7 +252,7 @@ namespace Kunai.ShurikenRenderer
         public void Render(CsdProject in_CsdProject, float in_DeltaTime)
         {
             // Get the size of the child (i.e. the whole draw size of the windows).
-            System.Numerics.Vector2 wsize = ImGui.GetWindowSize();
+            System.Numerics.Vector2 wsize = screenSize;
 
             // make sure the buffers are the currect size
             Vector2i wsizei = new((int)wsize.X, (int)wsize.Y);
@@ -253,7 +278,7 @@ namespace Kunai.ShurikenRenderer
                 viewportData.csdRenderTextureHandle = GL.GenTexture();
                 GL.BindTexture(TextureTarget.Texture2D, viewportData.csdRenderTextureHandle);
                 GL.ObjectLabel(ObjectLabelIdentifier.Texture, viewportData.csdRenderTextureHandle, 16, "GameWindow:Color");
-                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb, wsizei.X, wsizei.Y, 0, PixelFormat.Rgb, PixelType.UnsignedByte, IntPtr.Zero);
+                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb, wsizei.X, wsizei.Y, 0, OpenTK.Graphics.OpenGL.PixelFormat.Rgb, PixelType.UnsignedByte, IntPtr.Zero);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
                 GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, viewportData.csdRenderTextureHandle, 0);
@@ -299,7 +324,6 @@ namespace Kunai.ShurikenRenderer
             GL.Viewport(0, 0, window.ClientSize.X, window.ClientSize.Y); // back to full screen size
             
         }
-
         private void RenderToViewport(CsdProject in_CsdProject, float in_DeltaTime)
         {
             GL.ClearColor(Color4.BlueViolet);
@@ -368,11 +392,11 @@ namespace Kunai.ShurikenRenderer
             float rotation = in_UiElement.Info.Rotation;
             var scale = new System.Numerics.Vector2(in_UiElement.Info.Scale.X, in_UiElement.Info.Scale.Y);
             float sprID = in_UiElement.Info.SpriteIndex;
-            var color = in_UiElement.Info.Color;
-            var gradientTopLeft = in_UiElement.Info.GradientTopLeft;
-            var gradientBottomLeft = in_UiElement.Info.GradientBottomLeft;
-            var gradientTopRight = in_UiElement.Info.GradientTopRight;
-            var gradientBottomRight = in_UiElement.Info.GradientBottomRight;
+            var color = in_UiElement.Info.Color.Invert();
+            var gradientTopLeft = in_UiElement.Info.GradientTopLeft.Invert();
+            var gradientBottomLeft = in_UiElement.Info.GradientBottomLeft.Invert();
+            var gradientTopRight = in_UiElement.Info.GradientTopRight.Invert();
+            var gradientBottomRight = in_UiElement.Info.GradientBottomRight.Invert();
 
             foreach (var animation in vis.Animation)
             {
@@ -477,11 +501,11 @@ namespace Kunai.ShurikenRenderer
                 scale.Y *= transform.Scale.Y;
 
             // Inherit color
-            //if (InheritanceFlags.HasFlag(ElementInheritanceFlags.InheritColor))
-            //{
-            //    var cF = color * transform.Color;
-            //    color = new Color(cF.X, cF.Y, cF.Z, cF.W);
-            //}
+            if (InheritanceFlags.HasFlag(ElementInheritanceFlags.InheritColor))
+            {
+                var cF = color.ToVec4() * transform.Color;
+                color = cF.ToSharpNeedleColor();
+            }
             var Type = (DrawType)in_UiElement.Field04;
             var Flags = (ElementMaterialFlags)in_UiElement.Field38;
 
@@ -504,7 +528,7 @@ namespace Kunai.ShurikenRenderer
                         in_UiElement.TopLeft, in_UiElement.BottomLeft, in_UiElement.TopRight, in_UiElement.BottomRight,
                         position, rotation * MathF.PI / 180.0f, scale, scene.AspectRatio, spr, nextSpr, sprID % 1, color.ToVec4(),
                         gradientTopLeft.ToVec4(), gradientBottomLeft.ToVec4(), gradientTopRight.ToVec4(), gradientBottomRight.ToVec4(),
-                        priority, Flags);
+                        in_UiElement.Priority, Flags);
                 }
                 else if (Type == DrawType.Font)
                 {
@@ -551,7 +575,7 @@ namespace Kunai.ShurikenRenderer
                     //}
                 }
 
-                var childTransform = new CastTransform(position, rotation, scale, color);
+                var childTransform = new CastTransform(position, rotation, scale, color.Invert());
 
                 foreach (var child in in_UiElement.Children)
                     UpdateCast(scene, child, childTransform, priority++, time, vis);

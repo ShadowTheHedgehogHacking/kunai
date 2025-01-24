@@ -23,19 +23,26 @@ namespace Kunai.Window
             ImGui.SetNextWindowSize(new System.Numerics.Vector2(size1 * 2.5f, ImGui.GetWindowViewport().Size.Y / 3), ImGuiCond.Always);
             if (ImGui.Begin("Animations", MainWindow.flags))
             {
-                if (InspectorWindow.SelectedScene.Value == null)
-                {
-                    ImGui.End();
-                    return;
-                }
+                ImGui.BeginGroup();
+                ImGui.Checkbox("Play", ref in_Renderer.config.playingAnimations);
+                ImGui.SameLine();
+                ImGui.Checkbox("Show Quads", ref in_Renderer.config.showQuads);                
+                ImGui.SameLine();
+                ImGui.SetNextItemWidth(60);
+                ImGui.InputDouble("Time", ref in_Renderer.config.time, "%.2f");
+                ImGui.EndGroup();
+
 
                 //The list of anims, anim tracks and cast animations
                 if (ImGui.BeginListBox("##animlist", new System.Numerics.Vector2(ImGui.GetWindowSize().X / 5, -1)))
                 {
-                    SVisibilityData.SScene sceneVisData = in_Renderer.visibilityData.GetScene(InspectorWindow.SelectedScene.Value);
-                    foreach (SVisibilityData.SAnimation sceneMotion in sceneVisData.Animation)
+                    if (InspectorWindow.SelectedScene.Value != null)
                     {
-                        DrawMotionElement(sceneMotion);
+                        SVisibilityData.SScene sceneVisData = in_Renderer.visibilityData.GetScene(InspectorWindow.SelectedScene.Value);
+                        foreach (SVisibilityData.SAnimation sceneMotion in sceneVisData.Animation)
+                        {
+                            DrawMotionElement(sceneMotion);
+                        }
                     }
                     ImGui.EndListBox();
                 }
@@ -131,7 +138,6 @@ namespace Kunai.Window
                         //ImPlot.PlotLine("##h1", &p2.X, &p2.Y, 2, 0, 0, sizeof(ImPlotPoint));
 
                     }
-
                 }
                 ImPlot.EndPlot();
 

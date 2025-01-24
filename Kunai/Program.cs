@@ -1,10 +1,14 @@
-﻿namespace Kunai
+﻿using System.IO;
+
+namespace Kunai
 {
     class Program
     {
-        static void Main()
+        public static string[] arguments;
+        static void Main(string[] args)
         {
             MainWindow wnd = new MainWindow();
+            arguments = args;
             wnd.Run();
         }
     }

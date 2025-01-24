@@ -23,11 +23,15 @@ namespace Kunai
         protected override void OnLoad()
         {
             base.OnLoad();
-            renderer = new ShurikenRenderHelper(this, new ShurikenRenderer.Vector2(1280, 720));
+            renderer = new ShurikenRenderHelper(this, new ShurikenRenderer.Vector2(1280, 720), new ShurikenRenderer.Vector2(ClientSize.X, ClientSize.Y));
 
             Title = "Kunai";
 
             _controller = new ImGuiController(ClientSize.X, ClientSize.Y);
+            if (Program.arguments.Length > 0)
+            {
+                renderer.LoadFile(Program.arguments[0]);
+            }
             SetupImGuiStyle();
         }
         public static void SetupImGuiStyle()
@@ -126,7 +130,7 @@ namespace Kunai
 
             // Update the opengl viewport
             GL.Viewport(0, 0, ClientSize.X, ClientSize.Y);
-
+            renderer.screenSize = new ShurikenRenderer.Vector2(ClientSize.X, ClientSize.Y);
             // Tell ImGui of the new size
             _controller.WindowResized(ClientSize.X, ClientSize.Y);
         }

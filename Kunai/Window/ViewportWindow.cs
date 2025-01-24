@@ -15,7 +15,7 @@ namespace Kunai.Window
             {
                 ImGui.Checkbox("Play", ref in_Renderer.playingAnimations);
                 ImGui.SameLine();
-                ImGui.InputFloat("Time", ref in_Renderer.time);
+                ImGui.InputDouble("Time", ref in_Renderer.time);
                 zoomFactor += ImGui.GetIO().MouseWheel / 5;
                 zoomFactor = Math.Clamp(zoomFactor, 0.5f, 5);
                 float windowHeight = ImGui.GetWindowWidth() * (in_Renderer.size.Y / in_Renderer.size.X);

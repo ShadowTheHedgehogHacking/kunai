@@ -7,6 +7,7 @@ using SharpNeedle.Ninja.Csd;
 using Kunai.ShurikenRenderer;
 using Kunai.Window;
 using System.Windows;
+using Hexa.NET.ImPlot;
 
 
 namespace Kunai
@@ -24,7 +25,7 @@ namespace Kunai
             base.OnLoad();
             renderer = new ShurikenRenderHelper(this, new ShurikenRenderer.Vector2(1280, 720));
 
-            Title += ": OpenGL Version: " + GL.GetString(StringName.Version);
+            Title = "Kunai";
 
             _controller = new ImGuiController(ClientSize.X, ClientSize.Y);
             SetupImGuiStyle();
@@ -174,6 +175,7 @@ namespace Kunai
             InspectorWindow.Render(renderer.WorkProjectCsd);
             ViewportWindow.Render(renderer);
             AnimationsWindow.Render(renderer);
+            ImPlot.ShowDemoWindow();
             //if (ImGui.Begin("Testtt"))
             //{
             //    ImGui.End();

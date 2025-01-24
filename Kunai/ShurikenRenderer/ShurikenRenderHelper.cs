@@ -159,7 +159,7 @@ namespace Kunai.ShurikenRenderer
         public SVisibilityData sVisibilityData;
         public CsdProject WorkProjectCsd;
         int fbo;
-        public float time;
+        public double time;
         public bool playingAnimations;
         int rbo;
         public int texColor;
@@ -295,7 +295,7 @@ namespace Kunai.ShurikenRenderer
             GL.Viewport(0, 0, window.ClientSize.X, window.ClientSize.Y); // back to full screen size
             
         }
-        public void RenderNode(SceneNode in_Node, float in_DeltaTime)
+        public void RenderNode(SceneNode in_Node, double in_DeltaTime)
         {
             SVisibilityData.SNode vis = sVisibilityData.GetVisibility(in_Node);
             int idx = 0;
@@ -306,7 +306,7 @@ namespace Kunai.ShurikenRenderer
                 // = true;
             }
         }
-        public void RenderScenes(Scene in_Scene, SVisibilityData.SNode in_Vis, ref int priority, float in_DeltaTime)
+        public void RenderScenes(Scene in_Scene, SVisibilityData.SNode in_Vis, ref int priority, double in_DeltaTime)
         {
             int idx = priority;
             var vis = in_Vis.GetVisibility(in_Scene);
@@ -315,7 +315,7 @@ namespace Kunai.ShurikenRenderer
                 var transform = new CastTransform();
                 Cast cast = family.Casts[0];
 
-                UpdateCast(in_Scene, cast, transform, idx, in_DeltaTime * in_Scene.FrameRate, vis);
+                UpdateCast(in_Scene, cast, transform, idx, (float)(in_DeltaTime * in_Scene.FrameRate), vis);
                 idx += cast.Children.Count + 1;
             }
             priority = idx++;

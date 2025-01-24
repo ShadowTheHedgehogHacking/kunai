@@ -10,6 +10,7 @@ using System.Diagnostics;
 using Hexa.NET.ImGui;
 using ErrorCode = OpenTK.Graphics.OpenGL4.ErrorCode;
 using System.IO;
+using Hexa.NET.ImPlot;
 
 namespace Kunai
 {
@@ -60,6 +61,9 @@ namespace Kunai
 
             var context = ImGui.CreateContext();
             ImGui.SetCurrentContext(context);
+
+            ImPlot.CreateContext();
+            ImPlot.SetImGuiContext(ImGui.GetCurrentContext());
             var io = ImGui.GetIO();
             //io.Fonts.AddFontDefault();
             io.Fonts.AddFontFromFileTTF(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RobotoVariable.ttf"), 20);

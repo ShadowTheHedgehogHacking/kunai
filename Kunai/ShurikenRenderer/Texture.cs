@@ -145,7 +145,7 @@ namespace Shuriken.Rendering
             if (gvrTex)
             {
                 GVRFile gVR = new GVRFile();
-                gVR.LoadFromGvrFile(filename);
+                gVR.LoadFromGvrFile(filename.ToLower());
                 CreateTextureGvr(gVR);
             }
             else

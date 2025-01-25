@@ -10,7 +10,7 @@ namespace Shuriken.Rendering
 {
     public class Renderer
     {
-        public readonly string shadersDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Shaders");
+        public readonly string shadersDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Shaders");
 
         private uint vao;
         private uint vbo;

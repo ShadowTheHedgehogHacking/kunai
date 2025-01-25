@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <StartupObject>Kunai.Program</StartupObject>
-    <ApplicationIcon>Resources\kunaitest-01.ico</ApplicationIcon>
+    <ApplicationIcon>Resources\kunai-01.ico</ApplicationIcon>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -16,9 +16,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="Resources\kunaitest-01.ico" />
+    <Content Include="Resources\kunai-01.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
-
+<ItemGroup>
+    <Content Include="Resources\**">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+</ItemGroup>
   <ItemGroup>
     <PackageReference Include="DirectXTexNet" Version="1.0.7" />
     <PackageReference Include="Hexa.NET.ImGui" Version="2.2.3" />

@@ -98,45 +98,47 @@ namespace Kunai.Window
 
                     ImPlot.SetupAxisLimits(ImAxis.X1, 0, 60);
                     ImPlot.SetupAxisLimits(ImAxis.Y1, 0, 10);
-
-                    if (trackAnimation != null)
+                    if (InspectorWindow.SelectedScene.Value != null)
                     {
-                        double time = in_Renderer.config.time * InspectorWindow.SelectedScene.Value.FrameRate;
-                        points.Clear();
-                        //Line for the anim time
-                        ImPlot.DragLineX(0, &time, new Vector4(1, 1, 1, 1), 1);
-
-                        bool isFloatValue = trackAnimation.Property != KeyProperty.Color
-                            && trackAnimation.Property != KeyProperty.GradientBottomRight
-                            && trackAnimation.Property != KeyProperty.GradientBottomLeft
-                            && trackAnimation.Property != KeyProperty.GradientTopLeft
-                            && trackAnimation.Property != KeyProperty.GradientTopRight;
-                        //Animation keyframe points
-                        for (int i = 0; i < trackAnimation.Frames.Count; i++)
+                        if (trackAnimation != null)
                         {
-                            ImPlotPoint point = new ImPlotPoint(trackAnimation.Frames[i].Frame, isFloatValue ? trackAnimation.Frames[i].Value.Float : 0);
-                            points.Add(point);
-                            bool isClicked = false;
-                            if (ImPlot.DragPoint(i, &point.X, &point.Y, keyframeSelected == trackAnimation.Frames[i] ? new System.Numerics.Vector4(1, 0.9f, 1, 1) : new System.Numerics.Vector4(0, 0.9f, 0, 1), 8, ImPlotDragToolFlags.None,&isClicked))
+                            double time = in_Renderer.config.time * InspectorWindow.SelectedScene.Value.FrameRate;
+                            points.Clear();
+                            //Line for the anim time
+                            ImPlot.DragLineX(0, &time, new Vector4(1, 1, 1, 1), 1);
+
+                            bool isFloatValue = trackAnimation.Property != KeyProperty.Color
+                                && trackAnimation.Property != KeyProperty.GradientBottomRight
+                                && trackAnimation.Property != KeyProperty.GradientBottomLeft
+                                && trackAnimation.Property != KeyProperty.GradientTopLeft
+                                && trackAnimation.Property != KeyProperty.GradientTopRight;
+                            //Animation keyframe points
+                            for (int i = 0; i < trackAnimation.Frames.Count; i++)
                             {
-                                if (isFloatValue)
-                                trackAnimation.Frames[i].Value = new SharpNeedle.Ninja.Csd.Motions.KeyFrame.Union((float)point.Y);
-                                trackAnimation.Frames[i].Frame = (uint)point.X;
+                                ImPlotPoint point = new ImPlotPoint(trackAnimation.Frames[i].Frame, isFloatValue ? trackAnimation.Frames[i].Value.Float : 0);
+                                points.Add(point);
+                                bool isClicked = false;
+                                if (ImPlot.DragPoint(i, &point.X, &point.Y, keyframeSelected == trackAnimation.Frames[i] ? new System.Numerics.Vector4(1, 0.9f, 1, 1) : new System.Numerics.Vector4(0, 0.9f, 0, 1), 8, ImPlotDragToolFlags.None, &isClicked))
+                                {
+                                    if (isFloatValue)
+                                        trackAnimation.Frames[i].Value = new SharpNeedle.Ninja.Csd.Motions.KeyFrame.Union((float)point.Y);
+                                    trackAnimation.Frames[i].Frame = (uint)point.X;
+                                }
+                                if (isClicked)
+                                    keyframeSelected = trackAnimation.Frames[i];
                             }
-                            if(isClicked)
-                                keyframeSelected = trackAnimation.Frames[i];
+                            //var p1 = points.ToArray()[0];
+                            //ImPlot.PlotLine("##bez", &p1.X, &p1.Y, points.Count, ImPlotLineFlags.Loop, 0, sizeof(ImPlotPoint));
+
+                            //    ImPlotPoint p1 = new ImPlotPoint(.05f, .05f);
+                            //ImPlotPoint p2 = new ImPlotPoint(1, 1);
+                            //ImPlot.DragPoint(0, &p1.X, &p1.Y, new System.Numerics.Vector4(0, 0.9f, 0, 1), 4, flags, &test, &test, &test);
+                            //ImPlot.DragPoint(1, &p2.X, &p2.Y, new System.Numerics.Vector4(1, 0.5f, 1, 1), 4, flags, &test, &test, &test);
+                            //
+                            //ImPlot.PlotLine("##h1", &p1.X, &p1.Y, 2, 0, 0, sizeof(ImPlotPoint));
+                            //ImPlot.PlotLine("##h1", &p2.X, &p2.Y, 2, 0, 0, sizeof(ImPlotPoint));
+
                         }
-                        //var p1 = points.ToArray()[0];
-                        //ImPlot.PlotLine("##bez", &p1.X, &p1.Y, points.Count, ImPlotLineFlags.Loop, 0, sizeof(ImPlotPoint));
-
-                        //    ImPlotPoint p1 = new ImPlotPoint(.05f, .05f);
-                        //ImPlotPoint p2 = new ImPlotPoint(1, 1);
-                        //ImPlot.DragPoint(0, &p1.X, &p1.Y, new System.Numerics.Vector4(0, 0.9f, 0, 1), 4, flags, &test, &test, &test);
-                        //ImPlot.DragPoint(1, &p2.X, &p2.Y, new System.Numerics.Vector4(1, 0.5f, 1, 1), 4, flags, &test, &test, &test);
-                        //
-                        //ImPlot.PlotLine("##h1", &p1.X, &p1.Y, 2, 0, 0, sizeof(ImPlotPoint));
-                        //ImPlot.PlotLine("##h1", &p2.X, &p2.Y, 2, 0, 0, sizeof(ImPlotPoint));
-
                     }
                 }
                 ImPlot.EndPlot();

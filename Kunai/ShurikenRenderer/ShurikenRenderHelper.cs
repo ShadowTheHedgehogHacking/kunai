@@ -103,6 +103,7 @@ namespace Kunai.ShurikenRenderer
         {
 
             public List<SScene> Scene = new List<SScene>();
+            public List<SNode> Nodes = new List<SNode>();
             public KeyValuePair<string, SceneNode> Node;
             public bool Active = true;
 
@@ -113,6 +114,10 @@ namespace Kunai.ShurikenRenderer
                 foreach (var scene in Node.Value.Scenes)
                 {
                     Scene.Add(new SScene(scene));
+                }
+                foreach (var scene in in_Node.Value.Children)
+                {
+                    Nodes.Add(new SNode(scene));
                 }
             }
             public SScene GetVisibility(Scene scene)
@@ -126,17 +131,37 @@ namespace Kunai.ShurikenRenderer
         public SVisibilityData(CsdProject in_Proj)
         {
             Nodes.Add(new SNode(new KeyValuePair<string, SceneNode>("Root", in_Proj.Project.Root)));
-            foreach (var scene in in_Proj.Project.Root.Children)
+            
+        }
+        private SNode RecursiveGetNode(SNode in_Node, SceneNode in_SceneNode)
+        {
+            if (in_Node.Node.Value == in_SceneNode)
+                return in_Node;
+            foreach (var node in in_Node.Nodes)
             {
-                Nodes.Add(new SNode(scene));
+                if (node.Node.Value == in_SceneNode)
+                    return node;
             }
+            return null;
+        }
+        private SScene RecursiveGetScene(SNode in_Node, Scene in_Scene)
+        {
+            foreach(var s in in_Node.Scene)
+            {
+                if (s.Scene.Value == in_Scene)
+                    return s;
+            }
+            foreach (var node in in_Node.Nodes)
+            {
+                return RecursiveGetScene(node, in_Scene);
+            }
+            return null;
         }
         public SNode GetVisibility(SceneNode scene)
         {
             foreach (var node in Nodes)
-            {
-                if (node.Node.Value == scene)
-                    return node;
+            {                
+                return RecursiveGetNode(node, scene);
             }
             return null;
         }
@@ -144,9 +169,7 @@ namespace Kunai.ShurikenRenderer
         {
             foreach (var node in Nodes)
             {
-                foreach (var scene2 in node.Scene)
-                    if (scene2.Scene.Value == scene)
-                        return scene2;
+                return RecursiveGetScene(node, scene);
             }
             return null;
         }
@@ -206,13 +229,16 @@ namespace Kunai.ShurikenRenderer
                 ShowMessageBoxCross("Error", ex.Message, true);
                 return;
             }
+            //Reset what needs to be reset
+            string root = Path.GetDirectoryName(Path.GetFullPath(@in_Path));
+            config.WorkFilePath = in_Path;
             visibilityData = null;
             InspectorWindow.Reset();
-            ITextureList xTextures = WorkProjectCsd.Textures;
-            CsdDictionary<SharpNeedle.Ninja.Csd.Font> xFontList = WorkProjectCsd.Project.Fonts;
             SpriteHelper.ClearTextures();
-            config.WorkFilePath = in_Path;
-            string root = Path.GetDirectoryName(Path.GetFullPath(@in_Path));
+
+            //Start loading textures
+            ITextureList xTextures = WorkProjectCsd.Textures;
+            CsdDictionary<Font> xFontList = WorkProjectCsd.Project.Fonts;
             List<string> missingTextures = new List<string>();
             SpriteHelper.textureList = new TextureList("textures");
             if (xTextures != null)

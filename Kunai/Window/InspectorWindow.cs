@@ -20,6 +20,8 @@ namespace Kunai.Window
         public static ESelectionType eSelectionType;
         public static Cast SelectedCast;
         public static KeyValuePair<string, Scene> SelectedScene;
+
+        static List<string> fontNames = new List<string>();
         public static void SelectCast(Cast in_Cast)
         {
             SelectedCast = in_Cast;
@@ -30,24 +32,56 @@ namespace Kunai.Window
             SelectedScene = in_Cast;
             eSelectionType = ESelectionType.Scene;
         }
+        static int GCD(int a, int b)
+        {
+            while (b != 0)
+            {
+                int temp = b;
+                b = a % b;
+                a = temp;
+            }
+            return a;
+        }
         public static void DrawSceneInspector()
         {
             if (SelectedScene.Value == null)
                 return;
+            ImGui.SeparatorText("Scene");
             string name = SelectedScene.Key;
             var vers = SelectedScene.Value.Version;
             var priority = (int)SelectedScene.Value.Priority;
+            var aspectRatio = SelectedScene.Value.AspectRatio;
+            var fps = SelectedScene.Value.FrameRate;
+
+            //Show aspect ratio as (width:height) by using greatest common divisor
+            int width = 1280;
+            int height = (int)(1280 / aspectRatio);
+            double decimalRatio = (double)width / height;
+            int gcdValue = GCD(width, height);
+            int simplifiedWidth = width / gcdValue;
+            int simplifiedHeight = height / gcdValue;
+
             ImGui.InputText("Name", ref name, 256);
+            ImGui.InputFloat("Framerate", ref fps);
             ImGui.InputInt("Version", ref vers);
             ImGui.InputInt("Priority", ref priority);
-            ImGui.InputInt("Priority", ref priority);
-            ImGui.Text(SelectedScene.Key);
+            ImGui.InputFloat("Aspect Ratio", ref aspectRatio);
+            ImGui.SameLine();            
+            ImGui.Text($"({simplifiedWidth}:{simplifiedHeight})");
+        }
+        public static bool EmptyTextureButton(int id)
+        {
+            bool val = ImGui.Button($"##pattern{id}", new System.Numerics.Vector2(55, 55));
+            ImGui.SameLine();
+            return val;
         }
         public static void DrawCastInspector()
         {
             if (SelectedCast == null)
                 return;
+            ImGui.SeparatorText("Cast");
             string[] typeStrings = { "No Draw", "Sprite", "Font" };
+
             var materialFlags = (ElementMaterialFlags)SelectedCast.Field38;
             var info = SelectedCast.Info;
             var inheritanceFlags = (ElementInheritanceFlags)SelectedCast.InheritanceFlags.Value;
@@ -58,10 +92,10 @@ namespace Kunai.Window
             var type = (int)SelectedCast.Field04;
             var enabled = SelectedCast.Enabled;
             var hideflag = info.HideFlag == 1;
+            var scale = info.Scale;
             var mirrorX = materialFlags.HasFlag(ElementMaterialFlags.MirrorX);
             var mirrorY = materialFlags.HasFlag(ElementMaterialFlags.MirrorY);
-            var sizeX = (int)SelectedCast.Width;
-            var sizeY = (int)SelectedCast.Height;
+            var rectSize = new System.Numerics.Vector2((int)SelectedCast.Width, (int)SelectedCast.Height);
             var topLeftVert = SelectedCast.TopLeft;
             var topRightVert = SelectedCast.TopRight;
             var bottomLeftVert = SelectedCast.BottomLeft;
@@ -82,7 +116,11 @@ namespace Kunai.Window
             bool inheritScaleX = inheritanceFlags.HasFlag(ElementInheritanceFlags.InheritScaleX);
             bool inheritScaleY = inheritanceFlags.HasFlag(ElementInheritanceFlags.InheritScaleY);
             int spriteIndex = (int)info.SpriteIndex;
+            var text = SelectedCast.Text;
+            var kerning = -BitConverter.ToSingle(BitConverter.GetBytes(SelectedCast.Field4C));
+            var fontname = SelectedCast.FontName;
 
+            int indexFont = fontNames.IndexOf(fontname);
 
             ImGui.InputText("Room Name", ref name, 100, ImGuiInputTextFlags.AutoSelectAll);
             ImGui.InputInt("Field00", ref field00);
@@ -99,18 +137,23 @@ namespace Kunai.Window
 
                 ImGui.BeginGroup();
                 ImGui.SeparatorText("Invert UV");
+                ImGui.PushID("mirrorH");
                 ImGui.Checkbox("H", ref mirrorX);
+                ImGui.SetItemTooltip("Mirror the cast horizontally.");
+                ImGui.PopID();
                 ImGui.SameLine();
                 ImGui.Checkbox("V", ref mirrorY);
+                ImGui.SetItemTooltip("Mirror the cast vertically.");
                 ImGui.EndGroup();
 
+                ImGui.BeginGroup();
                 ImGui.SeparatorText("Rect Size");
-                ImGui.InputInt("W", ref sizeX);
-                ImGui.SameLine();
-                ImGui.InputInt("H", ref sizeY);
+                ImGui.InputFloat2("Quad Size", ref rectSize);
+                ImGui.SetItemTooltip("This does not change any value in the tool, this is a leftover from the CellSprite Editor.");
+                ImGui.EndGroup();
 
                 ImGui.SeparatorText("Vertices");
-
+                ImGui.SetItemTooltip("These 4 values determine the 4 points that generate the quad (3D element) that the cast will render on. Use with caution");
                 ImGui.InputFloat2("Top Left", ref topLeftVert);
                 ImGui.InputFloat2("Top Right", ref topRightVert);
                 ImGui.InputFloat2("Bottom Left", ref bottomLeftVert);
@@ -120,8 +163,12 @@ namespace Kunai.Window
             if (ImGui.CollapsingHeader("Transform"))
             {
                 ImGui.InputFloat("Rotation", ref rotation);
+                ImGui.SetItemTooltip("Rotation in degrees.");
                 ImGui.InputFloat2("Origin", ref origin);
+                ImGui.SetItemTooltip("Value used to offset the position of the cast (translation), this cannot be changed by animations.");
                 ImGui.InputFloat2("Translation", ref translation);
+                ImGui.SetItemTooltip("Position of the cast.");
+                ImGui.InputFloat2("Scale", ref scale);
             }
             if (ImGui.CollapsingHeader("Color"))
             {
@@ -131,8 +178,6 @@ namespace Kunai.Window
                 ImGui.ColorEdit4("Bottom Left", ref colorBL);
                 ImGui.ColorEdit4("Bottom Right", ref colorBR);
             }
-
-
             if (ImGui.CollapsingHeader("Inheritance"))
             {
                 ImGui.Checkbox("Inherit Horizontal Position", ref inheritPosX);
@@ -142,12 +187,28 @@ namespace Kunai.Window
                 ImGui.Checkbox("Inherit Width", ref inheritScaleX);
                 ImGui.Checkbox("Inherit Height", ref inheritScaleY);
             }
+
+            if(type == 2)
+            {
+                if (ImGui.CollapsingHeader("Text"))
+                {
+                    //make combo box eventually
+                    if(ImGui.Combo("Font", ref indexFont, fontNames.ToArray(), fontNames.Count))
+                    {
+                        fontname = fontNames[indexFont];
+                    }
+                    ImGui.PushID("textInput");
+                    ImGui.InputText("Text", ref text, 512);
+                    ImGui.PopID();
+                    ImGui.DragFloat("Kerning", ref kerning, 0.0005f);
+                }
+            }
             if (ImGui.CollapsingHeader("Material"))
             {
                 ImGui.BeginDisabled(type != (int)DrawType.Sprite);
                 ImGui.InputInt("Selected Sprite", ref spriteIndex);
                 spriteIndex = Math.Clamp(spriteIndex, -1, 32); //can go over 32 for scu
-                if (ImGui.BeginListBox("##listpatterns", new System.Numerics.Vector2(-1, 100)))
+                if (ImGui.BeginListBox("##listpatterns", new System.Numerics.Vector2(-1, 160)))
                 {
                     //Draw Pattern selector
                     for (int i = 0; i < SelectedCast.SpriteIndices.Length; i++)
@@ -159,8 +220,7 @@ namespace Kunai.Window
                         // Draw sprite preview if it isnt set to the default square
                         if (patternIdx == -1)
                         {
-                            ImGui.Button($"##pattern{i}", new System.Numerics.Vector2(55, 55));
-                            ImGui.SameLine();
+                            EmptyTextureButton(i);
                         }
                         else
                         {
@@ -176,20 +236,25 @@ namespace Kunai.Window
                                 spriteReference.Dimensions.X / spriteReference.Texture.Width,
                                 -(spriteReference.Dimensions.Y / spriteReference.Texture.Height));
 
-                                //This is so stupid, this is how youre supposed to do it according to the HexaNET issues
-                                unsafe
+                                if(spriteReference.Texture.GlTex == null)
                                 {
-                                    const int bufferSize = 256;
-                                    byte* buffer = stackalloc byte[bufferSize];
-                                    StrBuilder sb = new(buffer, bufferSize);
-                                    sb.Append($"##pattern{i}");
-                                    sb.End();
-                                    //Draw sprite
-                                    ImGui.ImageButton(sb, new ImTextureID(spriteReference.Texture.GlTex.ID), new System.Numerics.Vector2(50, 50), uvTL, uvBR);
-
+                                    EmptyTextureButton(i);
                                 }
+                                else
+                                {
+                                    //This is so stupid, this is how youre supposed to do it according to the HexaNET issues
+                                    unsafe
+                                    {
+                                        const int bufferSize = 256;
+                                        byte* buffer = stackalloc byte[bufferSize];
+                                        StrBuilder sb = new(buffer, bufferSize);
+                                        sb.Append($"##pattern{i}");
+                                        sb.End();
+                                        //Draw sprite
+                                        ImGui.ImageButton(sb, new ImTextureID(spriteReference.Texture.GlTex.ID), new System.Numerics.Vector2(50, 50), uvTL, uvBR);
 
-
+                                    }
+                                }
                             }
                             if (i != SelectedCast.SpriteIndices.Length - 1)
                                 ImGui.SameLine();
@@ -209,8 +274,8 @@ namespace Kunai.Window
             //ADD EDIT FOR HIDE FLAG
             if (mirrorX) materialFlags |= ElementMaterialFlags.MirrorX; else materialFlags &= ~ElementMaterialFlags.MirrorX;
             if (mirrorY) materialFlags |= ElementMaterialFlags.MirrorY; else materialFlags &= ~ElementMaterialFlags.MirrorY;
-            SelectedCast.Width = (uint)sizeX;
-            SelectedCast.Height = (uint)sizeY;
+            SelectedCast.Width = (uint)rectSize.X;
+            SelectedCast.Height = (uint)rectSize.Y;
             SelectedCast.TopLeft = topLeftVert;
             SelectedCast.TopRight = topRightVert;
             SelectedCast.BottomLeft = bottomLeftVert;
@@ -224,6 +289,7 @@ namespace Kunai.Window
             info.GradientBottomLeft = colorBL.ToSharpNeedleColorInverted();
             info.GradientBottomRight = colorBR.ToSharpNeedleColorInverted();
             info.SpriteIndex = spriteIndex;
+            info.Scale = scale;
 
             if (inheritPosX) inheritanceFlags |= ElementInheritanceFlags.InheritXPosition; else inheritanceFlags &= ~ElementInheritanceFlags.InheritXPosition;
             if (inheritPosY) inheritanceFlags |= ElementInheritanceFlags.InheritYPosition; else inheritanceFlags &= ~ElementInheritanceFlags.InheritYPosition;
@@ -234,6 +300,9 @@ namespace Kunai.Window
             SelectedCast.InheritanceFlags = (uint)inheritanceFlags;
             SelectedCast.Info = info;
             SelectedCast.Field38 = (uint)materialFlags;
+            SelectedCast.FontName = fontname;
+            SelectedCast.Text = text;
+            SelectedCast.Field4C = (uint)BitConverter.ToInt32(BitConverter.GetBytes(-kerning), 0);
         }
 
         public static void Render(CsdProject in_Proj)
@@ -244,6 +313,11 @@ namespace Kunai.Window
             {
                 if (in_Proj != null)
                 {
+                    fontNames.Clear();
+                    foreach (var font in in_Proj.Project.Fonts)
+                    {
+                        fontNames.Add(font.Key);
+                    }
                     switch (eSelectionType)
                     {
                         case ESelectionType.Scene:

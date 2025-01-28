@@ -31,7 +31,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FileTypeRegisterService\FileTypeRegisterService.csproj" />
-    <ProjectReference Include="..\SharpNeedle\SharpNeedle.csproj" />
+    <ProjectReference Include="..\SharpNeedle\Source\SharpNeedle\SharpNeedle.csproj" />
   </ItemGroup>
 <ItemGroup>
    <FrameworkReference Include="Microsoft.WindowsDesktop.App" />
@@ -50,7 +50,4 @@
     <CopyToOutputDirectory>Always</CopyToOutputDirectory>
   </None>
 </ItemGroup>
-
-  <Import Project="..\SharpNeedle.Shared\SharpNeedle.Shared.projitems" Label="Shared" />
-
 </Project>

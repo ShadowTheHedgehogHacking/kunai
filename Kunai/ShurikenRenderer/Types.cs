@@ -1,6 +1,8 @@
 ﻿using System.ComponentModel;
 using System.Windows.Media.Imaging;
 using System.Windows;
+using System.Numerics;
+using System;
 
 namespace Shuriken.Rendering
 {public enum DrawType : uint

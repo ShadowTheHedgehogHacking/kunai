@@ -7,6 +7,8 @@ using Kunai.ShurikenRenderer;
 using static SharpNeedle.HedgehogEngine.Mirage.SampleChunkNode;
 using Hexa.NET.Utilities.Text;
 using SharpNeedle.Ninja.Csd.Motions;
+using System.Collections.Generic;
+using System.Numerics;
 
 namespace Kunai.Window
 {

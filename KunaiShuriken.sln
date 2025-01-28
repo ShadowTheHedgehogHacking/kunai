@@ -3,15 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.12.35707.178
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpNeedle", "SharpNeedle\SharpNeedle.csproj", "{07C14854-C106-4C8D-B832-6D78CDE2D260}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Amicitia.IO", "Amicitia.IO\Amicitia.IO.csproj", "{472D0F18-7669-49FF-837E-86DA4D4BE308}"
-EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SharpNeedle.Shared", "SharpNeedle.Shared\SharpNeedle.Shared.shproj", "{925BC477-9B22-47FB-B0B1-95EA381B3B9E}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kunai", "Kunai\Kunai.csproj", "{FEACA5A3-E0B1-4D73-9681-4D8B7AA10B22}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileTypeRegisterService", "FileTypeRegisterService\FileTypeRegisterService.csproj", "{6A112CEA-8CA7-436A-A8A1-9B64417A2181}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpNeedle", "SharpNeedle\Source\SharpNeedle\SharpNeedle.csproj", "{BAF1397D-5982-421F-9A71-010BEA2A9550}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Amicitia.IO", "SharpNeedle\Source\Dependencies\Amicitia.IO\src\Amicitia.IO\Amicitia.IO.csproj", "{FAB5C125-55BB-454C-A591-7C2A8F6E65BA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,22 +19,6 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{07C14854-C106-4C8D-B832-6D78CDE2D260}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{07C14854-C106-4C8D-B832-6D78CDE2D260}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{07C14854-C106-4C8D-B832-6D78CDE2D260}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{07C14854-C106-4C8D-B832-6D78CDE2D260}.Debug|x64.Build.0 = Debug|Any CPU
-		{07C14854-C106-4C8D-B832-6D78CDE2D260}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{07C14854-C106-4C8D-B832-6D78CDE2D260}.Release|Any CPU.Build.0 = Release|Any CPU
-		{07C14854-C106-4C8D-B832-6D78CDE2D260}.Release|x64.ActiveCfg = Release|Any CPU
-		{07C14854-C106-4C8D-B832-6D78CDE2D260}.Release|x64.Build.0 = Release|Any CPU
-		{472D0F18-7669-49FF-837E-86DA4D4BE308}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{472D0F18-7669-49FF-837E-86DA4D4BE308}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{472D0F18-7669-49FF-837E-86DA4D4BE308}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{472D0F18-7669-49FF-837E-86DA4D4BE308}.Debug|x64.Build.0 = Debug|Any CPU
-		{472D0F18-7669-49FF-837E-86DA4D4BE308}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{472D0F18-7669-49FF-837E-86DA4D4BE308}.Release|Any CPU.Build.0 = Release|Any CPU
-		{472D0F18-7669-49FF-837E-86DA4D4BE308}.Release|x64.ActiveCfg = Release|Any CPU
-		{472D0F18-7669-49FF-837E-86DA4D4BE308}.Release|x64.Build.0 = Release|Any CPU
 		{FEACA5A3-E0B1-4D73-9681-4D8B7AA10B22}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FEACA5A3-E0B1-4D73-9681-4D8B7AA10B22}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FEACA5A3-E0B1-4D73-9681-4D8B7AA10B22}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -53,6 +35,22 @@ Global
 		{6A112CEA-8CA7-436A-A8A1-9B64417A2181}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6A112CEA-8CA7-436A-A8A1-9B64417A2181}.Release|x64.ActiveCfg = Release|Any CPU
 		{6A112CEA-8CA7-436A-A8A1-9B64417A2181}.Release|x64.Build.0 = Release|Any CPU
+		{BAF1397D-5982-421F-9A71-010BEA2A9550}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BAF1397D-5982-421F-9A71-010BEA2A9550}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BAF1397D-5982-421F-9A71-010BEA2A9550}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BAF1397D-5982-421F-9A71-010BEA2A9550}.Debug|x64.Build.0 = Debug|Any CPU
+		{BAF1397D-5982-421F-9A71-010BEA2A9550}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BAF1397D-5982-421F-9A71-010BEA2A9550}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BAF1397D-5982-421F-9A71-010BEA2A9550}.Release|x64.ActiveCfg = Release|Any CPU
+		{BAF1397D-5982-421F-9A71-010BEA2A9550}.Release|x64.Build.0 = Release|Any CPU
+		{FAB5C125-55BB-454C-A591-7C2A8F6E65BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FAB5C125-55BB-454C-A591-7C2A8F6E65BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FAB5C125-55BB-454C-A591-7C2A8F6E65BA}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{FAB5C125-55BB-454C-A591-7C2A8F6E65BA}.Debug|x64.Build.0 = Debug|Any CPU
+		{FAB5C125-55BB-454C-A591-7C2A8F6E65BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FAB5C125-55BB-454C-A591-7C2A8F6E65BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FAB5C125-55BB-454C-A591-7C2A8F6E65BA}.Release|x64.ActiveCfg = Release|Any CPU
+		{FAB5C125-55BB-454C-A591-7C2A8F6E65BA}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -61,8 +59,7 @@ Global
 		SolutionGuid = {81B8CF7A-7C8C-46CF-A698-DE0A51B5AA13}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		SharpNeedle.Shared\SharpNeedle.Shared.projitems*{07c14854-c106-4c8d-b832-6d78cde2d260}*SharedItemsImports = 5
-		SharpNeedle.Shared\SharpNeedle.Shared.projitems*{925bc477-9b22-47fb-b0b1-95ea381b3b9e}*SharedItemsImports = 13
+		SharpNeedle\Source\SharpNeedle.Shared\SharpNeedle.Shared.projitems*{baf1397d-5982-421f-9a71-010bea2a9550}*SharedItemsImports = 5
 		SharpNeedle.Shared\SharpNeedle.Shared.projitems*{feaca5a3-e0b1-4d73-9681-4d8b7aa10b22}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal

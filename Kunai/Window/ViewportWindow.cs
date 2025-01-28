@@ -1,5 +1,6 @@
 ﻿using Hexa.NET.ImGui;
 using Kunai.ShurikenRenderer;
+using System;
 
 namespace Kunai.Window
 {

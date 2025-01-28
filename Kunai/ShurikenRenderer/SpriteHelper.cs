@@ -1,6 +1,7 @@
 ﻿using SharpNeedle.Ninja.Csd;
 using SharpNeedle.SurfRide.Draw;
 using Shuriken.Rendering;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Media;

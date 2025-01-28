@@ -5,6 +5,9 @@ using Shuriken.Rendering;
 using Sprite = Shuriken.Rendering.Sprite;
 using Hexa.NET.Utilities.Text;
 using Vector2 = System.Numerics.Vector2;
+using System.Collections.Generic;
+using System.Numerics;
+using System;
 
 namespace Kunai.Window
 {

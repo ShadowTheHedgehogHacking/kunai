@@ -1,0 +1,3 @@
+[submodule "SharpNeedle"]
+	path = SharpNeedle
+	url = https://github.com/hedge-dev/SharpNeedle

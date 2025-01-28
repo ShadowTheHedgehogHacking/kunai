@@ -1,4 +1,6 @@
-﻿namespace Shuriken.Models
+﻿using System.Numerics;
+
+namespace Shuriken.Models
 {
     public class CastTransform
     {

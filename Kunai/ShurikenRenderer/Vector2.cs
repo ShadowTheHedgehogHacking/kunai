@@ -1,4 +1,7 @@
-﻿namespace Kunai.ShurikenRenderer
+﻿using System;
+using System.Numerics;
+
+namespace Kunai.ShurikenRenderer
 {
     public class Vector2
     {

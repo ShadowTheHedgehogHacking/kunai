@@ -11,7 +11,7 @@ namespace Kunai.ShurikenRenderer
 {
     public class ShaderProgram
     {
-        public int ID { get; private set; } = 0;
+        public int Id { get; private set; } = 0;
         public string Name { get; private set; }
 
         /// <summary>
@@ -20,18 +20,18 @@ namespace Kunai.ShurikenRenderer
         /// </summary>
         /// <param name="vertexPath">The path to the vertex program.</param>
         /// <param name="fragmentPath">The path to the fragment program.</param>
-        public void Compile(string name, string vertexPath, string fragmentPath)
+        public void Compile(string in_Name, string in_VertexPath, string in_FragmentPath)
         {
-            Name = name;
+            Name = in_Name;
             string vertexSource = "";
             string fragmentSource = "";
 
-            using (StreamReader reader = new StreamReader(vertexPath))
+            using (StreamReader reader = new StreamReader(in_VertexPath))
             {
                 vertexSource = reader.ReadToEnd();
             };
 
-            using (StreamReader reader = new StreamReader(fragmentPath))
+            using (StreamReader reader = new StreamReader(in_FragmentPath))
             {
                 fragmentSource = reader.ReadToEnd();
             };
@@ -54,46 +54,46 @@ namespace Kunai.ShurikenRenderer
                 Console.WriteLine(fLog);
 
             // Link shaders to program
-            ID = GL.CreateProgram();
-            GL.AttachShader(ID, vertexShader);
-            GL.AttachShader(ID, fragmentShader);
-            GL.LinkProgram(ID);
+            Id = GL.CreateProgram();
+            GL.AttachShader(Id, vertexShader);
+            GL.AttachShader(Id, fragmentShader);
+            GL.LinkProgram(Id);
 
             // Cleanup
-            GL.DetachShader(ID, vertexShader);
-            GL.DetachShader(ID, fragmentShader);
+            GL.DetachShader(Id, vertexShader);
+            GL.DetachShader(Id, fragmentShader);
             GL.DeleteShader(vertexShader);
             GL.DeleteShader(fragmentShader);
         }
 
-        public void SetUniform(string attribute, int value)
+        public void SetUniform(string in_Attribute, int in_Value)
         {
-            GL.Uniform1(GL.GetUniformLocation(ID, attribute), value);
+            GL.Uniform1(GL.GetUniformLocation(Id, in_Attribute), in_Value);
         }
 
-        public void SetUniform(string attribute, float value)
+        public void SetUniform(string in_Attribute, float in_Value)
         {
-            GL.Uniform1(GL.GetUniformLocation(ID, attribute), value);
+            GL.Uniform1(GL.GetUniformLocation(Id, in_Attribute), in_Value);
         }
 
-        public void SetMatrix4(string name, Matrix4 mat)
+        public void SetMatrix4(string in_Name, Matrix4 in_Mat)
         {
-            GL.UniformMatrix4(GL.GetUniformLocation(ID, name), true, ref mat);
+            GL.UniformMatrix4(GL.GetUniformLocation(Id, in_Name), true, ref in_Mat);
         }
 
-        public void SetBool(string name, bool value)
+        public void SetBool(string in_Name, bool in_Value)
         {
-            GL.Uniform1(GL.GetUniformLocation(ID, name), value ? 1 : 0);
+            GL.Uniform1(GL.GetUniformLocation(Id, in_Name), in_Value ? 1 : 0);
         }
 
         public void Use()
         {
-            GL.UseProgram(ID);
+            GL.UseProgram(Id);
         }
 
-        public ShaderProgram(string name, string vertexPath, string fragmentPath)
+        public ShaderProgram(string in_Name, string in_VertexPath, string in_FragmentPath)
         {
-            Compile(name, vertexPath, fragmentPath);
+            Compile(in_Name, in_VertexPath, in_FragmentPath);
         }
 
         public ShaderProgram()

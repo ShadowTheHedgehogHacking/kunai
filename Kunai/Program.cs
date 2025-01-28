@@ -4,14 +4,15 @@ using System.Security.Permissions;
 
 namespace Kunai
 {
-    class Program
+    internal class Program
     {
-        public static string[] arguments;
-        public static string path = System.Environment.ProcessPath;
-        static void Main(string[] args)
+        public static string[] Arguments;
+        public static string Path = System.Environment.ProcessPath;
+
+        private static void Main(string[] in_Args)
         {
             MainWindow wnd = new MainWindow();
-            arguments = args;
+            Arguments = in_Args;
             wnd.Run();
         }
 

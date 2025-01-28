@@ -13,32 +13,32 @@ namespace Kunai.Window
     
     public class AnimationsWindow : WindowBase
     {
-        static List<ImPlotPoint> points = new List<ImPlotPoint>();
+        private static List<ImPlotPoint> _points = new List<ImPlotPoint>();
 
         public override void Update(ShurikenRenderHelper in_Renderer)
         {
             var size1 = ImGui.GetWindowViewport().Size.X / 4.5f;
             ImGui.SetNextWindowPos(new System.Numerics.Vector2(size1, ImGui.GetWindowViewport().Size.Y / 1.5f), ImGuiCond.Always);
             ImGui.SetNextWindowSize(new System.Numerics.Vector2(size1 * 2.5f, ImGui.GetWindowViewport().Size.Y / 3), ImGuiCond.Always);
-            if (ImGui.Begin("Animations", MainWindow.flags))
+            if (ImGui.Begin("Animations", MainWindow.WindowFlags))
             {
                 ImGui.BeginGroup();
-                ImGui.Checkbox("Play", ref in_Renderer.config.playingAnimations);
+                ImGui.Checkbox("Play", ref in_Renderer.Config.PlayingAnimations);
                 ImGui.SameLine();
-                ImGui.Checkbox("Show Quads", ref in_Renderer.config.showQuads);
+                ImGui.Checkbox("Show Quads", ref in_Renderer.Config.ShowQuads);
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(60);
-                ImGui.InputDouble("Time", ref in_Renderer.config.time, "%.2f");
+                ImGui.InputDouble("Time", ref in_Renderer.Config.Time, "%.2f");
                 ImGui.EndGroup();
 
 
                 //The list of anims, anim tracks and cast animations
                 if (ImGui.BeginListBox("##animlist", new System.Numerics.Vector2(ImGui.GetWindowSize().X / 5, -1)))
                 {
-                    var selectedScene = ShurikenRenderHelper.Instance.selectionData.SelectedScene;
+                    var selectedScene = ShurikenRenderHelper.Instance.SelectionData.SelectedScene;
                     if (selectedScene.Value != null)
                     {
-                        SVisibilityData.SScene sceneVisData = in_Renderer.visibilityData.GetScene(selectedScene.Value);
+                        SVisibilityData.SScene sceneVisData = in_Renderer.VisibilityData.GetScene(selectedScene.Value);
                         foreach (SVisibilityData.SAnimation sceneMotion in sceneVisData.Animation)
                         {
                             DrawMotionElement(sceneMotion);
@@ -77,7 +77,7 @@ namespace Kunai.Window
                     {
                         if (ImGui.Selectable(track.Property.ToString()))
                         {
-                            renderer.selectionData.trackAnimation = track;
+                            Renderer.SelectionData.TrackAnimation = track;
                         }
                     }
                     ImGui.TreePop();
@@ -95,37 +95,37 @@ namespace Kunai.Window
                     StrBuilder sb = new(buffer, bufferSize);
                     sb.Append($"##anim");
                     sb.End();
-                    var selectedScene = ShurikenRenderHelper.Instance.selectionData.SelectedScene;
+                    var selectedScene = ShurikenRenderHelper.Instance.SelectionData.SelectedScene;
                     ImPlot.SetupAxisLimits(ImAxis.X1, 0, 60);
                     ImPlot.SetupAxisLimits(ImAxis.Y1, 0, 10);
                     if (selectedScene.Value != null)
                     {
-                        if (renderer.selectionData.trackAnimation != null)
+                        if (Renderer.SelectionData.TrackAnimation != null)
                         {
-                            double time = in_Renderer.config.time * selectedScene.Value.FrameRate;
-                            points.Clear();
+                            double time = in_Renderer.Config.Time * selectedScene.Value.FrameRate;
+                            _points.Clear();
                             //Line for the anim time
                             ImPlot.DragLineX(0, &time, new Vector4(1, 1, 1, 1), 1);
 
-                            bool isFloatValue = renderer.selectionData.trackAnimation.Property != KeyProperty.Color
-                                && renderer.selectionData.trackAnimation.Property != KeyProperty.GradientBottomRight
-                                && renderer.selectionData.trackAnimation.Property != KeyProperty.GradientBottomLeft
-                                && renderer.selectionData.trackAnimation.Property != KeyProperty.GradientTopLeft
-                                && renderer.selectionData.trackAnimation.Property != KeyProperty.GradientTopRight;
+                            bool isFloatValue = Renderer.SelectionData.TrackAnimation.Property != KeyProperty.Color
+                                && Renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientBottomRight
+                                && Renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientBottomLeft
+                                && Renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientTopLeft
+                                && Renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientTopRight;
                             //Animation keyframe points
-                            for (int i = 0; i < renderer.selectionData.trackAnimation.Frames.Count; i++)
+                            for (int i = 0; i < Renderer.SelectionData.TrackAnimation.Frames.Count; i++)
                             {
-                                ImPlotPoint point = new ImPlotPoint(renderer.selectionData.trackAnimation.Frames[i].Frame, isFloatValue ? renderer.selectionData.trackAnimation.Frames[i].Value.Float : 0);
-                                points.Add(point);
+                                ImPlotPoint point = new ImPlotPoint(Renderer.SelectionData.TrackAnimation.Frames[i].Frame, isFloatValue ? Renderer.SelectionData.TrackAnimation.Frames[i].Value.Float : 0);
+                                _points.Add(point);
                                 bool isClicked = false;
-                                if (ImPlot.DragPoint(i, &point.X, &point.Y, renderer.selectionData.keyframeSelected == renderer.selectionData.trackAnimation.Frames[i] ? new System.Numerics.Vector4(1, 0.9f, 1, 1) : new System.Numerics.Vector4(0, 0.9f, 0, 1), 8, ImPlotDragToolFlags.None, &isClicked))
+                                if (ImPlot.DragPoint(i, &point.X, &point.Y, Renderer.SelectionData.KeyframeSelected == Renderer.SelectionData.TrackAnimation.Frames[i] ? new System.Numerics.Vector4(1, 0.9f, 1, 1) : new System.Numerics.Vector4(0, 0.9f, 0, 1), 8, ImPlotDragToolFlags.None, &isClicked))
                                 {
                                     if (isFloatValue)
-                                        renderer.selectionData.trackAnimation.Frames[i].Value = new SharpNeedle.Ninja.Csd.Motions.KeyFrame.Union((float)point.Y);
-                                    renderer.selectionData.trackAnimation.Frames[i].Frame = (uint)point.X;
+                                        Renderer.SelectionData.TrackAnimation.Frames[i].Value = new SharpNeedle.Ninja.Csd.Motions.KeyFrame.Union((float)point.Y);
+                                    Renderer.SelectionData.TrackAnimation.Frames[i].Frame = (uint)point.X;
                                 }
                                 if (isClicked)
-                                    renderer.selectionData.keyframeSelected = renderer.selectionData.trackAnimation.Frames[i];
+                                    Renderer.SelectionData.KeyframeSelected = Renderer.SelectionData.TrackAnimation.Frames[i];
                             }
                             //var p1 = points.ToArray()[0];
                             //ImPlot.PlotLine("##bez", &p1.X, &p1.Y, points.Count, ImPlotLineFlags.Loop, 0, sizeof(ImPlotPoint));
@@ -150,32 +150,32 @@ namespace Kunai.Window
             if (ImGui.BeginListBox("##animlist2", new System.Numerics.Vector2(-1, -1)))
             {
                 ImGui.SeparatorText("Keyframe");
-                if (renderer.selectionData.keyframeSelected == null)
+                if (Renderer.SelectionData.KeyframeSelected == null)
                     ImGui.TextWrapped("Select a keyframe in the timeline to edit its values.");
                 else
                 {
-                    int frame = (int)renderer.selectionData.keyframeSelected.Frame;
-                    var val = renderer.selectionData.keyframeSelected.Value;
-                    var valColor = renderer.selectionData.keyframeSelected.Value.Color.ToVec4();
+                    int frame = (int)Renderer.SelectionData.KeyframeSelected.Frame;
+                    var val = Renderer.SelectionData.KeyframeSelected.Value;
+                    var valColor = Renderer.SelectionData.KeyframeSelected.Value.Color.ToVec4();
                     ImGui.InputInt("Frame", ref frame);
-                    bool isFloatValue = renderer.selectionData.trackAnimation.Property != KeyProperty.Color
-                       && renderer.selectionData.trackAnimation.Property != KeyProperty.GradientBottomRight
-                       && renderer.selectionData.trackAnimation.Property != KeyProperty.GradientBottomLeft
-                       && renderer.selectionData.trackAnimation.Property != KeyProperty.GradientTopLeft
-                       && renderer.selectionData.trackAnimation.Property != KeyProperty.GradientTopRight;
+                    bool isFloatValue = Renderer.SelectionData.TrackAnimation.Property != KeyProperty.Color
+                       && Renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientBottomRight
+                       && Renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientBottomLeft
+                       && Renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientTopLeft
+                       && Renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientTopRight;
                     if (isFloatValue)
                     {
                         ImGui.InputFloat("Value", ref val.Float);
-                        renderer.selectionData.keyframeSelected.Value = val.Float;
+                        Renderer.SelectionData.KeyframeSelected.Value = val.Float;
                     }
                     else
                     {
                         if(ImGui.ColorEdit4("Value", ref valColor))
-                        renderer.selectionData.keyframeSelected.Value = valColor.ToSharpNeedleColor();
+                        Renderer.SelectionData.KeyframeSelected.Value = valColor.ToSharpNeedleColor();
                     }
 
 
-                    renderer.selectionData.keyframeSelected.Frame = (uint)frame;
+                    Renderer.SelectionData.KeyframeSelected.Frame = (uint)frame;
                 }
                 ImGui.EndListBox();
             }

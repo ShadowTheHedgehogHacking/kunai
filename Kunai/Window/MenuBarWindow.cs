@@ -14,21 +14,21 @@ namespace Kunai.Window
 {
     public class MenuBarWindow : WindowBase
     {
-        public static float menuBarHeight = 32;
-        private static readonly string filters = "xncp,yncp,gncp;xncp;yncp;gncp";
+        public static float MenuBarHeight = 32;
+        private static readonly string Filters = "xncp,yncp,gncp;xncp;yncp;gncp";
 
-        public static string AddQuotesIfRequired(string path)
+        public static string AddQuotesIfRequired(string in_Path)
         {
-            return !string.IsNullOrWhiteSpace(path) ?
-                path.Contains(" ") && (!path.StartsWith("\"") && !path.EndsWith("\"")) ?
-                    "\"" + path + "\"" : path :
+            return !string.IsNullOrWhiteSpace(in_Path) ?
+                in_Path.Contains(" ") && (!in_Path.StartsWith("\"") && !in_Path.EndsWith("\"")) ?
+                    "\"" + in_Path + "\"" : in_Path :
                     string.Empty;
         }
-        public static void ExecuteAsAdmin(string fileName)
+        public static void ExecuteAsAdmin(string in_FileName)
         {
-            fileName = AddQuotesIfRequired(fileName);
+            in_FileName = AddQuotesIfRequired(in_FileName);
             Process proc = new Process();
-            proc.StartInfo.FileName = fileName;
+            proc.StartInfo.FileName = in_FileName;
             proc.StartInfo.UseShellExecute = true;
             proc.StartInfo.Verb = "runas";
             proc.Start();
@@ -37,12 +37,12 @@ namespace Kunai.Window
         {
             if (ImGui.BeginMainMenuBar())
             {
-                MenuBarWindow.menuBarHeight = ImGui.GetWindowSize().Y;
+                MenuBarWindow.MenuBarHeight = ImGui.GetWindowSize().Y;
                 if (ImGui.BeginMenu($"File"))
                 {
                     if (ImGui.MenuItem("Open CSD Project..."))
                     {
-                        var testdial = NativeFileDialogSharp.Dialog.FileOpen(filters);
+                        var testdial = NativeFileDialogSharp.Dialog.FileOpen(Filters);
                         if (testdial.IsOk)
                         {
                             in_Renderer.LoadFile(@testdial.Path);
@@ -58,7 +58,7 @@ namespace Kunai.Window
                 {
                     if(ImGui.MenuItem("Associate extensions"))
                     {
-                        ExecuteAsAdmin(@Path.Combine(Directory.GetParent(@Program.path).FullName, "FileTypeRegisterService.exe"));
+                        ExecuteAsAdmin(@Path.Combine(Directory.GetParent(@Program.Path).FullName, "FileTypeRegisterService.exe"));
                     }
 
                     ImGui.EndMenu();

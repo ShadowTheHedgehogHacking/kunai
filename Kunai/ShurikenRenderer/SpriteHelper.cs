@@ -16,37 +16,37 @@ namespace Kunai.ShurikenRenderer
     }
     public class TextureList
     {
-        private string name;
+        private string _name;
         public string Name
         {
-            get { return name; }
+            get { return _name; }
             set
             {
                 if (!string.IsNullOrEmpty(value))
-                    name = value;
+                    _name = value;
             }
         }
 
         public List<Texture> Textures { get; set; } = new List<Texture>();
 
-        public TextureList(string listName)
+        public TextureList(string in_ListName)
         {
-            name = listName;
+            _name = in_ListName;
             Textures = new List<Texture>();
         }
     }
-    public class UIFont
+    public class UiFont
     {
-        public int ID { get; private set; }
+        public int Id { get; private set; }
 
-        private string name;
+        private string _name;
         public string Name
         {
-            get => name;
+            get => _name;
             set
             {
                 if (!string.IsNullOrEmpty(value))
-                    name = value;
+                    _name = value;
             }
         }
 
@@ -54,23 +54,23 @@ namespace Kunai.ShurikenRenderer
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public UIFont(string name, int id)
+        public UiFont(string in_Name, int in_Id)
         {
-            ID = id;
-            Name = name;
+            Id = in_Id;
+            Name = in_Name;
             Mappings = new List<CharacterMapping>();
         }
     }
     public class CharacterMapping
     {
-        private char character;
+        private char _character;
         public char Character
         {
-            get => character;
+            get => _character;
             set
             {
                 if (!string.IsNullOrEmpty(value.ToString()))
-                    character = value;
+                    _character = value;
             }
         }
 
@@ -78,10 +78,10 @@ namespace Kunai.ShurikenRenderer
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public CharacterMapping(char c, int sprID)
+        public CharacterMapping(char in_C, int in_SprId)
         {
-            Character = c;
-            Sprite = sprID;
+            Character = in_C;
+            Sprite = in_SprId;
         }
 
         public CharacterMapping()
@@ -92,37 +92,37 @@ namespace Kunai.ShurikenRenderer
     public static class SpriteHelper
     {
         public static Dictionary<int, Shuriken.Rendering.Sprite> Sprites { get; set; } = new Dictionary<int, Sprite>();
-        private static int NextSpriteID = 1;
-        private static List<Crop> ncpSubimages = new List<Crop>();
-        public static TextureList textureList;
-        public static Sprite TryGetSprite(int id)
+        private static int _nextSpriteId = 1;
+        private static List<Crop> _ncpSubimages = new List<Crop>();
+        public static TextureList TextureList;
+        public static Sprite TryGetSprite(int in_Id)
         {
-            Sprites.TryGetValue(id+1, out Sprite sprite);
+            Sprites.TryGetValue(in_Id+1, out Sprite sprite);
             return sprite;
         }
-        public static int AppendSprite(Sprite spr)
+        public static int AppendSprite(Sprite in_Spr)
         {
-            Sprites.Add(NextSpriteID, spr);
-            return NextSpriteID++;
+            Sprites.Add(_nextSpriteId, in_Spr);
+            return _nextSpriteId++;
         }
-        public static int CreateSprite(Texture tex, float top = 0.0f, float left = 0.0f, float bottom = 1.0f, float right = 1.0f)
+        public static int CreateSprite(Texture in_Tex, float in_Top = 0.0f, float in_Left = 0.0f, float in_Bottom = 1.0f, float in_Right = 1.0f)
         {
-            Sprite spr = new Sprite(NextSpriteID, tex, top, left, bottom, right);
+            Sprite spr = new Sprite(_nextSpriteId, in_Tex, in_Top, in_Left, in_Bottom, in_Right);
             return AppendSprite(spr);
         }
 
         public static void LoadTextures(CsdProject in_CsdProject)
         {
-            ncpSubimages.Clear();
+            _ncpSubimages.Clear();
             Sprites.Clear();
             GetSubImages(in_CsdProject.Project.Root);
-            LoadSubimages(textureList, ncpSubimages);
+            LoadSubimages(TextureList, _ncpSubimages);
         }
-        public static void GetSubImages(SharpNeedle.Ninja.Csd.SceneNode node)
+        public static void GetSubImages(SharpNeedle.Ninja.Csd.SceneNode in_Node)
         {
-            foreach (var scene in node.Scenes)
+            foreach (var scene in in_Node.Scenes)
             {
-                if (ncpSubimages.Count > 0)
+                if (_ncpSubimages.Count > 0)
                     return;
 
 
@@ -132,45 +132,45 @@ namespace Kunai.ShurikenRenderer
                     i.TextureIndex = (uint)item.TextureIndex;
                     i.TopLeft = item.TopLeft;
                     i.BottomRight = item.BottomRight;
-                    ncpSubimages.Add(i);
+                    _ncpSubimages.Add(i);
                 }
             }
 
-            foreach (KeyValuePair<string, SceneNode> child in node.Children)
+            foreach (KeyValuePair<string, SceneNode> child in in_Node.Children)
             {
-                if (ncpSubimages.Count > 0)
+                if (_ncpSubimages.Count > 0)
                     return;
 
                 GetSubImages(child.Value);
             }
         }
-        private static void LoadSubimages(Kunai.ShurikenRenderer.TextureList texList, List<Crop> subimages)
+        private static void LoadSubimages(Kunai.ShurikenRenderer.TextureList in_TexList, List<Crop> in_Subimages)
         {
-            foreach (var image in subimages)
+            foreach (var image in in_Subimages)
             {
                 int textureIndex = (int)image.TextureIndex;
-                if (textureIndex >= 0 && textureIndex < texList.Textures.Count)
+                if (textureIndex >= 0 && textureIndex < in_TexList.Textures.Count)
                 {
-                    int id = CreateSprite(texList.Textures[textureIndex], image.TopLeft.Y, image.TopLeft.X,
+                    int id = CreateSprite(in_TexList.Textures[textureIndex], image.TopLeft.Y, image.TopLeft.X,
                         image.BottomRight.Y, image.BottomRight.X);
 
-                    texList.Textures[textureIndex].Sprites.Add(id);
+                    in_TexList.Textures[textureIndex].Sprites.Add(id);
                 }
             }
         }
 
         internal static void ClearTextures()
         {
-            if (textureList == null)
+            if (TextureList == null)
                 return;
-            foreach(var f in textureList.Textures)
+            foreach(var f in TextureList.Textures)
             {
                 f.Destroy();
             }
-            textureList.Textures.Clear();
-            ncpSubimages.Clear();
+            TextureList.Textures.Clear();
+            _ncpSubimages.Clear();
             Sprites.Clear();
-            NextSpriteID = 1;
+            _nextSpriteId = 1;
         }
     }
 }

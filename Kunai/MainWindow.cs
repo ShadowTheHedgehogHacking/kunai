@@ -19,45 +19,45 @@ namespace Kunai
 {
     public class MainWindow : GameWindow
     {
-        public static readonly string applicationName = "Kunai";
-        private static MemoryStream iconData;
-        float test = 1;
-        ImGuiController _controller;
-        public static ShurikenRenderHelper renderer;
-        public static ImGuiWindowFlags flags = ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse;
+        public static readonly string ApplicationName = "Kunai";
+        private static MemoryStream _iconData;
+        private float _test = 1;
+        private ImGuiController _controller;
+        public static ShurikenRenderHelper Renderer;
+        public static ImGuiWindowFlags WindowFlags = ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse;
         public MainWindow() : base(GameWindowSettings.Default, new NativeWindowSettings(){ Size = new Vector2i(1600, 900), APIVersion = new Version(3, 3) })
         { }
         protected override void OnLoad()
         {
             base.OnLoad();
-            Title = applicationName;
-            renderer = new ShurikenRenderHelper(this, new ShurikenRenderer.Vector2(1280, 720), new ShurikenRenderer.Vector2(ClientSize.X, ClientSize.Y));
+            Title = ApplicationName;
+            Renderer = new ShurikenRenderHelper(this, new ShurikenRenderer.Vector2(1280, 720), new ShurikenRenderer.Vector2(ClientSize.X, ClientSize.Y));
             _controller = new ImGuiController(ClientSize.X, ClientSize.Y);
 
-            renderer.windows.Add(new MenuBarWindow());
-            renderer.windows.Add(new AnimationsWindow());
-            renderer.windows.Add(new HierarchyWindow());
-            renderer.windows.Add(new InspectorWindow());
-            renderer.windows.Add(new ViewportWindow());
-            if (Program.arguments.Length > 0)
+            Renderer.Windows.Add(new MenuBarWindow());
+            Renderer.Windows.Add(new AnimationsWindow());
+            Renderer.Windows.Add(new HierarchyWindow());
+            Renderer.Windows.Add(new InspectorWindow());
+            Renderer.Windows.Add(new ViewportWindow());
+            if (Program.Arguments.Length > 0)
             {
-                renderer.LoadFile(Program.arguments[0]);
+                Renderer.LoadFile(Program.Arguments[0]);
             }
         }
-        protected override void OnResize(ResizeEventArgs e)
+        protected override void OnResize(ResizeEventArgs in_E)
         {
             // Update the opengl viewport
             GL.Viewport(0, 0, ClientSize.X, ClientSize.Y);
-            base.OnResize(e);
+            base.OnResize(in_E);
 
-            renderer.screenSize = new ShurikenRenderer.Vector2(ClientSize.X, ClientSize.Y);
+            Renderer.ScreenSize = new ShurikenRenderer.Vector2(ClientSize.X, ClientSize.Y);
             // Tell ImGui of the new size
             _controller.WindowResized(ClientSize.X, ClientSize.Y);
         }
-        protected override void OnRenderFrame(FrameEventArgs e)
+        protected override void OnRenderFrame(FrameEventArgs in_E)
         {
-            base.OnRenderFrame(e);
-            _controller.Update(this, (float)e.Time);
+            base.OnRenderFrame(in_E);
+            _controller.Update(this, (float)in_E.Time);
 
             GL.ClearColor(new Color4(0, 0, 0, 255));
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
@@ -65,28 +65,28 @@ namespace Kunai
             GL.Disable(EnableCap.CullFace);
             GL.BlendEquation(BlendEquationMode.FuncAdd);
 
-            float deltaTime = (float)(e.Time);
-            renderer.Render(renderer.WorkProjectCsd, (float)deltaTime);
+            float deltaTime = (float)(in_E.Time);
+            Renderer.Render(Renderer.WorkProjectCsd, (float)deltaTime);
             _controller.Render();
-            if (renderer.WorkProjectCsd != null)            
-                Title = applicationName + $" - [{renderer.config.WorkFilePath}]";
+            if (Renderer.WorkProjectCsd != null)            
+                Title = ApplicationName + $" - [{Renderer.Config.WorkFilePath}]";
 
-            ImGuiController.CheckGLError("End of frame");
+            ImGuiController.CheckGlError("End of frame");
             SwapBuffers();
         }
-        protected override void OnTextInput(TextInputEventArgs e)
+        protected override void OnTextInput(TextInputEventArgs in_E)
         {
-            base.OnTextInput(e);
+            base.OnTextInput(in_E);
             
             
-            _controller.PressChar((char)e.Unicode);
+            _controller.PressChar((char)in_E.Unicode);
         }
 
-        protected override void OnMouseWheel(MouseWheelEventArgs e)
+        protected override void OnMouseWheel(MouseWheelEventArgs in_E)
         {
-            base.OnMouseWheel(e);
+            base.OnMouseWheel(in_E);
             
-            _controller.MouseScroll(e.Offset);
+            _controller.MouseScroll(in_E.Offset);
         }
     }
 }

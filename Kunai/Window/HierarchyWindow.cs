@@ -6,7 +6,7 @@ namespace Kunai.Window
 {
     public class HierarchyWindow : WindowBase
     {
-        private static TempSearchBox searchBox = new TempSearchBox();
+        private static TempSearchBox _searchBox = new TempSearchBox();
         private static void RecursiveCastWidget(SVisibilityData.SScene in_Scene, Cast in_Cast)
         {
             bool selectedcast = false;
@@ -29,21 +29,21 @@ namespace Kunai.Window
                 InspectorWindow.SelectCast(in_Cast);
             }
         }
-        public static Family CreateNewFamily(Scene parent)
+        public static Family CreateNewFamily(Scene in_Parent)
         {
             Family newFamily = new Family();
-            newFamily.Scene = parent;
-            parent.Families.Add(newFamily);
+            newFamily.Scene = in_Parent;
+            in_Parent.Families.Add(newFamily);
             return newFamily;
         }
-        public static Cast CreateNewCastFromDefault(string name, Cast parent)
+        public static Cast CreateNewCastFromDefault(string in_Name, Cast in_Parent)
         {
             Cast newCast = new Cast();
             newCast.SpriteIndices = new int[32];
-            newCast.Parent = parent;
+            newCast.Parent = in_Parent;
             var info = newCast.Info;
             newCast.Field04 = 1;
-            newCast.Name = name;
+            newCast.Name = in_Name;
             info.Scale = new System.Numerics.Vector2(1, 1);
             newCast.TopLeft = new System.Numerics.Vector2(-0.1f, 0);
             newCast.BottomLeft = new System.Numerics.Vector2(-0.1f, 0.1f);
@@ -58,8 +58,8 @@ namespace Kunai.Window
             if (ImguiControls.CollapsingHeaderVisibility($"#{in_VisNode.Node.Key}", ref in_VisNode.Active, ref selectedNode))
             {
 
-                foreach (var in_Node in in_VisNode.Nodes)
-                    DrawSceneNode(in_Node);
+                foreach (var inNode in in_VisNode.Nodes)
+                    DrawSceneNode(inNode);
                 foreach (var g in in_VisNode.Scene)
                 {
                     if (ImguiControls.CollapsingHeaderVisibility(g.Scene.Key, ref g.Active, ref selectedScene))
@@ -109,16 +109,16 @@ namespace Kunai.Window
         }
         public override void Update(ShurikenRenderHelper in_Proj)
         {
-            ImGui.SetNextWindowPos(new System.Numerics.Vector2(0, MenuBarWindow.menuBarHeight), ImGuiCond.Always);
+            ImGui.SetNextWindowPos(new System.Numerics.Vector2(0, MenuBarWindow.MenuBarHeight), ImGuiCond.Always);
             ImGui.SetNextWindowSize(new System.Numerics.Vector2(ImGui.GetWindowViewport().Size.X / 4.5f, ImGui.GetWindowViewport().Size.Y), ImGuiCond.Always);
-            if (ImGui.Begin("Hierarchy", MainWindow.flags))
+            if (ImGui.Begin("Hierarchy", MainWindow.WindowFlags))
             {
                 ImGui.BeginDisabled(true);
-                searchBox.Render();
+                _searchBox.Render();
                 ImGui.EndDisabled();
                 if (in_Proj.WorkProjectCsd != null)
                 {
-                    foreach (var f in MainWindow.renderer.visibilityData.Nodes)
+                    foreach (var f in MainWindow.Renderer.VisibilityData.Nodes)
                     {
                         DrawSceneNode(f);
                     }

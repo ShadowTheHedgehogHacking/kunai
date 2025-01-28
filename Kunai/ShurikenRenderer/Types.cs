@@ -51,7 +51,7 @@ namespace Shuriken.Rendering
     public struct Vertex
     {
         public Vector2 Position;
-        public Vector2 UV;
+        public Vector2 Uv;
         public Vector4 Color;
         public Vertex WithInvertedColor()
         {
@@ -72,7 +72,7 @@ namespace Shuriken.Rendering
     }
     public class Sprite
     {
-        public readonly int ID;
+        public readonly int Id;
         public Kunai.ShurikenRenderer.Vector2 Start { get; set; }
         public Kunai.ShurikenRenderer.Vector2 Dimensions { get; set; }
         public Texture Texture { get; set; }
@@ -135,22 +135,22 @@ namespace Shuriken.Rendering
             }
         }
 
-        public Sprite(int id, Texture tex, float top = 0.0f, float left = 0.0f, float bottom = 1.0f, float right = 1.0f)
+        public Sprite(int in_Id, Texture in_Tex, float in_Top = 0.0f, float in_Left = 0.0f, float in_Bottom = 1.0f, float in_Right = 1.0f)
         {
-            ID = id;
-            Texture = tex;
+            Id = in_Id;
+            Texture = in_Tex;
 
-            Start = new Vector2(MathF.Round(left * tex.Width), MathF.Round(top * tex.Height));
+            Start = new Vector2(MathF.Round(in_Left * in_Tex.Width), MathF.Round(in_Top * in_Tex.Height));
             Start.X = Math.Clamp(Start.X, 0, Texture.Width);
             Start.Y = Math.Clamp(Start.Y, 0, Texture.Height);
 
-            Dimensions = new Vector2(MathF.Round((right - left) * tex.Width), MathF.Round((bottom - top) * tex.Height));
+            Dimensions = new Vector2(MathF.Round((in_Right - in_Left) * in_Tex.Width), MathF.Round((in_Bottom - in_Top) * in_Tex.Height));
             CreateCrop();
 
-            OriginalTop = top;
-            OriginalLeft = left;
-            OriginalBottom = bottom;
-            OriginalRight = right;
+            OriginalTop = in_Top;
+            OriginalLeft = in_Left;
+            OriginalBottom = in_Bottom;
+            OriginalRight = in_Right;
             HasChanged = false;
         }
 

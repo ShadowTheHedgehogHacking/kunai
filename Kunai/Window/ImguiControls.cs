@@ -9,17 +9,17 @@ namespace Kunai.Window
 {
     public static class ImguiControls
     {
-        public static bool CollapsingHeaderVisibility(string name, ref bool visibile, ref bool isSelected, bool showArrow = true)
+        public static bool CollapsingHeaderVisibility(string in_Name, ref bool in_Visibile, ref bool in_IsSelected, bool in_ShowArrow = true)
         {
             bool returnVal = true;
-            ImGui.BeginDisabled(!showArrow);
+            ImGui.BeginDisabled(!in_ShowArrow);
             
-            returnVal = ImGui.TreeNodeEx($"##{name}header", !showArrow ? ImGuiTreeNodeFlags.Leaf : ImGuiTreeNodeFlags.None);
+            returnVal = ImGui.TreeNodeEx($"##{in_Name}header", !in_ShowArrow ? ImGuiTreeNodeFlags.Leaf : ImGuiTreeNodeFlags.None);
             ImGui.EndDisabled();
             ImGui.SameLine(0, 1 * ImGui.GetStyle().ItemSpacing.X);
-            ImGui.Checkbox($"##{name}togg", ref visibile);
+            ImGui.Checkbox($"##{in_Name}togg", ref in_Visibile);
             ImGui.SameLine(0, 1 * ImGui.GetStyle().ItemSpacing.X);
-            isSelected = ImGui.Selectable(name);
+            in_IsSelected = ImGui.Selectable(in_Name);
             return returnVal; 
         }
     }

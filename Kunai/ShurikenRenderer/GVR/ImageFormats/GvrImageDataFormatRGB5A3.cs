@@ -1,6 +1,6 @@
 ﻿namespace Shuriken.Rendering.Gvr
 {
-    class GvrImageDataFormatRGB5A3 : GvrImageDataFormat
+    internal class GvrImageDataFormatRgb5A3 : GvrImageDataFormat
     {
         public override uint BitsPerPixel => 16;
 
@@ -9,12 +9,12 @@
 
         public override byte TgaAlphaChannelBits => 8;
 
-        public GvrImageDataFormatRGB5A3(ushort width, ushort height) : base(width, height)
+        public GvrImageDataFormatRgb5A3(ushort in_Width, ushort in_Height) : base(in_Width, in_Height)
         {
 
         }
 
-        public override byte[] Decode(byte[] input)
+        public override byte[] Decode(byte[] in_Input)
         {
             byte[] output = new byte[DecodedDataLength];
             int offset = 0;
@@ -27,7 +27,7 @@
                     {
                         for (int x2 = 0; x2 < 4; x2++)
                         {
-                            ushort pixel = (ushort)((input[offset] << 8) | input[offset + 1]);
+                            ushort pixel = (ushort)((in_Input[offset] << 8) | in_Input[offset + 1]);
                             offset += 2;
 
                             if ((pixel & 0b1000_0000_0000_0000) == 0) // Argb3444
@@ -52,7 +52,7 @@
             return output;
         }
 
-        public override byte[] Encode(byte[] input)
+        public override byte[] Encode(byte[] in_Input)
         {
             byte[] output = new byte[EncodedDataLength];
             int offset = 0;
@@ -67,19 +67,19 @@
                         {
                             ushort pixel = 0x0000;
 
-                            if (input[((((y + y2) * Width) + (x + x2)) * 4) + 3] <= 0xDA) // Argb3444
+                            if (in_Input[((((y + y2) * Width) + (x + x2)) * 4) + 3] <= 0xDA) // Argb3444
                             {
-                                pixel |= (ushort)((input[((((y + y2) * Width) + (x + x2)) * 4) + 3] >> 5) << 12);
-                                pixel |= (ushort)((input[((((y + y2) * Width) + (x + x2)) * 4) + 2] >> 4) << 8);
-                                pixel |= (ushort)((input[((((y + y2) * Width) + (x + x2)) * 4) + 1] >> 4) << 4);
-                                pixel |= (ushort)((input[((((y + y2) * Width) + (x + x2)) * 4) + 0] >> 4) << 0);
+                                pixel |= (ushort)((in_Input[((((y + y2) * Width) + (x + x2)) * 4) + 3] >> 5) << 12);
+                                pixel |= (ushort)((in_Input[((((y + y2) * Width) + (x + x2)) * 4) + 2] >> 4) << 8);
+                                pixel |= (ushort)((in_Input[((((y + y2) * Width) + (x + x2)) * 4) + 1] >> 4) << 4);
+                                pixel |= (ushort)((in_Input[((((y + y2) * Width) + (x + x2)) * 4) + 0] >> 4) << 0);
                             }
                             else // Rgb555
                             {
                                 pixel |= 0x8000;
-                                pixel |= (ushort)((input[((((y + y2) * Width) + (x + x2)) * 4) + 2] >> 3) << 10);
-                                pixel |= (ushort)((input[((((y + y2) * Width) + (x + x2)) * 4) + 1] >> 3) << 5);
-                                pixel |= (ushort)((input[((((y + y2) * Width) + (x + x2)) * 4) + 0] >> 3) << 0);
+                                pixel |= (ushort)((in_Input[((((y + y2) * Width) + (x + x2)) * 4) + 2] >> 3) << 10);
+                                pixel |= (ushort)((in_Input[((((y + y2) * Width) + (x + x2)) * 4) + 1] >> 3) << 5);
+                                pixel |= (ushort)((in_Input[((((y + y2) * Width) + (x + x2)) * 4) + 0] >> 3) << 0);
                             }
 
                             output[offset + 0] = (byte)(pixel >> 8);

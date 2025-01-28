@@ -4,6 +4,7 @@ using SharpNeedle.Ninja.Csd;
 using Shuriken.Rendering;
 using Sprite = Shuriken.Rendering.Sprite;
 using Hexa.NET.Utilities.Text;
+using Vector2 = System.Numerics.Vector2;
 
 namespace Kunai.Window
 {
@@ -16,46 +17,47 @@ namespace Kunai.Window
             Node,
             Cast
         }
-        public static ESelectionType eSelectionType;
+        public static ESelectionType SelectionType;
 
-        static List<string> fontNames = new List<string>();
+        private static List<string> _fontNames = new List<string>();
         public static void SelectCast(Cast in_Cast)
         {
-            ShurikenRenderHelper.Instance.selectionData.SelectedCast = in_Cast;
-            eSelectionType = ESelectionType.Cast;
+            ShurikenRenderHelper.Instance.SelectionData.SelectedCast = in_Cast;
+            SelectionType = ESelectionType.Cast;
         }
         public static void SelectScene(KeyValuePair<string, Scene> in_Cast)
         {
-            ShurikenRenderHelper.Instance.selectionData.SelectedScene = in_Cast;
-            eSelectionType = ESelectionType.Scene;
+            ShurikenRenderHelper.Instance.SelectionData.SelectedScene = in_Cast;
+            SelectionType = ESelectionType.Scene;
         }
-        static int GCD(int a, int b)
+
+        private static int Gcd(int in_A, int in_B)
         {
-            while (b != 0)
+            while (in_B != 0)
             {
-                int temp = b;
-                b = a % b;
-                a = temp;
+                int temp = in_B;
+                in_B = in_A % in_B;
+                in_A = temp;
             }
-            return a;
+            return in_A;
         }
         public void DrawSceneInspector()
         {
-            var selectedScene = ShurikenRenderHelper.Instance.selectionData.SelectedScene;
+            KeyValuePair<string, Scene> selectedScene = ShurikenRenderHelper.Instance.SelectionData.SelectedScene;
             if (selectedScene.Value == null)
                 return;
             ImGui.SeparatorText("Scene");
             string name = selectedScene.Key;
-            var vers = selectedScene.Value.Version;
-            var priority = (int)selectedScene.Value.Priority;
-            var aspectRatio = selectedScene.Value.AspectRatio;
-            var fps = selectedScene.Value.FrameRate;
+            int vers = selectedScene.Value.Version;
+            int priority = (int)selectedScene.Value.Priority;
+            float aspectRatio = selectedScene.Value.AspectRatio;
+            float fps = selectedScene.Value.FrameRate;
 
             //Show aspect ratio as (width:height) by using greatest common divisor
             int width = 1280;
             int height = (int)(1280 / aspectRatio);
             double decimalRatio = (double)width / height;
-            int gcdValue = GCD(width, height);
+            int gcdValue = Gcd(width, height);
             int simplifiedWidth = width / gcdValue;
             int simplifiedHeight = height / gcdValue;
 
@@ -67,46 +69,46 @@ namespace Kunai.Window
             ImGui.SameLine();
             ImGui.Text($"({simplifiedWidth}:{simplifiedHeight})");
         }
-        public bool EmptyTextureButton(int id)
+        public bool EmptyTextureButton(int in_Id)
         {
-            bool val = ImGui.Button($"##pattern{id}", new System.Numerics.Vector2(55, 55));
+            bool val = ImGui.Button($"##pattern{in_Id}", new System.Numerics.Vector2(55, 55));
             ImGui.SameLine();
             return val;
         }
         public void DrawCastInspector()
         {
-            var selectedCast = ShurikenRenderHelper.Instance.selectionData.SelectedCast;
+            Cast selectedCast = ShurikenRenderHelper.Instance.SelectionData.SelectedCast;
             if (selectedCast == null)
                 return;
             ImGui.SeparatorText("Cast");
             string[] typeStrings = { "No Draw", "Sprite", "Font" };
 
-            var materialFlags = (ElementMaterialFlags)selectedCast.Field38;
-            var info = selectedCast.Info;
-            var inheritanceFlags = (ElementInheritanceFlags)selectedCast.InheritanceFlags.Value;
+            ElementMaterialFlags materialFlags = (ElementMaterialFlags)selectedCast.Field38;
+            CastInfo info = selectedCast.Info;
+            ElementInheritanceFlags inheritanceFlags = (ElementInheritanceFlags)selectedCast.InheritanceFlags.Value;
 
 
             string name = selectedCast.Name;
             int field00 = (int)selectedCast.Field00;
-            var type = (int)selectedCast.Field04;
-            var enabled = selectedCast.Enabled;
-            var hideflag = info.HideFlag == 1;
-            var scale = info.Scale;
-            var mirrorX = materialFlags.HasFlag(ElementMaterialFlags.MirrorX);
-            var mirrorY = materialFlags.HasFlag(ElementMaterialFlags.MirrorY);
-            var rectSize = new System.Numerics.Vector2((int)selectedCast.Width, (int)selectedCast.Height);
-            var topLeftVert = selectedCast.TopLeft;
-            var topRightVert = selectedCast.TopRight;
-            var bottomLeftVert = selectedCast.BottomLeft;
-            var bottomRightVert = selectedCast.BottomRight;
-            var rotation = info.Rotation;
-            var origin = selectedCast.Origin;
-            var translation = info.Translation;
-            var color = info.Color.ToVec4();
-            var colorTL = info.GradientTopLeft.ToVec4();
-            var colorTR = info.GradientTopRight.ToVec4();
-            var colorBL = info.GradientBottomLeft.ToVec4();
-            var colorBR = info.GradientBottomRight.ToVec4();
+            int type = (int)selectedCast.Field04;
+            bool enabled = selectedCast.Enabled;
+            bool hideflag = info.HideFlag == 1;
+            Vector2 scale = info.Scale;
+            bool mirrorX = materialFlags.HasFlag(ElementMaterialFlags.MirrorX);
+            bool mirrorY = materialFlags.HasFlag(ElementMaterialFlags.MirrorY);
+            Vector2 rectSize = new System.Numerics.Vector2((int)selectedCast.Width, (int)selectedCast.Height);
+            Vector2 topLeftVert = selectedCast.TopLeft;
+            Vector2 topRightVert = selectedCast.TopRight;
+            Vector2 bottomLeftVert = selectedCast.BottomLeft;
+            Vector2 bottomRightVert = selectedCast.BottomRight;
+            float rotation = info.Rotation;
+            Vector2 origin = selectedCast.Origin;
+            Vector2 translation = info.Translation;
+            Vector4 color = info.Color.ToVec4();
+            Vector4 colorTl = info.GradientTopLeft.ToVec4();
+            Vector4 colorTr = info.GradientTopRight.ToVec4();
+            Vector4 colorBl = info.GradientBottomLeft.ToVec4();
+            Vector4 colorBr = info.GradientBottomRight.ToVec4();
 
             bool inheritPosX = inheritanceFlags.HasFlag(ElementInheritanceFlags.InheritXPosition);
             bool inheritPosY = inheritanceFlags.HasFlag(ElementInheritanceFlags.InheritYPosition);
@@ -115,11 +117,11 @@ namespace Kunai.Window
             bool inheritScaleX = inheritanceFlags.HasFlag(ElementInheritanceFlags.InheritScaleX);
             bool inheritScaleY = inheritanceFlags.HasFlag(ElementInheritanceFlags.InheritScaleY);
             int spriteIndex = (int)info.SpriteIndex;
-            var text = selectedCast.Text;
-            var kerning = -BitConverter.ToSingle(BitConverter.GetBytes(selectedCast.Field4C));
-            var fontname = selectedCast.FontName;
+            string text = selectedCast.Text;
+            float kerning = -BitConverter.ToSingle(BitConverter.GetBytes(selectedCast.Field4C));
+            string fontname = selectedCast.FontName;
 
-            int indexFont = fontNames.IndexOf(fontname);
+            int indexFont = _fontNames.IndexOf(fontname);
 
             ImGui.InputText("Room Name", ref name, 100, ImGuiInputTextFlags.AutoSelectAll);
             ImGui.InputInt("Field00", ref field00);
@@ -172,10 +174,10 @@ namespace Kunai.Window
             if (ImGui.CollapsingHeader("Color"))
             {
                 ImGui.ColorEdit4("Color", ref color);
-                ImGui.ColorEdit4("Top Left", ref colorTL);
-                ImGui.ColorEdit4("Top Right", ref colorTR);
-                ImGui.ColorEdit4("Bottom Left", ref colorBL);
-                ImGui.ColorEdit4("Bottom Right", ref colorBR);
+                ImGui.ColorEdit4("Top Left", ref colorTl);
+                ImGui.ColorEdit4("Top Right", ref colorTr);
+                ImGui.ColorEdit4("Bottom Left", ref colorBl);
+                ImGui.ColorEdit4("Bottom Right", ref colorBr);
             }
             if (ImGui.CollapsingHeader("Inheritance"))
             {
@@ -192,9 +194,9 @@ namespace Kunai.Window
                 if (ImGui.CollapsingHeader("Text"))
                 {
                     //make combo box eventually
-                    if (ImGui.Combo("Font", ref indexFont, fontNames.ToArray(), fontNames.Count))
+                    if (ImGui.Combo("Font", ref indexFont, _fontNames.ToArray(), _fontNames.Count))
                     {
-                        fontname = fontNames[indexFont];
+                        fontname = _fontNames[indexFont];
                     }
                     ImGui.PushID("textInput");
                     ImGui.InputText("Text", ref text, 512);
@@ -227,11 +229,11 @@ namespace Kunai.Window
                             if (spriteReference != null)
                             {
 
-                                ShurikenRenderer.Vector2 uvTL = new ShurikenRenderer.Vector2(
+                                ShurikenRenderer.Vector2 uvTl = new ShurikenRenderer.Vector2(
                                 spriteReference.Start.X / spriteReference.Texture.Width,
                                 -(spriteReference.Start.Y / spriteReference.Texture.Height));
 
-                                ShurikenRenderer.Vector2 uvBR = uvTL + new ShurikenRenderer.Vector2(
+                                ShurikenRenderer.Vector2 uvBr = uvTl + new ShurikenRenderer.Vector2(
                                 spriteReference.Dimensions.X / spriteReference.Texture.Width,
                                 -(spriteReference.Dimensions.Y / spriteReference.Texture.Height));
 
@@ -250,7 +252,7 @@ namespace Kunai.Window
                                         sb.Append($"##pattern{i}");
                                         sb.End();
                                         //Draw sprite
-                                        ImGui.ImageButton(sb, new ImTextureID(spriteReference.Texture.GlTex.ID), new System.Numerics.Vector2(50, 50), uvTL, uvBR);
+                                        ImGui.ImageButton(sb, new ImTextureID(spriteReference.Texture.GlTex.Id), new System.Numerics.Vector2(50, 50), uvTl, uvBr);
 
                                     }
                                 }
@@ -305,18 +307,18 @@ namespace Kunai.Window
         }
         public override void Update(ShurikenRenderHelper in_Proj)
         {
-            ImGui.SetNextWindowPos(new System.Numerics.Vector2((ImGui.GetWindowViewport().Size.X / 4.5f) * 3.5f, MenuBarWindow.menuBarHeight), ImGuiCond.Always);
-            ImGui.SetNextWindowSize(new System.Numerics.Vector2(ImGui.GetWindowViewport().Size.X / 4.5f, ImGui.GetWindowViewport().Size.Y - MenuBarWindow.menuBarHeight), ImGuiCond.Always);
-            if (ImGui.Begin("Inspector", MainWindow.flags))
+            ImGui.SetNextWindowPos(new System.Numerics.Vector2((ImGui.GetWindowViewport().Size.X / 4.5f) * 3.5f, MenuBarWindow.MenuBarHeight), ImGuiCond.Always);
+            ImGui.SetNextWindowSize(new System.Numerics.Vector2(ImGui.GetWindowViewport().Size.X / 4.5f, ImGui.GetWindowViewport().Size.Y - MenuBarWindow.MenuBarHeight), ImGuiCond.Always);
+            if (ImGui.Begin("Inspector", MainWindow.WindowFlags))
             {
-                if (in_Proj != null)
+                if (in_Proj.WorkProjectCsd != null)
                 {
-                    fontNames.Clear();
-                    foreach (var font in in_Proj.WorkProjectCsd.Project.Fonts)
+                    _fontNames.Clear();
+                    foreach (KeyValuePair<string, Font> font in in_Proj.WorkProjectCsd.Project.Fonts)
                     {
-                        fontNames.Add(font.Key);
+                        _fontNames.Add(font.Key);
                     }
-                    switch (eSelectionType)
+                    switch (SelectionType)
                     {
                         case ESelectionType.Scene:
                             {
@@ -335,8 +337,8 @@ namespace Kunai.Window
         }
         internal static void Reset()
         {
-            ShurikenRenderHelper.Instance.selectionData.SelectedCast = null;
-            ShurikenRenderHelper.Instance.selectionData.SelectedScene = new();
+            ShurikenRenderHelper.Instance.SelectionData.SelectedCast = null;
+            ShurikenRenderHelper.Instance.SelectionData.SelectedScene = new();
         }
     }
 }

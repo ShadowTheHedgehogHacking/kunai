@@ -15,12 +15,12 @@
             Color = new Vector4(1, 1, 1, 1);
         }
 
-        public CastTransform(Vector2 position, float rotation, Vector2 scale, Vector4 color)
+        public CastTransform(Vector2 in_Position, float in_Rotation, Vector2 in_Scale, Vector4 in_Color)
         {
-            Position = position;
-            Rotation = rotation;
-            Scale = scale;
-            Color = color;
+            Position = in_Position;
+            Rotation = in_Rotation;
+            Scale = in_Scale;
+            Color = in_Color;
         }
     }
 }

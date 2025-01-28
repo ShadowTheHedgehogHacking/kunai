@@ -38,25 +38,25 @@ namespace Kunai
 
         private System.Numerics.Vector2 _scaleFactor = System.Numerics.Vector2.One;
 
-        private static bool KHRDebugAvailable = false;
+        private static bool _khrDebugAvailable = false;
 
-        private int GLVersion;
-        private bool CompatibilityProfile;
+        private int _glVersion;
+        private bool _compatibilityProfile;
 
         /// <summary>
         /// Constructs a new ImGuiController.
         /// </summary>
         /// 
-        const int MDT_EFFECTIVE_DPI = 0;
+        private const int MdtEffectiveDpi = 0;
         [DllImport("Shcore.dll")]
         private static extern int GetDpiForMonitor(
-            IntPtr hmonitor,
-            int dpiType,
-            out uint dpiX,
-            out uint dpiY);
+            IntPtr in_Hmonitor,
+            int in_DpiType,
+            out uint in_DpiX,
+            out uint in_DpiY);
 
         [DllImport("User32.dll")]
-        private static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint dwFlags);
+        private static extern IntPtr MonitorFromWindow(IntPtr in_Hwnd, uint in_DwFlags);
 
         public static float GetDpiScaling()
         {
@@ -67,7 +67,7 @@ namespace Kunai
                 IntPtr hMonitor = MonitorFromWindow(IntPtr.Zero, 2); // Primary monitor
                 uint dpiX, dpiY;
 
-                int result = GetDpiForMonitor(hMonitor, MDT_EFFECTIVE_DPI, out dpiX, out dpiY);
+                int result = GetDpiForMonitor(hMonitor, MdtEffectiveDpi, out dpiX, out dpiY);
 
                 if (result == 0) // S_OK
                 {
@@ -173,19 +173,19 @@ namespace Kunai
             style.Colors[(int)ImGuiCol.NavWindowingDimBg] = new System.Numerics.Vector4(0.800000011920929f, 0.800000011920929f, 0.800000011920929f, 0.2000000029802322f);
             style.Colors[(int)ImGuiCol.ModalWindowDimBg] = new System.Numerics.Vector4(0.800000011920929f, 0.800000011920929f, 0.800000011920929f, 0.3499999940395355f);
         }
-        public ImGuiController(int width, int height)
+        public ImGuiController(int in_Width, int in_Height)
         {
-            _windowWidth = width;
-            _windowHeight = height;
+            _windowWidth = in_Width;
+            _windowHeight = in_Height;
 
             int major = GL.GetInteger(GetPName.MajorVersion);
             int minor = GL.GetInteger(GetPName.MinorVersion);
 
-            GLVersion = major * 100 + minor * 10;
+            _glVersion = major * 100 + minor * 10;
 
-            KHRDebugAvailable = (major == 4 && minor >= 3) || IsExtensionSupported("KHR_debug");
+            _khrDebugAvailable = (major == 4 && minor >= 3) || IsExtensionSupported("KHR_debug");
 
-            CompatibilityProfile = (GL.GetInteger((GetPName)All.ContextProfileMask) & (int)All.ContextCompatibilityProfileBit) != 0;
+            _compatibilityProfile = (GL.GetInteger((GetPName)All.ContextProfileMask) & (int)All.ContextCompatibilityProfileBit) != 0;
 
             var context = ImGui.CreateContext();
             ImGui.SetCurrentContext(context);
@@ -216,10 +216,10 @@ namespace Kunai
             _frameBegun = true;
         }
 
-        public void WindowResized(int width, int height)
+        public void WindowResized(int in_Width, int in_Height)
         {
-            _windowWidth = width;
-            _windowHeight = height;
+            _windowWidth = in_Width;
+            _windowHeight = in_Height;
         }
 
         public void DestroyDeviceObjects()
@@ -232,7 +232,7 @@ namespace Kunai
             _vertexBufferSize = 10000;
             _indexBufferSize = 2000;
 
-            int prevVAO = GL.GetInteger(GetPName.VertexArrayBinding);
+            int prevVao = GL.GetInteger(GetPName.VertexArrayBinding);
             int prevArrayBuffer = GL.GetInteger(GetPName.ArrayBufferBinding);
 
             _vertexArray = GL.GenVertexArray();
@@ -251,7 +251,7 @@ namespace Kunai
 
             RecreateFontDeviceTexture();
 
-            string VertexSource = @"#version 330 core
+            string vertexSource = @"#version 330 core
 
 uniform mat4 projection_matrix;
 
@@ -268,7 +268,7 @@ void main()
     color = in_color;
     texCoord = in_texCoord;
 }";
-            string FragmentSource = @"#version 330 core
+            string fragmentSource = @"#version 330 core
 
 uniform sampler2D in_fontTexture;
 
@@ -282,7 +282,7 @@ void main()
     outputColor = color * texture(in_fontTexture, texCoord);
 }";
 
-            _shader = CreateProgram("ImGui", VertexSource, FragmentSource);
+            _shader = CreateProgram("ImGui", vertexSource, fragmentSource);
             _shaderProjectionMatrixLocation = GL.GetUniformLocation(_shader, "projection_matrix");
             _shaderFontTextureLocation = GL.GetUniformLocation(_shader, "in_fontTexture");
 
@@ -295,10 +295,10 @@ void main()
             GL.EnableVertexAttribArray(1);
             GL.EnableVertexAttribArray(2);
 
-            GL.BindVertexArray(prevVAO);
+            GL.BindVertexArray(prevVao);
             GL.BindBuffer(BufferTarget.ArrayBuffer, prevArrayBuffer);
 
-            CheckGLError("End of ImGui setup");
+            CheckGlError("End of ImGui setup");
         }
 
         /// <summary>
@@ -360,15 +360,15 @@ void main()
         /// <summary>
         /// Updates ImGui input and IO configuration state.
         /// </summary>
-        public void Update(GameWindow wnd, float deltaSeconds)
+        public void Update(GameWindow in_Wnd, float in_DeltaSeconds)
         {
             if (_frameBegun)
             {
                 ImGui.Render();
             }
 
-            SetPerFrameImGuiData(deltaSeconds);
-            UpdateImGuiInput(wnd);
+            SetPerFrameImGuiData(in_DeltaSeconds);
+            UpdateImGuiInput(in_Wnd);
 
             _frameBegun = true;
             ImGui.NewFrame();
@@ -378,32 +378,32 @@ void main()
         /// Sets per-frame data based on the associated window.
         /// This is called by Update(float).
         /// </summary>
-        private void SetPerFrameImGuiData(float deltaSeconds)
+        private void SetPerFrameImGuiData(float in_DeltaSeconds)
         {
             ImGuiIOPtr io = ImGui.GetIO();
             io.DisplaySize = new System.Numerics.Vector2(
                 _windowWidth / _scaleFactor.X,
                 _windowHeight / _scaleFactor.Y);
             io.DisplayFramebufferScale = _scaleFactor;
-            io.DeltaTime = deltaSeconds; // DeltaTime is in seconds.
+            io.DeltaTime = in_DeltaSeconds; // DeltaTime is in seconds.
         }
 
-        readonly List<char> PressedChars = new List<char>();
+        private readonly List<char> _pressedChars = new List<char>();
 
-        private void UpdateImGuiInput(GameWindow wnd)
+        private void UpdateImGuiInput(GameWindow in_Wnd)
         {
             ImGuiIOPtr io = ImGui.GetIO();
 
-            MouseState MouseState = wnd.MouseState;
-            KeyboardState KeyboardState = wnd.KeyboardState;
+            MouseState mouseState = in_Wnd.MouseState;
+            KeyboardState keyboardState = in_Wnd.KeyboardState;
 
-            io.MouseDown[0] = MouseState[MouseButton.Left];
-            io.MouseDown[1] = MouseState[MouseButton.Right];
-            io.MouseDown[2] = MouseState[MouseButton.Middle];
-            io.MouseDown[3] = MouseState[MouseButton.Button4];
-            io.MouseDown[4] = MouseState[MouseButton.Button5];
+            io.MouseDown[0] = mouseState[MouseButton.Left];
+            io.MouseDown[1] = mouseState[MouseButton.Right];
+            io.MouseDown[2] = mouseState[MouseButton.Middle];
+            io.MouseDown[3] = mouseState[MouseButton.Button4];
+            io.MouseDown[4] = mouseState[MouseButton.Button5];
 
-            var screenPoint = new Vector2i((int)MouseState.X, (int)MouseState.Y);
+            var screenPoint = new Vector2i((int)mouseState.X, (int)mouseState.Y);
             var point = screenPoint;//wnd.PointToClient(screenPoint);
             io.MousePos = new System.Numerics.Vector2(point.X, point.Y);
 
@@ -413,43 +413,43 @@ void main()
                 {
                     continue;
                 }
-                io.AddKeyEvent(TranslateKey(key), KeyboardState.IsKeyDown(key));
+                io.AddKeyEvent(TranslateKey(key), keyboardState.IsKeyDown(key));
             }
 
-            foreach (var c in PressedChars)
+            foreach (var c in _pressedChars)
             {
                 io.AddInputCharacter(c);
             }
-            PressedChars.Clear();
+            _pressedChars.Clear();
 
-            io.KeyCtrl = KeyboardState.IsKeyDown(Keys.LeftControl) || KeyboardState.IsKeyDown(Keys.RightControl);
-            io.KeyAlt = KeyboardState.IsKeyDown(Keys.LeftAlt) || KeyboardState.IsKeyDown(Keys.RightAlt);
-            io.KeyShift = KeyboardState.IsKeyDown(Keys.LeftShift) || KeyboardState.IsKeyDown(Keys.RightShift);
-            io.KeySuper = KeyboardState.IsKeyDown(Keys.LeftSuper) || KeyboardState.IsKeyDown(Keys.RightSuper);
+            io.KeyCtrl = keyboardState.IsKeyDown(Keys.LeftControl) || keyboardState.IsKeyDown(Keys.RightControl);
+            io.KeyAlt = keyboardState.IsKeyDown(Keys.LeftAlt) || keyboardState.IsKeyDown(Keys.RightAlt);
+            io.KeyShift = keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift);
+            io.KeySuper = keyboardState.IsKeyDown(Keys.LeftSuper) || keyboardState.IsKeyDown(Keys.RightSuper);
         }
 
-        internal void PressChar(char keyChar)
+        internal void PressChar(char in_KeyChar)
         {
-            PressedChars.Add(keyChar);
+            _pressedChars.Add(in_KeyChar);
         }
 
-        internal void MouseScroll(OpenTK.Mathematics.Vector2 offset)
+        internal void MouseScroll(OpenTK.Mathematics.Vector2 in_Offset)
         {
             ImGuiIOPtr io = ImGui.GetIO();
 
-            io.MouseWheel = offset.Y;
-            io.MouseWheelH = offset.X;
+            io.MouseWheel = in_Offset.Y;
+            io.MouseWheelH = in_Offset.X;
         }
 
-        private unsafe void RenderImDrawData(ImDrawDataPtr draw_data)
+        private unsafe void RenderImDrawData(ImDrawDataPtr in_DrawData)
         {
-            if (draw_data.CmdListsCount == 0)
+            if (in_DrawData.CmdListsCount == 0)
             {
                 return;
             }
 
             // Get intial state.
-            int prevVAO = GL.GetInteger(GetPName.VertexArrayBinding);
+            int prevVao = GL.GetInteger(GetPName.VertexArrayBinding);
             int prevArrayBuffer = GL.GetInteger(GetPName.ArrayBufferBinding);
             int prevProgram = GL.GetInteger(GetPName.CurrentProgram);
             bool prevBlendEnabled = GL.GetBoolean(GetPName.Blend);
@@ -482,7 +482,7 @@ void main()
                 }
             }
 
-            if (GLVersion <= 310 || CompatibilityProfile)
+            if (_glVersion <= 310 || _compatibilityProfile)
             {
                 GL.PolygonMode(MaterialFace.Front, PolygonMode.Fill);
                 GL.PolygonMode(MaterialFace.Back, PolygonMode.Fill);
@@ -496,11 +496,11 @@ void main()
             GL.BindVertexArray(_vertexArray);
             // Bind the vertex buffer so that we can resize it.
             GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBuffer);
-            for (int i = 0; i < draw_data.CmdListsCount; i++)
+            for (int i = 0; i < in_DrawData.CmdListsCount; i++)
             {
-                ImDrawListPtr cmd_list = draw_data.CmdLists[i];
+                ImDrawListPtr cmdList = in_DrawData.CmdLists[i];
 
-                int vertexSize = cmd_list.VtxBuffer.Size * Unsafe.SizeOf<ImDrawVert>();
+                int vertexSize = cmdList.VtxBuffer.Size * Unsafe.SizeOf<ImDrawVert>();
                 if (vertexSize > _vertexBufferSize)
                 {
                     int newSize = (int)Math.Max(_vertexBufferSize * 1.5f, vertexSize);
@@ -511,7 +511,7 @@ void main()
                     Console.WriteLine($"Resized dear imgui vertex buffer to new size {_vertexBufferSize}");
                 }
 
-                int indexSize = cmd_list.IdxBuffer.Size * sizeof(ushort);
+                int indexSize = cmdList.IdxBuffer.Size * sizeof(ushort);
                 if (indexSize > _indexBufferSize)
                 {
                     int newSize = (int)Math.Max(_indexBufferSize * 1.5f, indexSize);
@@ -535,12 +535,12 @@ void main()
             GL.UseProgram(_shader);
             GL.UniformMatrix4(_shaderProjectionMatrixLocation, false, ref mvp);
             GL.Uniform1(_shaderFontTextureLocation, 0);
-            CheckGLError("Projection");
+            CheckGlError("Projection");
 
             GL.BindVertexArray(_vertexArray);
-            CheckGLError("VAO");
+            CheckGlError("VAO");
 
-            draw_data.ScaleClipRects(io.DisplayFramebufferScale);
+            in_DrawData.ScaleClipRects(io.DisplayFramebufferScale);
 
 
             GL.Enable(EnableCap.Blend);
@@ -551,19 +551,19 @@ void main()
             GL.Disable(EnableCap.DepthTest);
 
             // Render command lists
-            for (int n = 0; n < draw_data.CmdListsCount; n++)
+            for (int n = 0; n < in_DrawData.CmdListsCount; n++)
             {
-                ImDrawListPtr cmd_list = draw_data.CmdLists[n];
+                ImDrawListPtr cmdList = in_DrawData.CmdLists[n];
 
-                GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, cmd_list.VtxBuffer.Size * Unsafe.SizeOf<ImDrawVert>(), (IntPtr)cmd_list.VtxBuffer.Data);
-                CheckGLError($"Data Vert {n}");
+                GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, cmdList.VtxBuffer.Size * Unsafe.SizeOf<ImDrawVert>(), (IntPtr)cmdList.VtxBuffer.Data);
+                CheckGlError($"Data Vert {n}");
 
-                GL.BufferSubData(BufferTarget.ElementArrayBuffer, IntPtr.Zero, cmd_list.IdxBuffer.Size * sizeof(ushort), (IntPtr)cmd_list.IdxBuffer.Data);
-                CheckGLError($"Data Idx {n}");
+                GL.BufferSubData(BufferTarget.ElementArrayBuffer, IntPtr.Zero, cmdList.IdxBuffer.Size * sizeof(ushort), (IntPtr)cmdList.IdxBuffer.Data);
+                CheckGlError($"Data Idx {n}");
 
-                for (int cmd_i = 0; cmd_i < cmd_list.CmdBuffer.Size; cmd_i++)
+                for (int cmdI = 0; cmdI < cmdList.CmdBuffer.Size; cmdI++)
                 {
-                    var pcmd = cmd_list.CmdBuffer[cmd_i];
+                    var pcmd = cmdList.CmdBuffer[cmdI];
                     if (pcmd.UserCallback != null)
                     {
                         throw new NotImplementedException();
@@ -572,12 +572,12 @@ void main()
                     {
                         GL.ActiveTexture(TextureUnit.Texture0);
                         GL.BindTexture(TextureTarget.Texture2D, (int)pcmd.TextureId.Handle);
-                        CheckGLError("Texture");
+                        CheckGlError("Texture");
 
                         // We do _windowHeight - (int)clip.W instead of (int)clip.Y because gl has flipped Y when it comes to these coordinates
                         var clip = pcmd.ClipRect;
                         GL.Scissor((int)clip.X, _windowHeight - (int)clip.W, (int)(clip.Z - clip.X), (int)(clip.W - clip.Y));
-                        CheckGLError("Scissor");
+                        CheckGlError("Scissor");
 
                         if ((io.BackendFlags & ImGuiBackendFlags.RendererHasVtxOffset) != 0)
                         {
@@ -587,7 +587,7 @@ void main()
                         {
                             GL.DrawElements(BeginMode.Triangles, (int)pcmd.ElemCount, DrawElementsType.UnsignedShort, (int)pcmd.IdxOffset * sizeof(ushort));
                         }
-                        CheckGLError("Draw");
+                        CheckGlError("Draw");
                     }
                 }
             }
@@ -599,7 +599,7 @@ void main()
             GL.BindTexture(TextureTarget.Texture2D, prevTexture2D);
             GL.ActiveTexture((TextureUnit)prevActiveTexture);
             GL.UseProgram(prevProgram);
-            GL.BindVertexArray(prevVAO);
+            GL.BindVertexArray(prevVao);
             GL.Scissor(prevScissorBox[0], prevScissorBox[1], prevScissorBox[2], prevScissorBox[3]);
             GL.BindBuffer(BufferTarget.ArrayBuffer, prevArrayBuffer);
             GL.BlendEquationSeparate((BlendEquationMode)prevBlendEquationRgb, (BlendEquationMode)prevBlendEquationAlpha);
@@ -612,7 +612,7 @@ void main()
             if (prevDepthTestEnabled) GL.Enable(EnableCap.DepthTest); else GL.Disable(EnableCap.DepthTest);
             if (prevCullFaceEnabled) GL.Enable(EnableCap.CullFace); else GL.Disable(EnableCap.CullFace);
             if (prevScissorTestEnabled) GL.Enable(EnableCap.ScissorTest); else GL.Disable(EnableCap.ScissorTest);
-            if (GLVersion <= 310 || CompatibilityProfile)
+            if (_glVersion <= 310 || _compatibilityProfile)
             {
                 GL.PolygonMode(MaterialFace.Front, (PolygonMode)prevPolygonMode[0]);
                 GL.PolygonMode(MaterialFace.Back, (PolygonMode)prevPolygonMode[1]);
@@ -636,31 +636,31 @@ void main()
             GL.DeleteProgram(_shader);
         }
 
-        public static void LabelObject(ObjectLabelIdentifier objLabelIdent, int glObject, string name)
+        public static void LabelObject(ObjectLabelIdentifier in_ObjLabelIdent, int in_GlObject, string in_Name)
         {
-            if (KHRDebugAvailable)
-                GL.ObjectLabel(objLabelIdent, glObject, name.Length, name);
+            if (_khrDebugAvailable)
+                GL.ObjectLabel(in_ObjLabelIdent, in_GlObject, in_Name.Length, in_Name);
         }
 
-        static bool IsExtensionSupported(string name)
+        private static bool IsExtensionSupported(string in_Name)
         {
             int n = GL.GetInteger(GetPName.NumExtensions);
             for (int i = 0; i < n; i++)
             {
                 string extension = GL.GetString(StringNameIndexed.Extensions, i);
-                if (extension == name) return true;
+                if (extension == in_Name) return true;
             }
 
             return false;
         }
 
-        public static int CreateProgram(string name, string vertexSource, string fragmentSoruce)
+        public static int CreateProgram(string in_Name, string in_VertexSource, string in_FragmentSoruce)
         {
             int program = GL.CreateProgram();
-            LabelObject(ObjectLabelIdentifier.Program, program, $"Program: {name}");
+            LabelObject(ObjectLabelIdentifier.Program, program, $"Program: {in_Name}");
 
-            int vertex = CompileShader(name, ShaderType.VertexShader, vertexSource);
-            int fragment = CompileShader(name, ShaderType.FragmentShader, fragmentSoruce);
+            int vertex = CompileShader(in_Name, ShaderType.VertexShader, in_VertexSource);
+            int fragment = CompileShader(in_Name, ShaderType.FragmentShader, in_FragmentSoruce);
 
             GL.AttachShader(program, vertex);
             GL.AttachShader(program, fragment);
@@ -671,7 +671,7 @@ void main()
             if (success == 0)
             {
                 string info = GL.GetProgramInfoLog(program);
-                Debug.WriteLine($"GL.LinkProgram had info log [{name}]:\n{info}");
+                Debug.WriteLine($"GL.LinkProgram had info log [{in_Name}]:\n{info}");
             }
 
             GL.DetachShader(program, vertex);
@@ -683,49 +683,49 @@ void main()
             return program;
         }
 
-        private static int CompileShader(string name, ShaderType type, string source)
+        private static int CompileShader(string in_Name, ShaderType in_Type, string in_Source)
         {
-            int shader = GL.CreateShader(type);
-            LabelObject(ObjectLabelIdentifier.Shader, shader, $"Shader: {name}");
+            int shader = GL.CreateShader(in_Type);
+            LabelObject(ObjectLabelIdentifier.Shader, shader, $"Shader: {in_Name}");
 
-            GL.ShaderSource(shader, source);
+            GL.ShaderSource(shader, in_Source);
             GL.CompileShader(shader);
 
             GL.GetShader(shader, ShaderParameter.CompileStatus, out int success);
             if (success == 0)
             {
                 string info = GL.GetShaderInfoLog(shader);
-                Debug.WriteLine($"GL.CompileShader for shader '{name}' [{type}] had info log:\n{info}");
+                Debug.WriteLine($"GL.CompileShader for shader '{in_Name}' [{in_Type}] had info log:\n{info}");
             }
 
             return shader;
         }
 
-        public static void CheckGLError(string title)
+        public static void CheckGlError(string in_Title)
         {
             ErrorCode error;
             int i = 1;
             while ((error = GL.GetError()) != ErrorCode.NoError)
             {
-                Debug.Print($"{title} ({i++}): {error}");
+                Debug.Print($"{in_Title} ({i++}): {error}");
             }
         }
 
-        public static ImGuiKey TranslateKey(Keys key)
+        public static ImGuiKey TranslateKey(Keys in_Key)
         {
-            if (key >= Keys.D0 && key <= Keys.D9)
-                return key - Keys.D0 + ImGuiKey.Key0;
+            if (in_Key >= Keys.D0 && in_Key <= Keys.D9)
+                return in_Key - Keys.D0 + ImGuiKey.Key0;
 
-            if (key >= Keys.A && key <= Keys.Z)
-                return key - Keys.A + ImGuiKey.A;
+            if (in_Key >= Keys.A && in_Key <= Keys.Z)
+                return in_Key - Keys.A + ImGuiKey.A;
 
-            if (key >= Keys.KeyPad0 && key <= Keys.KeyPad9)
-                return key - Keys.KeyPad0 + ImGuiKey.Keypad0;
+            if (in_Key >= Keys.KeyPad0 && in_Key <= Keys.KeyPad9)
+                return in_Key - Keys.KeyPad0 + ImGuiKey.Keypad0;
 
-            if (key >= Keys.F1 && key <= Keys.F24)
-                return key - Keys.F1 + ImGuiKey.F24;
+            if (in_Key >= Keys.F1 && in_Key <= Keys.F24)
+                return in_Key - Keys.F1 + ImGuiKey.F24;
 
-            switch (key)
+            switch (in_Key)
             {
                 case Keys.Tab: return ImGuiKey.Tab;
                 case Keys.Left: return ImGuiKey.LeftArrow;

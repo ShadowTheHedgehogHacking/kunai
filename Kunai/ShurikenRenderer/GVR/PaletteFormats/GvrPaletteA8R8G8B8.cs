@@ -2,25 +2,25 @@
 
 namespace Shuriken.Rendering.Gvr
 {
-    class GvrPaletteA8R8G8B8 : GvrPaletteDataFormat
+    internal class GvrPaletteA8R8G8B8 : GvrPaletteDataFormat
     {
         public override uint DecodedDataLength => (uint)(PaletteEntryCount * 4);
         public override uint EncodedDataLength => (uint)(PaletteEntryCount * 2);
 
 
-        public GvrPaletteA8R8G8B8(ushort paletteEntryCount) : base(paletteEntryCount)
+        public GvrPaletteA8R8G8B8(ushort in_PaletteEntryCount) : base(in_PaletteEntryCount)
         {
 
         }
 
-        public override byte[] Decode(byte[] input)
+        public override byte[] Decode(byte[] in_Input)
         {
             byte[] output = new byte[DecodedDataLength];
             int offset = 0;
 
             for (int p = 0; p < output.Length; p += 4)
             {
-                ushort entry = (ushort)((input[offset] << 8) | input[offset + 1]);
+                ushort entry = (ushort)((in_Input[offset] << 8) | in_Input[offset + 1]);
                 offset += 2;
 
                 if ((entry & 0b1000_0000_0000_0000) == 0) // Argb3444 
@@ -42,7 +42,7 @@ namespace Shuriken.Rendering.Gvr
             return output;
         }
 
-        public override byte[] Encode(byte[] input)
+        public override byte[] Encode(byte[] in_Input)
         {
             byte[] output = new byte[EncodedDataLength];
             int offset = 0;
@@ -51,19 +51,19 @@ namespace Shuriken.Rendering.Gvr
             {
                 ushort color = 0x0;
 
-                if (input[offset + 3] > 0xDA) // Rgb555
+                if (in_Input[offset + 3] > 0xDA) // Rgb555
                 {
                     color |= 0x8000;
-                    color |= (ushort)((input[offset + 2] >> 3) << 10);
-                    color |= (ushort)((input[offset + 1] >> 3) << 5);
-                    color |= (ushort)((input[offset + 0] >> 3) << 0);
+                    color |= (ushort)((in_Input[offset + 2] >> 3) << 10);
+                    color |= (ushort)((in_Input[offset + 1] >> 3) << 5);
+                    color |= (ushort)((in_Input[offset + 0] >> 3) << 0);
                 }
                 else // Argb3444
                 {
-                    color |= (ushort)((input[offset + 3] >> 5) << 12);
-                    color |= (ushort)((input[offset + 2] >> 4) << 8);
-                    color |= (ushort)((input[offset + 1] >> 4) << 4);
-                    color |= (ushort)((input[offset + 0] >> 4) << 0);
+                    color |= (ushort)((in_Input[offset + 3] >> 5) << 12);
+                    color |= (ushort)((in_Input[offset + 2] >> 4) << 8);
+                    color |= (ushort)((in_Input[offset + 1] >> 4) << 4);
+                    color |= (ushort)((in_Input[offset + 0] >> 4) << 0);
                 }
 
                 output[p + 0] = (byte)(color >> 8);

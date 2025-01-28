@@ -2,12 +2,12 @@
 
 public static class ExtensionKillMe
 {
-    public static bool isColorLittleEndian;
-    public static System.Numerics.Vector4 ToVec4(this Color<byte> value)
+    public static bool IsColorLittleEndian;
+    public static System.Numerics.Vector4 ToVec4(this Color<byte> in_Value)
     {
-        return new System.Numerics.Vector4(value.R / 255.0f, value.G / 255.0f, value.B / 255.0f, value.A / 255.0f);
+        return new System.Numerics.Vector4(in_Value.R / 255.0f, in_Value.G / 255.0f, in_Value.B / 255.0f, in_Value.A / 255.0f);
     }
-    public static System.Numerics.Vector4 Invert(this System.Numerics.Vector4 value)
+    public static System.Numerics.Vector4 Invert(this System.Numerics.Vector4 in_Value)
     {
         /// TODO: SHARPNEEDLE FIX
         /// There is a "bug" in SharpNeedle where it doesn't consider
@@ -15,55 +15,55 @@ public static class ExtensionKillMe
         /// 
 
         
-        if(isColorLittleEndian)
+        if(IsColorLittleEndian)
         {
-            float fixA = value.X;
-            float fixR = value.Y;
-            float fixG = value.Z;
-            float fixB = value.W;
+            float fixA = in_Value.X;
+            float fixR = in_Value.Y;
+            float fixG = in_Value.Z;
+            float fixB = in_Value.W;
             return new System.Numerics.Vector4(fixB, fixG, fixR, fixA);
         }
         else
         {
-            float fixA = value.X;
-            float fixR = value.Y;
-            float fixG = value.Z;
-            float fixB = value.W;
+            float fixA = in_Value.X;
+            float fixR = in_Value.Y;
+            float fixG = in_Value.Z;
+            float fixB = in_Value.W;
             return new System.Numerics.Vector4(fixB, fixG, fixR, fixA);
         }
     }
-    public static double Magnitude(this Color<byte> value)
+    public static double Magnitude(this Color<byte> in_Value)
     {
-        return Math.Sqrt(value.R * value.R + value.G * value.G + value.B * value.B + value.A * value.A);
+        return Math.Sqrt(in_Value.R * in_Value.R + in_Value.G * in_Value.G + in_Value.B * in_Value.B + in_Value.A * in_Value.A);
     }
-    public static Color<byte> ToSharpNeedleColor(this System.Numerics.Vector4 value)
+    public static Color<byte> ToSharpNeedleColor(this System.Numerics.Vector4 in_Value)
     {
-        return new Color<byte>((byte)(value.X * 255), (byte)(value.Y * 255), (byte)(value.Z * 255), (byte)(value.W * 255));
+        return new Color<byte>((byte)(in_Value.X * 255), (byte)(in_Value.Y * 255), (byte)(in_Value.Z * 255), (byte)(in_Value.W * 255));
     }
 
 }
 public static class AnimationTypeMethods
 {
-    public static bool IsColor(this AnimationType type)
+    public static bool IsColor(this AnimationType in_Type)
     {
         return new AnimationType[] {
                 AnimationType.Color,
-                AnimationType.GradientTL,
-                AnimationType.GradientBL,
-                AnimationType.GradientTR,
-                AnimationType.GradientBR
-            }.Contains(type);
+                AnimationType.GradientTl,
+                AnimationType.GradientBl,
+                AnimationType.GradientTr,
+                AnimationType.GradientBr
+            }.Contains(in_Type);
     }
-    public static int FindKeyframe(this SharpNeedle.Ninja.Csd.Motions.KeyFrameList list, float frame)
+    public static int FindKeyframe(this SharpNeedle.Ninja.Csd.Motions.KeyFrameList in_List, float in_Frame)
     {
         int min = 0;
-        int max = list.Count - 1;
+        int max = in_List.Count - 1;
 
         while (min <= max)
         {
             int index = (min + max) / 2;
 
-            if (frame < list[index].Frame)
+            if (in_Frame < in_List[index].Frame)
                 max = index - 1;
             else
                 min = index + 1;
@@ -71,26 +71,26 @@ public static class AnimationTypeMethods
 
         return min;
     }
-    public static float GetSingle(this SharpNeedle.Ninja.Csd.Motions.KeyFrameList list, float frame)
+    public static float GetSingle(this SharpNeedle.Ninja.Csd.Motions.KeyFrameList in_List, float in_Frame)
     {
-        if (list.Count == 0)
+        if (in_List.Count == 0)
             return 0.0f;
 
-        if (frame >= list[^1].Frame)
-            return list[^1].Value.Float;
+        if (in_Frame >= in_List[^1].Frame)
+            return in_List[^1].Value.Float;
 
-        int index = list.FindKeyframe(frame);
+        int index = in_List.FindKeyframe(in_Frame);
 
         if (index == 0)
-            return list.Frames[index].Value.Float;
+            return in_List.Frames[index].Value.Float;
 
-        var keyframe = list.Frames[index - 1];
-        var nextKeyframe = list.Frames[index];
+        var keyframe = in_List.Frames[index - 1];
+        var nextKeyframe = in_List.Frames[index];
 
         float factor;
 
         if (nextKeyframe.Frame - keyframe.Frame > 0)
-            factor = (frame - keyframe.Frame) / (nextKeyframe.Frame - keyframe.Frame);
+            factor = (in_Frame - keyframe.Frame) / (nextKeyframe.Frame - keyframe.Frame);
         else
             factor = 0.0f;
 
@@ -116,26 +116,26 @@ public static class AnimationTypeMethods
                 return keyframe.Value.Float;
         }
     }
-    public static Vector4 GetColor(this SharpNeedle.Ninja.Csd.Motions.KeyFrameList list, float frame)
+    public static Vector4 GetColor(this SharpNeedle.Ninja.Csd.Motions.KeyFrameList in_List, float in_Frame)
     {
-        if (list.Count == 0)
+        if (in_List.Count == 0)
             return new Vector4();
 
-        if (frame >= list.Frames[^1].Frame)
-            return list.Frames[^1].Value.Color.ToVec4();
+        if (in_Frame >= in_List.Frames[^1].Frame)
+            return in_List.Frames[^1].Value.Color.ToVec4();
 
-        int index = list.FindKeyframe(frame);
+        int index = in_List.FindKeyframe(in_Frame);
 
         if (index == 0)
-            return list.Frames[index].Value.Color.ToVec4();
+            return in_List.Frames[index].Value.Color.ToVec4();
 
-        var keyframe = list.Frames[index - 1];
-        var nextKeyframe = list.Frames[index];  
+        var keyframe = in_List.Frames[index - 1];
+        var nextKeyframe = in_List.Frames[index];  
 
         float factor;
 
         if (nextKeyframe.Frame - keyframe.Frame > 0)
-            factor = (frame - keyframe.Frame) / (nextKeyframe.Frame - keyframe.Frame);
+            factor = (in_Frame - keyframe.Frame) / (nextKeyframe.Frame - keyframe.Frame);
         else
             factor = 0.0f;
 
@@ -150,9 +150,9 @@ public static class AnimationTypeMethods
             A = (byte)((1.0f - factor) * swappedCurrent.A + swappedNext.A * factor)
         }.ToVec4();
     }
-    public static AnimationType ToShurikenAnimationType(this SharpNeedle.Ninja.Csd.Motions.KeyProperty test)
+    public static AnimationType ToShurikenAnimationType(this SharpNeedle.Ninja.Csd.Motions.KeyProperty in_Test)
     {
-        switch (test)
+        switch (in_Test)
         {
             case SharpNeedle.Ninja.Csd.Motions.KeyProperty.HideFlag:
                 return AnimationType.HideFlag;
@@ -179,16 +179,16 @@ public static class AnimationTypeMethods
                 return AnimationType.Color;
 
             case SharpNeedle.Ninja.Csd.Motions.KeyProperty.GradientTopLeft:
-                return AnimationType.GradientTL;
+                return AnimationType.GradientTl;
 
             case SharpNeedle.Ninja.Csd.Motions.KeyProperty.GradientBottomLeft:
-                return AnimationType.GradientBL;
+                return AnimationType.GradientBl;
 
             case SharpNeedle.Ninja.Csd.Motions.KeyProperty.GradientTopRight:
-                return AnimationType.GradientTR;
+                return AnimationType.GradientTr;
 
             case SharpNeedle.Ninja.Csd.Motions.KeyProperty.GradientBottomRight:
-                return AnimationType.GradientBR;
+                return AnimationType.GradientBr;
 
         }
         return AnimationType.None;

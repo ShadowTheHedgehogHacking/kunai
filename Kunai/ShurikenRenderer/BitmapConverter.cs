@@ -6,19 +6,19 @@ using System.Windows;
 
 public static class BitmapConverter
 {
-    public static BitmapSource FromBitmap(Bitmap bitmap)
+    public static BitmapSource FromBitmap(Bitmap in_Bitmap)
     {
         BitmapSource i = Imaging.CreateBitmapSourceFromHBitmap(
-                       bitmap.GetHbitmap(),
+                       in_Bitmap.GetHbitmap(),
                        nint.Zero,
                        Int32Rect.Empty,
                        BitmapSizeOptions.FromEmptyOptions());
         return i;
     }
 
-    public static Bitmap FromTextureImage(ScratchImage img, System.Drawing.Imaging.PixelFormat format)
+    public static Bitmap FromTextureImage(ScratchImage in_Img, System.Drawing.Imaging.PixelFormat in_Format)
     {
-        return new Bitmap(img.GetImage(0).Width, img.GetImage(0).Height,
-            (int)img.GetImage(0).RowPitch, format, img.GetImage(0).Pixels);
+        return new Bitmap(in_Img.GetImage(0).Width, in_Img.GetImage(0).Height,
+            (int)in_Img.GetImage(0).RowPitch, in_Format, in_Img.GetImage(0).Pixels);
     }
 }

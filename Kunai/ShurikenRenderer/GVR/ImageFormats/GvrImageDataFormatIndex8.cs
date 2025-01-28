@@ -2,7 +2,7 @@
 
 namespace Shuriken.Rendering.Gvr
 {
-    class GvrImageDataFormatIndex8 : GvrImageDataFormat
+    internal class GvrImageDataFormatIndex8 : GvrImageDataFormat
     {
         public override uint BitsPerPixel => 8;
 
@@ -11,12 +11,12 @@ namespace Shuriken.Rendering.Gvr
 
         public override byte TgaAlphaChannelBits => 0;
 
-        public GvrImageDataFormatIndex8(ushort width, ushort height) : base(width, height)
+        public GvrImageDataFormatIndex8(ushort in_Width, ushort in_Height) : base(in_Width, in_Height)
         {
 
         }
 
-        public override byte[] Decode(byte[] input)
+        public override byte[] Decode(byte[] in_Input)
         {
             byte[] output = new byte[DecodedDataLength];
             int offset = 0;
@@ -27,7 +27,7 @@ namespace Shuriken.Rendering.Gvr
                 {
                     for (int y2 = 0; y2 < 4; y2++)
                     {
-                        Array.Copy(input, offset, output, ((y + y2) * Width) + x, 8);
+                        Array.Copy(in_Input, offset, output, ((y + y2) * Width) + x, 8);
                         offset += 8;
                     }
                 }
@@ -36,7 +36,7 @@ namespace Shuriken.Rendering.Gvr
             return output;
         }
 
-        public override byte[] Encode(byte[] input)
+        public override byte[] Encode(byte[] in_Input)
         {
             byte[] output = new byte[EncodedDataLength];
             int offset = 0;
@@ -47,7 +47,7 @@ namespace Shuriken.Rendering.Gvr
                 {
                     for (int y2 = 0; y2 < 4; y2++)
                     {
-                        Array.Copy(input, ((y + y2) * Width) + x, output, offset, 8);
+                        Array.Copy(in_Input, ((y + y2) * Width) + x, output, offset, 8);
                         offset += 8;
                     }
                 }

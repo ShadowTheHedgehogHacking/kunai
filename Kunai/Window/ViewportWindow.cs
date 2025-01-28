@@ -5,19 +5,19 @@ namespace Kunai.Window
 {
     public class ViewportWindow : WindowBase
     {
-        public static float zoomFactor = 1;
+        public static float ZoomFactor = 1;
         public override void Update(ShurikenRenderHelper in_Renderer)
         {
             var size1 = ImGui.GetWindowViewport().Size.X / 4.5f;
-            ImGui.SetNextWindowPos(new System.Numerics.Vector2(size1, MenuBarWindow.menuBarHeight), ImGuiCond.Always);
+            ImGui.SetNextWindowPos(new System.Numerics.Vector2(size1, MenuBarWindow.MenuBarHeight), ImGuiCond.Always);
             ImGui.SetNextWindowSize(new System.Numerics.Vector2(size1 * 2.5f, ImGui.GetWindowViewport().Size.Y / 1.5f), ImGuiCond.Always);
-            if (ImGui.Begin("Viewport", MainWindow.flags))
+            if (ImGui.Begin("Viewport", MainWindow.WindowFlags))
             {                
-                zoomFactor += ImGui.GetIO().MouseWheel / 5;
-                zoomFactor = Math.Clamp(zoomFactor, 0.5f, 5);
-                float windowHeight = ImGui.GetWindowWidth() * (in_Renderer.viewportSize.Y / in_Renderer.viewportSize.X);
-                ImGui.SliderFloat("Zoom", ref zoomFactor, 0.5f, 5);
-                var size = new System.Numerics.Vector2(ImGui.GetWindowWidth(), windowHeight) * zoomFactor;
+                ZoomFactor += ImGui.GetIO().MouseWheel / 5;
+                ZoomFactor = Math.Clamp(ZoomFactor, 0.5f, 5);
+                float windowHeight = ImGui.GetWindowWidth() * (in_Renderer.ViewportSize.Y / in_Renderer.ViewportSize.X);
+                ImGui.SliderFloat("Zoom", ref ZoomFactor, 0.5f, 5);
+                var size = new System.Numerics.Vector2(ImGui.GetWindowWidth(), windowHeight) * ZoomFactor;
 
                 if(in_Renderer.WorkProjectCsd == null)
                     ImGui.Text("Open a XNCP, YNCP, GNCP or SNCP file to edit it.");

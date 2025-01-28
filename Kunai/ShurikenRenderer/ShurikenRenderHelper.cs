@@ -24,10 +24,10 @@ namespace Kunai.ShurikenRenderer
         YScale = 32,
         SubImage = 64,
         Color = 128,
-        GradientTL = 256,
-        GradientBL = 512,
-        GradientTR = 1024,
-        GradientBR = 2048
+        GradientTl = 256,
+        GradientBl = 512,
+        GradientTr = 1024,
+        GradientBr = 2048
     }
 
     public class SVisibilityData
@@ -49,15 +49,15 @@ namespace Kunai.ShurikenRenderer
             {
                 Motion = in_Scene;
             }
-            public KeyFrameList GetTrack(Cast layer, AnimationType type)
+            public KeyFrameList GetTrack(Cast in_Layer, AnimationType in_Type)
             {
                 foreach (var animation in Motion.Value.FamilyMotions)
                 {
                     foreach (var animtrack in animation.CastMotions)
                     {
-                        if (animtrack.Cast == layer && animtrack.Capacity != 0)
+                        if (animtrack.Cast == in_Layer && animtrack.Capacity != 0)
                         {
-                            var track = animtrack.FirstOrDefault(t => t.Property.ToShurikenAnimationType() == type);
+                            var track = animtrack.FirstOrDefault(in_T => in_T.Property.ToShurikenAnimationType() == in_Type);
                             if (track != null)
                                 return track;
                         }
@@ -87,9 +87,9 @@ namespace Kunai.ShurikenRenderer
                     Animation.Add(new SAnimation(mot));
                 }
             }
-            public SCast GetVisibility(Cast cast)
+            public SCast GetVisibility(Cast in_Cast)
             {
-                return Casts.FirstOrDefault(node => node.Cast == cast);
+                return Casts.FirstOrDefault(in_Node => in_Node.Cast == in_Cast);
             }
         }
         public class SNode
@@ -113,9 +113,9 @@ namespace Kunai.ShurikenRenderer
                     Nodes.Add(new SNode(scene));
                 }
             }
-            public SScene GetVisibility(Scene scene)
+            public SScene GetVisibility(Scene in_Scene)
             {
-                return Scene.FirstOrDefault(node => node.Scene.Value == scene);
+                return Scene.FirstOrDefault(in_Node => in_Node.Scene.Value == in_Scene);
             }
         }
 
@@ -152,19 +152,19 @@ namespace Kunai.ShurikenRenderer
             }
             return null;
         }
-        public SNode GetVisibility(SceneNode scene)
+        public SNode GetVisibility(SceneNode in_Scene)
         {
             foreach (var node in Nodes)
             {
-                return RecursiveGetNode(node, scene);
+                return RecursiveGetNode(node, in_Scene);
             }
             return null;
         }
-        public SScene GetScene(Scene scene)
+        public SScene GetScene(Scene in_Scene)
         {
             foreach (var node in Nodes)
             {
-                return RecursiveGetScene(node, scene);
+                return RecursiveGetScene(node, in_Scene);
             }
             return null;
         }
@@ -174,55 +174,55 @@ namespace Kunai.ShurikenRenderer
         public static ShurikenRenderHelper Instance;
         public struct SViewportData
         {
-            public int csdRenderTextureHandle;
-            public Vector2i framebufferSize;
-            public int renderbufferHandle;
-            public int framebufferHandle;
+            public int CsdRenderTextureHandle;
+            public Vector2i FramebufferSize;
+            public int RenderbufferHandle;
+            public int FramebufferHandle;
         }
         public struct SProjectConfig
         {
             public string WorkFilePath;
-            public bool playingAnimations;
-            public bool showQuads;
-            public double time;
+            public bool PlayingAnimations;
+            public bool ShowQuads;
+            public double Time;
         }
         public struct SSelectionData
         {
-            public KeyFrameList trackAnimation;
-            public KeyFrame keyframeSelected;
+            public KeyFrameList TrackAnimation;
+            public KeyFrame KeyframeSelected;
             public Cast SelectedCast;
             public KeyValuePair<string, Scene> SelectedScene;
         }
-        public Renderer renderer;
-        public Vector2 viewportSize;
-        public Vector2 screenSize;
-        public SVisibilityData visibilityData;
-        public SSelectionData selectionData;
+        public Renderer Renderer;
+        public Vector2 ViewportSize;
+        public Vector2 ScreenSize;
+        public SVisibilityData VisibilityData;
+        public SSelectionData SelectionData;
         public CsdProject WorkProjectCsd;
-        public SProjectConfig config;
-        private SViewportData viewportData;
-        private GameWindow window;
-        private int currentDrawPriority;
-        public List<WindowBase> windows = new List<WindowBase>();
-        public ShurikenRenderHelper(GameWindow window2, Vector2 in_ViewportSize, Vector2 clientSize)
+        public SProjectConfig Config;
+        private SViewportData _viewportData;
+        private GameWindow _window;
+        private int _currentDrawPriority;
+        public List<WindowBase> Windows = new List<WindowBase>();
+        public ShurikenRenderHelper(GameWindow in_Window2, Vector2 in_ViewportSize, Vector2 in_ClientSize)
         {
             if (Instance != null)
                 return;
-            viewportSize = in_ViewportSize;
-            renderer = new Renderer((int)viewportSize.X, (int)viewportSize.Y);
-            renderer.SetShader(renderer.shaderDictionary["basic"]);
-            window = window2;
-            viewportData = new SViewportData();
-            config = new SProjectConfig();
-            screenSize = clientSize;
+            ViewportSize = in_ViewportSize;
+            Renderer = new Renderer((int)ViewportSize.X, (int)ViewportSize.Y);
+            Renderer.SetShader(Renderer.ShaderDictionary["basic"]);
+            _window = in_Window2;
+            _viewportData = new SViewportData();
+            Config = new SProjectConfig();
+            ScreenSize = in_ClientSize;
             Instance = this;
         }
 
-        public void ShowMessageBoxCross(string title, string message, bool isWarning)
+        public void ShowMessageBoxCross(string in_Title, string in_Message, bool in_IsWarning)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                System.Windows.MessageBox.Show(message, title, System.Windows.MessageBoxButton.OK, isWarning ? System.Windows.MessageBoxImage.Warning : System.Windows.MessageBoxImage.Information);
+                System.Windows.MessageBox.Show(in_Message, in_Title, System.Windows.MessageBoxButton.OK, in_IsWarning ? System.Windows.MessageBoxImage.Warning : System.Windows.MessageBoxImage.Information);
             }
         }
         public void LoadFile(string in_Path)
@@ -239,19 +239,19 @@ namespace Kunai.ShurikenRenderer
             }
             //Reset what needs to be reset
             string root = Path.GetDirectoryName(Path.GetFullPath(@in_Path));
-            config.WorkFilePath = in_Path;
-            visibilityData = null;
+            Config.WorkFilePath = in_Path;
+            VisibilityData = null;
             InspectorWindow.Reset();
             SpriteHelper.ClearTextures();
 
             /// TODO: SHARPNEEDLE FIX
-            ExtensionKillMe.isColorLittleEndian = WorkProjectCsd.Endianness == Endianness.Little;
+            ExtensionKillMe.IsColorLittleEndian = WorkProjectCsd.Endianness == Endianness.Little;
 
             //Start loading textures
             ITextureList xTextures = WorkProjectCsd.Textures;
             CsdDictionary<Font> xFontList = WorkProjectCsd.Project.Fonts;
             List<string> missingTextures = new List<string>();
-            SpriteHelper.textureList = new TextureList("textures");
+            SpriteHelper.TextureList = new TextureList("textures");
             if (xTextures != null)
             {
                 bool tempChangeExtension = false;
@@ -266,10 +266,10 @@ namespace Kunai.ShurikenRenderer
                     string texPath = System.IO.Path.Combine(@root, texture.Name);
 
                     if (File.Exists(texPath))
-                        SpriteHelper.textureList.Textures.Add(new Texture(texPath, tempChangeExtension));
+                        SpriteHelper.TextureList.Textures.Add(new Texture(texPath, tempChangeExtension));
                     else
                     {
-                        SpriteHelper.textureList.Textures.Add(new Texture("", tempChangeExtension));
+                        SpriteHelper.TextureList.Textures.Add(new Texture("", tempChangeExtension));
                         missingTextures.Add(texture.Name);
                     }
                     //    MissingTextures.Add(texture.Name);
@@ -283,7 +283,7 @@ namespace Kunai.ShurikenRenderer
                 }
             }
             SpriteHelper.LoadTextures(WorkProjectCsd);
-            visibilityData = new SVisibilityData(WorkProjectCsd);
+            VisibilityData = new SVisibilityData(WorkProjectCsd);
         }
         /// <summary>
         /// Renders contents of a CsdProject to a GL texture for use in ImGui
@@ -296,45 +296,45 @@ namespace Kunai.ShurikenRenderer
             if (in_CsdProject != null)
             {
                 // Get the size of the child (i.e. the whole draw size of the windows).
-                System.Numerics.Vector2 wsize = screenSize;
+                System.Numerics.Vector2 wsize = ScreenSize;
 
                 // make sure the buffers are the currect size
                 Vector2i wsizei = new((int)wsize.X, (int)wsize.Y);
-                if (viewportData.framebufferSize != wsizei)
+                if (_viewportData.FramebufferSize != wsizei)
                 {
-                    viewportData.framebufferSize = wsizei;
+                    _viewportData.FramebufferSize = wsizei;
 
                     // create our frame buffer if needed
-                    if (viewportData.framebufferHandle == 0)
+                    if (_viewportData.FramebufferHandle == 0)
                     {
-                        viewportData.framebufferHandle = GL.GenFramebuffer();
+                        _viewportData.FramebufferHandle = GL.GenFramebuffer();
                         // bind our frame buffer
-                        GL.BindFramebuffer(FramebufferTarget.Framebuffer, viewportData.framebufferHandle);
-                        GL.ObjectLabel(ObjectLabelIdentifier.Framebuffer, viewportData.framebufferHandle, 10, "GameWindow");
+                        GL.BindFramebuffer(FramebufferTarget.Framebuffer, _viewportData.FramebufferHandle);
+                        GL.ObjectLabel(ObjectLabelIdentifier.Framebuffer, _viewportData.FramebufferHandle, 10, "GameWindow");
                     }
 
                     // bind our frame buffer
-                    GL.BindFramebuffer(FramebufferTarget.Framebuffer, viewportData.framebufferHandle);
+                    GL.BindFramebuffer(FramebufferTarget.Framebuffer, _viewportData.FramebufferHandle);
 
-                    if (viewportData.csdRenderTextureHandle > 0)
-                        GL.DeleteTexture(viewportData.csdRenderTextureHandle);
+                    if (_viewportData.CsdRenderTextureHandle > 0)
+                        GL.DeleteTexture(_viewportData.CsdRenderTextureHandle);
 
-                    viewportData.csdRenderTextureHandle = GL.GenTexture();
-                    GL.BindTexture(TextureTarget.Texture2D, viewportData.csdRenderTextureHandle);
-                    GL.ObjectLabel(ObjectLabelIdentifier.Texture, viewportData.csdRenderTextureHandle, 16, "GameWindow:Color");
+                    _viewportData.CsdRenderTextureHandle = GL.GenTexture();
+                    GL.BindTexture(TextureTarget.Texture2D, _viewportData.CsdRenderTextureHandle);
+                    GL.ObjectLabel(ObjectLabelIdentifier.Texture, _viewportData.CsdRenderTextureHandle, 16, "GameWindow:Color");
                     GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb, wsizei.X, wsizei.Y, 0, OpenTK.Graphics.OpenGL.PixelFormat.Rgb, PixelType.UnsignedByte, IntPtr.Zero);
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-                    GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, viewportData.csdRenderTextureHandle, 0);
+                    GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, _viewportData.CsdRenderTextureHandle, 0);
 
-                    if (viewportData.renderbufferHandle > 0)
-                        GL.DeleteRenderbuffer(viewportData.renderbufferHandle);
+                    if (_viewportData.RenderbufferHandle > 0)
+                        GL.DeleteRenderbuffer(_viewportData.RenderbufferHandle);
 
-                    viewportData.renderbufferHandle = GL.GenRenderbuffer();
-                    GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, viewportData.renderbufferHandle);
-                    GL.ObjectLabel(ObjectLabelIdentifier.Renderbuffer, viewportData.renderbufferHandle, 16, "GameWindow:Depth");
+                    _viewportData.RenderbufferHandle = GL.GenRenderbuffer();
+                    GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, _viewportData.RenderbufferHandle);
+                    GL.ObjectLabel(ObjectLabelIdentifier.Renderbuffer, _viewportData.RenderbufferHandle, 16, "GameWindow:Depth");
                     GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.DepthComponent32f, wsizei.X, wsizei.Y);
-                    GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, viewportData.renderbufferHandle);
+                    GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, _viewportData.RenderbufferHandle);
                     //GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, 0);
 
                     //texDepth = GL.GenTexture();
@@ -350,8 +350,8 @@ namespace Kunai.ShurikenRenderer
                 else
                 {
                     // bind our frame and depth buffer
-                    GL.BindFramebuffer(FramebufferTarget.Framebuffer, viewportData.framebufferHandle);
-                    GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, viewportData.renderbufferHandle);
+                    GL.BindFramebuffer(FramebufferTarget.Framebuffer, _viewportData.FramebufferHandle);
+                    GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, _viewportData.RenderbufferHandle);
                 }
                 GL.Viewport(0, 0, wsizei.X, wsizei.Y); // change the viewport to window
                 // actually draw the scene
@@ -361,7 +361,7 @@ namespace Kunai.ShurikenRenderer
                 }
                 // unbind our bo so nothing else uses it
                 GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-                GL.Viewport(0, 0, window.ClientSize.X, window.ClientSize.Y); // back to full screen size
+                GL.Viewport(0, 0, _window.ClientSize.X, _window.ClientSize.Y); // back to full screen size
             }
             UpdateWindows();
         }
@@ -370,16 +370,16 @@ namespace Kunai.ShurikenRenderer
             GL.ClearColor(Color4.DarkGray);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            renderer.Width = (int)viewportSize.X;
-            renderer.Height = (int)viewportSize.Y;
-            renderer.Start();
-            if (config.playingAnimations)
-                config.time += in_DeltaTime;
-            RenderNode(in_CsdProject.Project.Root, config.time);
+            Renderer.Width = (int)ViewportSize.X;
+            Renderer.Height = (int)ViewportSize.Y;
+            Renderer.Start();
+            if (Config.PlayingAnimations)
+                Config.Time += in_DeltaTime;
+            RenderNode(in_CsdProject.Project.Root, Config.Time);
             foreach (KeyValuePair<string, SceneNode> node in in_CsdProject.Project.Root.Children)
             {
-                if (!visibilityData.GetVisibility(node.Value).Active) continue;
-                RenderNode(node.Value, config.time);
+                if (!VisibilityData.GetVisibility(node.Value).Active) continue;
+                RenderNode(node.Value, Config.Time);
             }
             //if (ImGui.Begin("teatatat"))
             //{
@@ -398,12 +398,12 @@ namespace Kunai.ShurikenRenderer
             //    }
             //    ImGui.End();
             //}
-            renderer.End();
+            Renderer.End();
         }
 
         public void RenderNode(SceneNode in_Node, double in_DeltaTime)
         {
-            SVisibilityData.SNode vis = visibilityData.GetVisibility(in_Node);
+            SVisibilityData.SNode vis = VisibilityData.GetVisibility(in_Node);
             int idx = 0;
             foreach (var scene in in_Node.Scenes)
             {
@@ -412,9 +412,9 @@ namespace Kunai.ShurikenRenderer
                 // = true;
             }
         }
-        public void RenderScenes(Scene in_Scene, SVisibilityData.SNode in_Vis, ref int priority, double in_DeltaTime)
+        public void RenderScenes(Scene in_Scene, SVisibilityData.SNode in_Vis, ref int in_Priority, double in_DeltaTime)
         {
-            int idx = priority;
+            int idx = in_Priority;
             var vis = in_Vis.GetVisibility(in_Scene);
             foreach (var family in in_Scene.Families)
             {
@@ -425,82 +425,82 @@ namespace Kunai.ShurikenRenderer
                 UpdateCast(in_Scene, cast, transform, idx, (float)(in_DeltaTime * in_Scene.FrameRate), vis);
                 idx += cast.Children.Count + 1;
             }
-            priority = idx++;
+            in_Priority = idx++;
         }
-        private void UpdateCast(Scene scene, Cast in_UiElement, CastTransform transform, int priority, float time, SVisibilityData.SScene vis)
+        private void UpdateCast(Scene in_Scene, Cast in_UiElement, CastTransform in_Transform, int in_Priority, float in_Time, SVisibilityData.SScene in_Vis)
         {
             bool hideFlag = in_UiElement.Info.HideFlag != 0;
             var position = new System.Numerics.Vector2(in_UiElement.Info.Translation.X, in_UiElement.Info.Translation.Y);
             float rotation = in_UiElement.Info.Rotation;
             var scale = new System.Numerics.Vector2(in_UiElement.Info.Scale.X, in_UiElement.Info.Scale.Y);
-            float sprID = in_UiElement.Info.SpriteIndex;
+            float sprId = in_UiElement.Info.SpriteIndex;
             var color = in_UiElement.Info.Color.ToVec4();
             var gradientTopLeft = in_UiElement.Info.GradientTopLeft.ToVec4();
             var gradientBottomLeft = in_UiElement.Info.GradientBottomLeft.ToVec4();
             var gradientTopRight = in_UiElement.Info.GradientTopRight.ToVec4();
             var gradientBottomRight = in_UiElement.Info.GradientBottomRight.ToVec4();
 
-            foreach (var animation in vis.Animation)
+            foreach (var animation in in_Vis.Animation)
             {
                 if (!animation.Active)
                     continue;
 
                 for (int i = 0; i < 12; i++)
                 {
-                    var type = (AnimationType)(1 << i);
-                    var track = animation.GetTrack(in_UiElement, type);
+                    var animationType = (AnimationType)(1 << i);
+                    var track = animation.GetTrack(in_UiElement, animationType);
 
                     if (track == null)
                         continue;
 
-                    switch (type)
+                    switch (animationType)
                     {
                         case AnimationType.HideFlag:
-                            hideFlag = track.GetSingle(time) != 0;
+                            hideFlag = track.GetSingle(in_Time) != 0;
                             break;
 
                         case AnimationType.XPosition:
-                            position.X = track.GetSingle(time);
+                            position.X = track.GetSingle(in_Time);
                             break;
 
                         case AnimationType.YPosition:
-                            position.Y = track.GetSingle(time);
+                            position.Y = track.GetSingle(in_Time);
                             break;
 
                         case AnimationType.Rotation:
-                            rotation = track.GetSingle(time);
+                            rotation = track.GetSingle(in_Time);
                             break;
 
                         case AnimationType.XScale:
-                            scale.X = track.GetSingle(time);
+                            scale.X = track.GetSingle(in_Time);
                             break;
 
                         case AnimationType.YScale:
-                            scale.Y = track.GetSingle(time);
+                            scale.Y = track.GetSingle(in_Time);
                             break;
 
                         case AnimationType.SubImage:
-                            sprID = track.GetSingle(time);
+                            sprId = track.GetSingle(in_Time);
                             break;
 
                         case AnimationType.Color:
-                            color = track.GetColor(time);
+                            color = track.GetColor(in_Time);
                             break;
 
-                        case AnimationType.GradientTL:
-                            gradientTopLeft = track.GetColor(time);
+                        case AnimationType.GradientTl:
+                            gradientTopLeft = track.GetColor(in_Time);
                             break;
 
-                        case AnimationType.GradientBL:
-                            gradientBottomLeft = track.GetColor(time);
+                        case AnimationType.GradientBl:
+                            gradientBottomLeft = track.GetColor(in_Time);
                             break;
 
-                        case AnimationType.GradientTR:
-                            gradientTopRight = track.GetColor(time);
+                        case AnimationType.GradientTr:
+                            gradientTopRight = track.GetColor(in_Time);
                             break;
 
-                        case AnimationType.GradientBR:
-                            gradientBottomRight = track.GetColor(time);
+                        case AnimationType.GradientBr:
+                            gradientBottomRight = track.GetColor(in_Time);
                             break;
                     }
                 }
@@ -511,68 +511,68 @@ namespace Kunai.ShurikenRenderer
 
             // Inherit position scale
             // TODO: Is this handled through flags?
-            position.X *= transform.Scale.X;
-            position.Y *= transform.Scale.Y;
+            position.X *= in_Transform.Scale.X;
+            position.Y *= in_Transform.Scale.Y;
 
             // Rotate through parent transform
-            float angle = transform.Rotation * MathF.PI / 180.0f; //to radians
-            float rotatedX = position.X * MathF.Cos(angle) * scene.AspectRatio + position.Y * MathF.Sin(angle);
-            float rotatedY = position.Y * MathF.Cos(angle) - position.X * MathF.Sin(angle) * scene.AspectRatio;
+            float angle = in_Transform.Rotation * MathF.PI / 180.0f; //to radians
+            float rotatedX = position.X * MathF.Cos(angle) * in_Scene.AspectRatio + position.Y * MathF.Sin(angle);
+            float rotatedY = position.Y * MathF.Cos(angle) - position.X * MathF.Sin(angle) * in_Scene.AspectRatio;
 
-            position.X = rotatedX / scene.AspectRatio;
+            position.X = rotatedX / in_Scene.AspectRatio;
             position.Y = rotatedY;
 
             position += in_UiElement.Origin;
-            var InheritanceFlags = (ElementInheritanceFlags)in_UiElement.InheritanceFlags.Value;
+            var inheritanceFlags = (ElementInheritanceFlags)in_UiElement.InheritanceFlags.Value;
             // Inherit position
-            if (InheritanceFlags.HasFlag(ElementInheritanceFlags.InheritXPosition))
-                position.X += transform.Position.X;
+            if (inheritanceFlags.HasFlag(ElementInheritanceFlags.InheritXPosition))
+                position.X += in_Transform.Position.X;
 
-            if (InheritanceFlags.HasFlag(ElementInheritanceFlags.InheritYPosition))
-                position.Y += transform.Position.Y;
+            if (inheritanceFlags.HasFlag(ElementInheritanceFlags.InheritYPosition))
+                position.Y += in_Transform.Position.Y;
 
             // Inherit rotation
-            if (InheritanceFlags.HasFlag(ElementInheritanceFlags.InheritRotation))
-                rotation += transform.Rotation;
+            if (inheritanceFlags.HasFlag(ElementInheritanceFlags.InheritRotation))
+                rotation += in_Transform.Rotation;
 
             // Inherit scale
-            if (InheritanceFlags.HasFlag(ElementInheritanceFlags.InheritScaleX))
-                scale.X *= transform.Scale.X;
+            if (inheritanceFlags.HasFlag(ElementInheritanceFlags.InheritScaleX))
+                scale.X *= in_Transform.Scale.X;
 
-            if (InheritanceFlags.HasFlag(ElementInheritanceFlags.InheritScaleY))
-                scale.Y *= transform.Scale.Y;
+            if (inheritanceFlags.HasFlag(ElementInheritanceFlags.InheritScaleY))
+                scale.Y *= in_Transform.Scale.Y;
 
             // Inherit color
-            if (InheritanceFlags.HasFlag(ElementInheritanceFlags.InheritColor))
+            if (inheritanceFlags.HasFlag(ElementInheritanceFlags.InheritColor))
             {
-                var cF = color * transform.Color;
+                var cF = color * in_Transform.Color;
                 color = cF;
             }
-            var Type = (DrawType)in_UiElement.Field04;
-            var Flags = (ElementMaterialFlags)in_UiElement.Field38;
+            var type = (DrawType)in_UiElement.Field04;
+            var flags = (ElementMaterialFlags)in_UiElement.Field38;
 
-            if (vis.GetVisibility(in_UiElement).Active && in_UiElement.Enabled)
+            if (in_Vis.GetVisibility(in_UiElement).Active && in_UiElement.Enabled)
             {
-                if (Type == DrawType.Sprite)
+                if (type == DrawType.Sprite)
                 {
-                    int spriteIdx1 = Math.Min(in_UiElement.SpriteIndices.Length - 1, (int)sprID);
-                    int spriteIdx2 = Math.Min(in_UiElement.SpriteIndices.Length - 1, (int)sprID + 1);
-                    Shuriken.Rendering.Sprite spr = sprID >= 0 ? SpriteHelper.TryGetSprite(in_UiElement.SpriteIndices[spriteIdx1]) : null;
-                    Shuriken.Rendering.Sprite nextSpr = sprID >= 0 ? SpriteHelper.TryGetSprite(in_UiElement.SpriteIndices[spriteIdx2]) : null;
-                    if (config.showQuads)
+                    int spriteIdx1 = Math.Min(in_UiElement.SpriteIndices.Length - 1, (int)sprId);
+                    int spriteIdx2 = Math.Min(in_UiElement.SpriteIndices.Length - 1, (int)sprId + 1);
+                    Shuriken.Rendering.Sprite spr = sprId >= 0 ? SpriteHelper.TryGetSprite(in_UiElement.SpriteIndices[spriteIdx1]) : null;
+                    Shuriken.Rendering.Sprite nextSpr = sprId >= 0 ? SpriteHelper.TryGetSprite(in_UiElement.SpriteIndices[spriteIdx2]) : null;
+                    if (Config.ShowQuads)
                     {
                         spr = null;
                         nextSpr = null;
                     }
                     spr ??= nextSpr;
                     nextSpr ??= spr;
-                    renderer.DrawSprite(
+                    Renderer.DrawSprite(
                         in_UiElement.TopLeft, in_UiElement.BottomLeft, in_UiElement.TopRight, in_UiElement.BottomRight,
-                        position, rotation * MathF.PI / 180.0f, scale, scene.AspectRatio, spr, nextSpr, sprID % 1, color,
+                        position, rotation * MathF.PI / 180.0f, scale, in_Scene.AspectRatio, spr, nextSpr, sprId % 1, color,
                         gradientTopLeft, gradientBottomLeft, gradientTopRight, gradientBottomRight,
-                        in_UiElement.Priority, Flags);
+                        in_UiElement.Priority, flags);
                 }
-                else if (Type == DrawType.Font)
+                else if (type == DrawType.Font)
                 {
                     float xOffset = 0.0f;
                     if (string.IsNullOrEmpty(in_UiElement.Text)) in_UiElement.Text = "";
@@ -597,20 +597,20 @@ namespace Kunai.ShurikenRenderer
                         if (spr == null)
                             continue;
 
-                        float width = spr.Dimensions.X / renderer.Width;
-                        float height = spr.Dimensions.Y / renderer.Height;
+                        float width = spr.Dimensions.X / Renderer.Width;
+                        float height = spr.Dimensions.Y / Renderer.Height;
 
                         var begin = (Vector2)in_UiElement.TopLeft;
                         var end = begin + new Vector2(width, height);
 
-                        renderer.DrawSprite(
+                        Renderer.DrawSprite(
                             new Vector2(begin.X + xOffset, begin.Y),
                             new Vector2(begin.X + xOffset, end.Y),
                             new Vector2(end.X + xOffset, begin.Y),
                             new Vector2(end.X + xOffset, end.Y),
-                             position, rotation * MathF.PI / 180.0f, scale, scene.AspectRatio, spr, spr, 0, color,
+                             position, rotation * MathF.PI / 180.0f, scale, in_Scene.AspectRatio, spr, spr, 0, color,
                         gradientTopLeft, gradientBottomLeft, gradientTopRight, gradientBottomRight,
-                        in_UiElement.Priority, Flags
+                        in_UiElement.Priority, flags
                         );
                         //in_UiElement.Field4C = kerning (space between letters)
                         xOffset += width + BitConverter.ToSingle(BitConverter.GetBytes(in_UiElement.Field4C));
@@ -620,25 +620,25 @@ namespace Kunai.ShurikenRenderer
                 var childTransform = new CastTransform(position, rotation, scale, color);
 
                 foreach (var child in in_UiElement.Children)
-                    UpdateCast(scene, child, childTransform, priority++, time, vis);
+                    UpdateCast(in_Scene, child, childTransform, in_Priority++, in_Time, in_Vis);
             }
 
         }
 
         public int GetViewportImageHandle()
         {
-            return viewportData.csdRenderTextureHandle;
+            return _viewportData.CsdRenderTextureHandle;
         }
         public void SaveCurrentFile(string in_Path)
         {
-            WorkProjectCsd.Write(in_Path == null ? config.WorkFilePath : in_Path);
+            WorkProjectCsd.Write(in_Path == null ? Config.WorkFilePath : in_Path);
         }
 
         internal void UpdateWindows()
         {
-            foreach (WindowBase window in windows)
+            foreach (WindowBase window in Windows)
             {
-                window.renderer = this;
+                window.Renderer = this;
                 window.Update(this);
             }
         }

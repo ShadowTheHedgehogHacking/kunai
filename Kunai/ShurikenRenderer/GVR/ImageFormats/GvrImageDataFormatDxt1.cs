@@ -2,7 +2,7 @@
 
 namespace Shuriken.Rendering.Gvr
 {
-    class GvrImageDataFormatDxt1 : GvrImageDataFormat
+    internal class GvrImageDataFormatDxt1 : GvrImageDataFormat
     {
         public override uint BitsPerPixel => 4;
 
@@ -11,12 +11,12 @@ namespace Shuriken.Rendering.Gvr
 
         public override byte TgaAlphaChannelBits => 8;
 
-        public GvrImageDataFormatDxt1(ushort width, ushort height) : base(width, height)
+        public GvrImageDataFormatDxt1(ushort in_Width, ushort in_Height) : base(in_Width, in_Height)
         {
 
         }
 
-        public override byte[] Decode(byte[] input)
+        public override byte[] Decode(byte[] in_Input)
         {
             byte[] output = new byte[DecodedDataLength];
             int offset = 0;
@@ -40,8 +40,8 @@ namespace Shuriken.Rendering.Gvr
                         for (int x2 = 0; x2 < 8; x2 += 4)
                         {
                             // Get the first two colors
-                            pixel[0] = (ushort)((input[offset + 0] << 8) | input[offset + 1]);
-                            pixel[1] = (ushort)((input[offset + 2] << 8) | input[offset + 3]);
+                            pixel[0] = (ushort)((in_Input[offset + 0] << 8) | in_Input[offset + 1]);
+                            pixel[1] = (ushort)((in_Input[offset + 2] << 8) | in_Input[offset + 3]);
 
                             palette[0][3] = 0xFF;
                             palette[0][2] = (byte)(((pixel[0] >> 11) & 0x1F) * 0xFF / 0x1F);
@@ -85,10 +85,10 @@ namespace Shuriken.Rendering.Gvr
                             {
                                 for (int x3 = 0; x3 < 4; x3++)
                                 {
-                                    output[((((y + y2 + y3) * Width) + (x + x2 + x3)) * 4) + 3] = palette[((input[offset] >> (6 - (x3 * 2))) & 0x03)][3];
-                                    output[((((y + y2 + y3) * Width) + (x + x2 + x3)) * 4) + 2] = palette[((input[offset] >> (6 - (x3 * 2))) & 0x03)][2];
-                                    output[((((y + y2 + y3) * Width) + (x + x2 + x3)) * 4) + 1] = palette[((input[offset] >> (6 - (x3 * 2))) & 0x03)][1];
-                                    output[((((y + y2 + y3) * Width) + (x + x2 + x3)) * 4) + 0] = palette[((input[offset] >> (6 - (x3 * 2))) & 0x03)][0];
+                                    output[((((y + y2 + y3) * Width) + (x + x2 + x3)) * 4) + 3] = palette[((in_Input[offset] >> (6 - (x3 * 2))) & 0x03)][3];
+                                    output[((((y + y2 + y3) * Width) + (x + x2 + x3)) * 4) + 2] = palette[((in_Input[offset] >> (6 - (x3 * 2))) & 0x03)][2];
+                                    output[((((y + y2 + y3) * Width) + (x + x2 + x3)) * 4) + 1] = palette[((in_Input[offset] >> (6 - (x3 * 2))) & 0x03)][1];
+                                    output[((((y + y2 + y3) * Width) + (x + x2 + x3)) * 4) + 0] = palette[((in_Input[offset] >> (6 - (x3 * 2))) & 0x03)][0];
                                 }
 
                                 offset++;
@@ -101,7 +101,7 @@ namespace Shuriken.Rendering.Gvr
             return output;
         }
 
-        public override byte[] Encode(byte[] input)
+        public override byte[] Encode(byte[] in_Input)
         {
             byte[] output = new byte[EncodedDataLength];
             int offset = 0;
@@ -122,10 +122,10 @@ namespace Shuriken.Rendering.Gvr
                             {
                                 for (int x3 = 0; x3 < 4; x3++)
                                 {
-                                    subBlock[i + 3] = input[((((y + y2 + y3) * Width) + (x + x2 + x3)) * 4) + 3];
-                                    subBlock[i + 2] = input[((((y + y2 + y3) * Width) + (x + x2 + x3)) * 4) + 2];
-                                    subBlock[i + 1] = input[((((y + y2 + y3) * Width) + (x + x2 + x3)) * 4) + 1];
-                                    subBlock[i + 0] = input[((((y + y2 + y3) * Width) + (x + x2 + x3)) * 4) + 0];
+                                    subBlock[i + 3] = in_Input[((((y + y2 + y3) * Width) + (x + x2 + x3)) * 4) + 3];
+                                    subBlock[i + 2] = in_Input[((((y + y2 + y3) * Width) + (x + x2 + x3)) * 4) + 2];
+                                    subBlock[i + 1] = in_Input[((((y + y2 + y3) * Width) + (x + x2 + x3)) * 4) + 1];
+                                    subBlock[i + 0] = in_Input[((((y + y2 + y3) * Width) + (x + x2 + x3)) * 4) + 0];
 
                                     i += 4;
                                 }
@@ -143,7 +143,7 @@ namespace Shuriken.Rendering.Gvr
 
         #region Methods from CTools Wii
 
-        private static byte[] ConvertBlockToQuaterCmpr(byte[] block)
+        private static byte[] ConvertBlockToQuaterCmpr(byte[] in_Block)
         {
             int col1, col2, dist, temp;
             bool alpha;
@@ -156,13 +156,13 @@ namespace Shuriken.Rendering.Gvr
 
             for (int i = 0; i < 15; i++)
             {
-                if (block[i * 4 + 3] < 16)
+                if (in_Block[i * 4 + 3] < 16)
                     alpha = true;
                 else
                 {
                     for (int j = i + 1; j < 16; j++)
                     {
-                        temp = Distance(block, i * 4, block, j * 4);
+                        temp = Distance(in_Block, i * 4, in_Block, j * 4);
 
                         if (temp > dist)
                         {
@@ -184,9 +184,9 @@ namespace Shuriken.Rendering.Gvr
                 palette[0] = new byte[4];
                 palette[1] = new byte[4];
 
-                Array.Copy(block, col1 * 4, palette[0], 0, 3);
+                Array.Copy(in_Block, col1 * 4, palette[0], 0, 3);
                 palette[0][3] = 0xff;
-                Array.Copy(block, col2 * 4, palette[1], 0, 3);
+                Array.Copy(in_Block, col2 * 4, palette[1], 0, 3);
                 palette[1][3] = 0xff;
 
                 if (palette[0][0] >> 3 == palette[1][0] >> 3 && palette[0][1] >> 2 == palette[1][1] >> 2 && palette[0][2] >> 3 == palette[1][2] >> 3)
@@ -223,30 +223,30 @@ namespace Shuriken.Rendering.Gvr
                 palette[3] = new byte[] { 0, 0, 0, 0 };
             }
 
-            for (int i = 0; i < block.Length >> 4; i++)
+            for (int i = 0; i < in_Block.Length >> 4; i++)
             {
-                result[4 + i] = (byte)(LeastDistance(palette, block, i * 16 + 0) << 6 | LeastDistance(palette, block, i * 16 + 4) << 4 | LeastDistance(palette, block, i * 16 + 8) << 2 | LeastDistance(palette, block, i * 16 + 12));
+                result[4 + i] = (byte)(LeastDistance(palette, in_Block, i * 16 + 0) << 6 | LeastDistance(palette, in_Block, i * 16 + 4) << 4 | LeastDistance(palette, in_Block, i * 16 + 8) << 2 | LeastDistance(palette, in_Block, i * 16 + 12));
             }
 
             return result;
         }
 
-        private static int LeastDistance(byte[][] palette, byte[] colour, int offset)
+        private static int LeastDistance(byte[][] in_Palette, byte[] in_Colour, int in_Offset)
         {
             int dist, best, temp;
 
-            if (colour[offset + 3] < 8)
+            if (in_Colour[in_Offset + 3] < 8)
                 return 3;
 
             dist = int.MaxValue;
             best = 0;
 
-            for (int i = 0; i < palette.Length; i++)
+            for (int i = 0; i < in_Palette.Length; i++)
             {
-                if (palette[i][3] != 0xff)
+                if (in_Palette[i][3] != 0xff)
                     break;
 
-                temp = Distance(palette[i], 0, colour, offset);
+                temp = Distance(in_Palette[i], 0, in_Colour, in_Offset);
 
                 if (temp < dist)
                 {
@@ -261,7 +261,7 @@ namespace Shuriken.Rendering.Gvr
             return best;
         }
 
-        private static int Distance(byte[] colour1, int offset1, byte[] colour2, int offset2)
+        private static int Distance(byte[] in_Colour1, int in_Offset1, byte[] in_Colour2, int in_Offset2)
         {
             int temp, val;
 
@@ -269,7 +269,7 @@ namespace Shuriken.Rendering.Gvr
 
             for (int i = 0; i < 3; i++)
             {
-                val = colour1[offset1 + i] - colour2[offset2 + i];
+                val = in_Colour1[in_Offset1 + i] - in_Colour2[in_Offset2 + i];
                 temp += val * val;
             }
 

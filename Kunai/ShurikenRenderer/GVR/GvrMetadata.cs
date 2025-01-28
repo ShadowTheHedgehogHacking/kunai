@@ -4,7 +4,7 @@ using System.Text.Json;
 //Taken from GVRTool, which in turn takes it from Puyotools
 namespace Shuriken.Rendering.Gvr
 {
-    class GVRMetadata
+    internal class GvrMetadata
     {
         public uint MetadataVersion { get; set; }
 
@@ -22,7 +22,7 @@ namespace Shuriken.Rendering.Gvr
         public ushort ExternalPaletteUnknown2 { get; set; }
         public ushort ExternalPaletteUnknown3 { get; set; }
 
-        const uint METADATA_VERSION = 2;
+        private const uint METADATA_VERSION = 2;
 
     }
 }

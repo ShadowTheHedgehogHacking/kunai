@@ -1,40 +1,40 @@
 ﻿using OpenTK.Graphics.OpenGL;
 namespace Shuriken.Rendering
 {
-    internal class GLTexture
+    internal class GlTexture
     {
-        private int id = 0;
-        public int ID
+        private int _id = 0;
+        public int Id
         {
-            get { return id; }
-            set { id = value; }
+            get { return _id; }
+            set { _id = value; }
         }
 
-        public GLTexture()
+        public GlTexture()
         {
 
         }
 
-        public GLTexture(nint pixels, int width, int height)
+        public GlTexture(nint in_Pixels, int in_Width, int in_Height)
         {
-            GL.GenTextures(1, out id);
+            GL.GenTextures(1, out _id);
 
-            GL.BindTexture(TextureTarget.Texture2D, ID);
+            GL.BindTexture(TextureTarget.Texture2D, Id);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, width, height, 0, OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, pixels);
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, in_Width, in_Height, 0, OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, in_Pixels);
         }
 
         public void Bind()
         {
-            GL.BindTexture(TextureTarget.Texture2D, id);
+            GL.BindTexture(TextureTarget.Texture2D, _id);
         }
 
         public void Dispose()
         {
-            GL.DeleteTextures(1, ref id);
+            GL.DeleteTextures(1, ref _id);
         }
     }
 

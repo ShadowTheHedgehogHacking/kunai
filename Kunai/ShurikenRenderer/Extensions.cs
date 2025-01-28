@@ -2,35 +2,17 @@
 
 public static class ExtensionKillMe
 {
-    public unsafe static byte* StringToBytePointer(this string str)
-    {
-        if (str == null)
-            throw new ArgumentNullException(nameof(str));
-
-        // Convert the string to a byte array
-        byte[] byteArray = Encoding.UTF8.GetBytes(str + "\0"); // Add null-terminator
-
-        // Pin the byte array in memory
-        fixed (byte* bytePointer = byteArray)
-        {
-            return bytePointer; // This pointer is valid only within the fixed block!
-        }
-    }
     public static System.Numerics.Vector4 ToVec4(this Color<byte> value)
     {
         return new System.Numerics.Vector4(value.R / 255.0f, value.G / 255.0f, value.B / 255.0f, value.A / 255.0f);
     }
     public static System.Numerics.Vector4 Invert(this System.Numerics.Vector4 value)
     {
-        return new System.Numerics.Vector4(value.W, value.Z, value.Y, value.X);
-    }
-    public static System.Numerics.Vector4 Invert_ToVec4(this Color<byte> value)
-    {
-        return new System.Numerics.Vector4(value.A / 255.0f, value.B / 255.0f, value.G / 255.0f, value.R / 255.0f);
-    }
-    public static Color<byte> Invert_ToColor(this System.Numerics.Vector4 value)
-    {
-        return new Color<byte>((byte)(value.W * 255), (byte)(value.Z * 255), (byte)(value.Y * 255), (byte)(value.X * 255));
+        float fixA = value.X;
+        float fixR = value.Y;
+        float fixG = value.Z;
+        float fixB = value.W;
+        return new System.Numerics.Vector4(fixB, fixG, fixR, fixA);
     }
     public static double Magnitude(this Color<byte> value)
     {
@@ -39,10 +21,6 @@ public static class ExtensionKillMe
     public static Color<byte> ToSharpNeedleColor(this System.Numerics.Vector4 value)
     {
         return new Color<byte>((byte)(value.X * 255), (byte)(value.Y * 255), (byte)(value.Z * 255), (byte)(value.W * 255));
-    }
-    public static Color<byte> ToSharpNeedleColorInverted(this System.Numerics.Vector4 value)
-    {
-        return new Color<byte>((byte)(value.W * 255), (byte)(value.Z * 255), (byte)(value.Y * 255), (byte)(value.X * 255));
     }
 
 }
@@ -120,25 +98,21 @@ public static class AnimationTypeMethods
                 return keyframe.Value.Float;
         }
     }
-    public static Color<byte> Invert(this Color<byte> color)
-    {
-        return new Color<byte>(color.A, color.B, color.G, color.R);
-    }
-    public static Color<byte> GetColor(this SharpNeedle.Ninja.Csd.Motions.KeyFrameList list, float frame)
+    public static Vector4 GetColor(this SharpNeedle.Ninja.Csd.Motions.KeyFrameList list, float frame)
     {
         if (list.Count == 0)
-            return new Color<byte>();
+            return new Vector4();
 
         if (frame >= list.Frames[^1].Frame)
-            return list.Frames[^1].Value.Color.Invert();
+            return list.Frames[^1].Value.Color.ToVec4();
 
         int index = list.FindKeyframe(frame);
 
         if (index == 0)
-            return list.Frames[index].Value.Color.Invert();
+            return list.Frames[index].Value.Color.ToVec4();
 
         var keyframe = list.Frames[index - 1];
-        var nextKeyframe = list.Frames[index];
+        var nextKeyframe = list.Frames[index];  
 
         float factor;
 
@@ -148,15 +122,15 @@ public static class AnimationTypeMethods
             factor = 0.0f;
 
         // Color values always use linear interpolation regardless of the type.
-        var swappedCurrent = keyframe.Value.Color.Invert();
-        var swappedNext = nextKeyframe.Value.Color.Invert();
+        var swappedCurrent = keyframe.Value.Color;
+        var swappedNext = nextKeyframe.Value.Color;
         return new Color<byte>
         {
             R = (byte)((1.0f - factor) * swappedCurrent.R + swappedNext.R * factor),
             G = (byte)((1.0f - factor) * swappedCurrent.G + swappedNext.G * factor),
             B = (byte)((1.0f - factor) * swappedCurrent.B + swappedNext.B * factor),
             A = (byte)((1.0f - factor) * swappedCurrent.A + swappedNext.A * factor)
-        };
+        }.ToVec4();
     }
     public static AnimationType ToShurikenAnimationType(this SharpNeedle.Ninja.Csd.Motions.KeyProperty test)
     {

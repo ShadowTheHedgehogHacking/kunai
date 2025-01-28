@@ -190,10 +190,10 @@ namespace Shuriken.Rendering
         /// <param name="q">The quad to push to the buffer.</param>
         public void PushQuad(Quad q)
         {
-            buffer[BufferPos++] = q.TopLeft;
-            buffer[BufferPos++] = q.BottomLeft;
-            buffer[BufferPos++] = q.TopRight;
-            buffer[BufferPos++] = q.BottomRight;
+            buffer[BufferPos++] = q.TopLeft.WithInvertedColor();
+            buffer[BufferPos++] = q.BottomLeft.WithInvertedColor();
+            buffer[BufferPos++] = q.TopRight.WithInvertedColor();
+            buffer[BufferPos++] = q.BottomRight.WithInvertedColor();
             NumIndices += 6;
         }
 
@@ -247,6 +247,12 @@ namespace Shuriken.Rendering
             quad.TopRight.Color = color * gradientTopRight;
             quad.BottomLeft.Color = color * gradientBottomLeft;
             quad.BottomRight.Color = color * gradientBottomRight;
+
+            quad.TopLeft.Color = quad.TopLeft.Color;
+            quad.TopRight.Color = quad.TopRight.Color;
+            quad.BottomLeft.Color = quad.BottomLeft.Color;
+            quad.BottomRight.Color = quad.BottomRight.Color;
+
             quad.ZIndex = zIndex;
             quad.Additive = (flags & ElementMaterialFlags.AdditiveBlending) != 0;
             quad.LinearFiltering = (flags & ElementMaterialFlags.LinearFiltering) != 0;

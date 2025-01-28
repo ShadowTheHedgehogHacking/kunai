@@ -357,7 +357,7 @@ namespace Kunai.ShurikenRenderer
         }
         private void RenderToViewport(CsdProject in_CsdProject, float in_DeltaTime)
         {
-            GL.ClearColor(Color4.BlueViolet);
+            GL.ClearColor(Color4.DarkGray);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             renderer.Width = (int)viewportSize.X;
@@ -409,6 +409,7 @@ namespace Kunai.ShurikenRenderer
             foreach (var family in in_Scene.Families)
             {
                 var transform = new CastTransform();
+                transform.Color = new System.Numerics.Vector4(1, 1, 1, 1);
                 Cast cast = family.Casts[0];
 
                 UpdateCast(in_Scene, cast, transform, idx, (float)(in_DeltaTime * in_Scene.FrameRate), vis);
@@ -423,11 +424,11 @@ namespace Kunai.ShurikenRenderer
             float rotation = in_UiElement.Info.Rotation;
             var scale = new System.Numerics.Vector2(in_UiElement.Info.Scale.X, in_UiElement.Info.Scale.Y);
             float sprID = in_UiElement.Info.SpriteIndex;
-            var color = in_UiElement.Info.Color.Invert();
-            var gradientTopLeft = in_UiElement.Info.GradientTopLeft.Invert();
-            var gradientBottomLeft = in_UiElement.Info.GradientBottomLeft.Invert();
-            var gradientTopRight = in_UiElement.Info.GradientTopRight.Invert();
-            var gradientBottomRight = in_UiElement.Info.GradientBottomRight.Invert();
+            var color = in_UiElement.Info.Color.ToVec4();
+            var gradientTopLeft = in_UiElement.Info.GradientTopLeft.ToVec4();
+            var gradientBottomLeft = in_UiElement.Info.GradientBottomLeft.ToVec4();
+            var gradientTopRight = in_UiElement.Info.GradientTopRight.ToVec4();
+            var gradientBottomRight = in_UiElement.Info.GradientBottomRight.ToVec4();
 
             foreach (var animation in vis.Animation)
             {
@@ -534,8 +535,8 @@ namespace Kunai.ShurikenRenderer
             // Inherit color
             if (InheritanceFlags.HasFlag(ElementInheritanceFlags.InheritColor))
             {
-                var cF = color.ToVec4() * transform.Color.Invert();
-                color = cF.ToSharpNeedleColor();
+               var cF = color * transform.Color;
+               color = cF;
             }
             var Type = (DrawType)in_UiElement.Field04;
             var Flags = (ElementMaterialFlags)in_UiElement.Field38;
@@ -557,8 +558,8 @@ namespace Kunai.ShurikenRenderer
                     nextSpr ??= spr;
                     renderer.DrawSprite(
                         in_UiElement.TopLeft, in_UiElement.BottomLeft, in_UiElement.TopRight, in_UiElement.BottomRight,
-                        position, rotation * MathF.PI / 180.0f, scale, scene.AspectRatio, spr, nextSpr, sprID % 1, color.ToVec4(),
-                        gradientTopLeft.ToVec4(), gradientBottomLeft.ToVec4(), gradientTopRight.ToVec4(), gradientBottomRight.ToVec4(),
+                        position, rotation * MathF.PI / 180.0f, scale, scene.AspectRatio, spr, nextSpr, sprID % 1, color,
+                        gradientTopLeft, gradientBottomLeft, gradientTopRight, gradientBottomRight,
                         in_UiElement.Priority, Flags);
                 }
                 else if (Type == DrawType.Font)
@@ -597,8 +598,8 @@ namespace Kunai.ShurikenRenderer
                             new Vector2(begin.X + xOffset, end.Y),
                             new Vector2(end.X + xOffset, begin.Y),
                             new Vector2(end.X + xOffset, end.Y),
-                             position, rotation * MathF.PI / 180.0f, scale, scene.AspectRatio, spr, spr, 0, color.ToVec4(),
-                        gradientTopLeft.ToVec4(), gradientBottomLeft.ToVec4(), gradientTopRight.ToVec4(), gradientBottomRight.ToVec4(),
+                             position, rotation * MathF.PI / 180.0f, scale, scene.AspectRatio, spr, spr, 0, color,
+                        gradientTopLeft, gradientBottomLeft, gradientTopRight, gradientBottomRight,
                         in_UiElement.Priority, Flags
                         );
                         //in_UiElement.Field4C = kerning (space between letters)
@@ -606,7 +607,7 @@ namespace Kunai.ShurikenRenderer
                     }
                 }
 
-                var childTransform = new CastTransform(position, rotation, scale, color.Invert());
+                var childTransform = new CastTransform(position, rotation, scale, color);
 
                 foreach (var child in in_UiElement.Children)
                     UpdateCast(scene, child, childTransform, priority++, time, vis);

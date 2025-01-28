@@ -103,11 +103,11 @@ namespace Kunai.Window
             var rotation = info.Rotation;
             var origin = SelectedCast.Origin;
             var translation = info.Translation;
-            var color = info.Color.Invert_ToVec4();
-            var colorTL = info.GradientTopLeft.Invert_ToVec4();
-            var colorTR = info.GradientTopRight.Invert_ToVec4();
-            var colorBL = info.GradientBottomLeft.Invert_ToVec4();
-            var colorBR = info.GradientBottomRight.Invert_ToVec4();
+            var color = info.Color.ToVec4();
+            var colorTL = info.GradientTopLeft.ToVec4();
+            var colorTR = info.GradientTopRight.ToVec4();
+            var colorBL = info.GradientBottomLeft.ToVec4();
+            var colorBR = info.GradientBottomRight.ToVec4();
 
             bool inheritPosX = inheritanceFlags.HasFlag(ElementInheritanceFlags.InheritXPosition);
             bool inheritPosY = inheritanceFlags.HasFlag(ElementInheritanceFlags.InheritYPosition);
@@ -283,11 +283,11 @@ namespace Kunai.Window
             info.Rotation = rotation;
             SelectedCast.Origin = origin;
             info.Translation = translation;
-            info.Color = color.ToSharpNeedleColorInverted();
-            info.GradientTopLeft = colorTL.ToSharpNeedleColorInverted();
-            info.GradientTopRight = colorTR.ToSharpNeedleColorInverted();
-            info.GradientBottomLeft = colorBL.ToSharpNeedleColorInverted();
-            info.GradientBottomRight = colorBR.ToSharpNeedleColorInverted();
+            //info.Color = color.ToSharpNeedleColorInverted();
+            //info.GradientTopLeft = colorTL.ToSharpNeedleColorInverted();
+            //info.GradientTopRight = colorTR.ToSharpNeedleColorInverted();
+            //info.GradientBottomLeft = colorBL.ToSharpNeedleColorInverted();
+            //info.GradientBottomRight = colorBR.ToSharpNeedleColorInverted();
             info.SpriteIndex = spriteIndex;
             info.Scale = scale;
 

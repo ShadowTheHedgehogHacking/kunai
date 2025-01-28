@@ -156,7 +156,7 @@ namespace Kunai.Window
                 {
                     int frame = (int)keyframeSelected.Frame;
                     var val = keyframeSelected.Value;
-                    var valColor = keyframeSelected.Value.Color.Invert_ToVec4();
+                    var valColor = keyframeSelected.Value.Color.ToVec4();
                     ImGui.InputInt("Frame", ref frame);
                     bool isFloatValue = trackAnimation.Property != KeyProperty.Color
                        && trackAnimation.Property != KeyProperty.GradientBottomRight
@@ -171,7 +171,7 @@ namespace Kunai.Window
                     else
                     {
                         if(ImGui.ColorEdit4("Value", ref valColor))
-                        keyframeSelected.Value = valColor.Invert_ToColor();
+                        keyframeSelected.Value = valColor.ToSharpNeedleColor();
                     }
 
 

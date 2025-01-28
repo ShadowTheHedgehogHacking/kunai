@@ -15,12 +15,12 @@
             Color = new Vector4(1, 1, 1, 1);
         }
 
-        public CastTransform(Vector2 position, float rotation, Vector2 scale, Color<byte> color)
+        public CastTransform(Vector2 position, float rotation, Vector2 scale, Vector4 color)
         {
             Position = position;
             Rotation = rotation;
             Scale = scale;
-            Color = color.ToVec4();
+            Color = color;
         }
     }
 }

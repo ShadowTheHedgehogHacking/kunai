@@ -53,6 +53,11 @@ namespace Shuriken.Rendering
         public Vector2 Position;
         public Vector2 UV;
         public Vector4 Color;
+        public Vertex WithInvertedColor()
+        {
+            Color = Color.Invert();
+            return this;
+        }
     }
     public class Quad
     {

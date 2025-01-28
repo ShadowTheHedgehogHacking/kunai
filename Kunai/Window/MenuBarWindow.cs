@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Kunai.Window
 {
-    public static class MenuBarWindow
+    public class MenuBarWindow : WindowBase
     {
         public static float menuBarHeight = 32;
         private static readonly string filters = "xncp,yncp,gncp;xncp;yncp;gncp";
@@ -33,7 +33,7 @@ namespace Kunai.Window
             proc.StartInfo.Verb = "runas";
             proc.Start();
         }
-        public static void Render(ShurikenRenderHelper in_Renderer)
+        public override void Update(ShurikenRenderHelper in_Renderer)
         {
             if (ImGui.BeginMainMenuBar())
             {

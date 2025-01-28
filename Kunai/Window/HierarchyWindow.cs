@@ -4,7 +4,7 @@ using SharpNeedle.Ninja.Csd;
 
 namespace Kunai.Window
 {
-    public static class HierarchyWindow
+    public class HierarchyWindow : WindowBase
     {
         private static TempSearchBox searchBox = new TempSearchBox();
         private static void RecursiveCastWidget(SVisibilityData.SScene in_Scene, Cast in_Cast)
@@ -107,7 +107,7 @@ namespace Kunai.Window
             //}
 
         }
-        public static void Render(CsdProject in_Proj)
+        public override void Update(ShurikenRenderHelper in_Proj)
         {
             ImGui.SetNextWindowPos(new System.Numerics.Vector2(0, MenuBarWindow.menuBarHeight), ImGuiCond.Always);
             ImGui.SetNextWindowSize(new System.Numerics.Vector2(ImGui.GetWindowViewport().Size.X / 4.5f, ImGui.GetWindowViewport().Size.Y), ImGuiCond.Always);
@@ -116,7 +116,7 @@ namespace Kunai.Window
                 ImGui.BeginDisabled(true);
                 searchBox.Render();
                 ImGui.EndDisabled();
-                if (in_Proj != null)
+                if (in_Proj.WorkProjectCsd != null)
                 {
                     foreach (var f in MainWindow.renderer.visibilityData.Nodes)
                     {

@@ -3,10 +3,10 @@ using Kunai.ShurikenRenderer;
 
 namespace Kunai.Window
 {
-    public static class ViewportWindow
+    public class ViewportWindow : WindowBase
     {
         public static float zoomFactor = 1;
-        public static void Render(ShurikenRenderHelper in_Renderer)
+        public override void Update(ShurikenRenderHelper in_Renderer)
         {
             var size1 = ImGui.GetWindowViewport().Size.X / 4.5f;
             ImGui.SetNextWindowPos(new System.Numerics.Vector2(size1, MenuBarWindow.menuBarHeight), ImGuiCond.Always);

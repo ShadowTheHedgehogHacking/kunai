@@ -30,10 +30,15 @@ namespace Kunai
         protected override void OnLoad()
         {
             base.OnLoad();
-            renderer = new ShurikenRenderHelper(this, new ShurikenRenderer.Vector2(1280, 720), new ShurikenRenderer.Vector2(ClientSize.X, ClientSize.Y));
-            
             Title = applicationName;
+            renderer = new ShurikenRenderHelper(this, new ShurikenRenderer.Vector2(1280, 720), new ShurikenRenderer.Vector2(ClientSize.X, ClientSize.Y));
             _controller = new ImGuiController(ClientSize.X, ClientSize.Y);
+
+            renderer.windows.Add(new MenuBarWindow());
+            renderer.windows.Add(new AnimationsWindow());
+            renderer.windows.Add(new HierarchyWindow());
+            renderer.windows.Add(new InspectorWindow());
+            renderer.windows.Add(new ViewportWindow());
             if (Program.arguments.Length > 0)
             {
                 renderer.LoadFile(Program.arguments[0]);
@@ -49,20 +54,6 @@ namespace Kunai
             // Tell ImGui of the new size
             _controller.WindowResized(ClientSize.X, ClientSize.Y);
         }
-        uint BeginDockSpaceRegion(string in_Name, System.Numerics.Vector2 in_Position, System.Numerics.Vector2 in_Size)
-        {
-            ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.DockingEnable;
-            ImGui.SetNextWindowPos(in_Position);
-            ImGui.SetNextWindowSize(in_Size);
-            ImGui.SetNextWindowBgAlpha(0);
-            bool notused = true;
-            ImGui.Begin(in_Name, ref notused, ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoBringToFrontOnFocus | ImGuiWindowFlags.NoDocking);
-            uint dockspaceId = ImGui.GetID(in_Name);
-            ImGui.DockSpace(dockspaceId, new System.Numerics.Vector2(), ImGuiDockNodeFlags.PassthruCentralNode | ImGuiDockNodeFlags.NoDockingSplit);
-            ImGui.End();
-
-            return dockspaceId;
-        }
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             base.OnRenderFrame(e);
@@ -73,34 +64,14 @@ namespace Kunai
             GL.Enable(EnableCap.Blend);
             GL.Disable(EnableCap.CullFace);
             GL.BlendEquation(BlendEquationMode.FuncAdd);
-            // Enable Docking
-            var ge = ImGui.DockSpaceOverViewport();
 
-           
-            ImGui.ShowDemoWindow();
-                var imguiId = BeginDockSpaceRegion("HierarchyDock", new System.Numerics.Vector2(250, 250), new System.Numerics.Vector2(1100, 1200));
-            //ImGui.SetNextWindowPos(new System.Numerics.Vector2(Size.X / 2, Size.Y / 2), ImGuiCond.None);
-            MenuBarWindow.Render(renderer);
-            if (renderer.WorkProjectCsd != null)
-            {
-                Title = applicationName + $" - [{renderer.config.WorkFilePath}]";
-                float deltaTime = (float)(e.Time);
-                renderer.Render(renderer.WorkProjectCsd, (float)deltaTime);                
-            }
-            HierarchyWindow.Render(renderer.WorkProjectCsd);
-            InspectorWindow.Render(renderer.WorkProjectCsd);
-            ViewportWindow.Render(renderer);
-            AnimationsWindow.Render(renderer);
-            //ImPlot.ShowDemoWindow();
-            //if (ImGui.Begin("Testtt"))
-            //{
-            //    ImGui.End();
-            //}
-
+            float deltaTime = (float)(e.Time);
+            renderer.Render(renderer.WorkProjectCsd, (float)deltaTime);
             _controller.Render();
+            if (renderer.WorkProjectCsd != null)            
+                Title = applicationName + $" - [{renderer.config.WorkFilePath}]";
 
             ImGuiController.CheckGLError("End of frame");
-
             SwapBuffers();
         }
         protected override void OnTextInput(TextInputEventArgs e)

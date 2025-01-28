@@ -1,7 +1,4 @@
-﻿using System.IO;
-using System.Reflection;
-using System.Security.Permissions;
-
+﻿
 namespace Kunai
 {
     internal class Program
@@ -11,16 +8,9 @@ namespace Kunai
 
         private static void Main(string[] in_Args)
         {
-            MainWindow wnd = new MainWindow();
+            MainWindow mainWindow = new MainWindow();
             Arguments = in_Args;
-            wnd.Run();
-        }
-
-        
-
-        public static void AssociateFileTypes()
-        {
-
+            mainWindow.Run();
         }
     }
 }

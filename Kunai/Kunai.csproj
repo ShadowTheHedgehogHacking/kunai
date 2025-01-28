@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <StartupObject>Kunai.Program</StartupObject>
-    <ApplicationIcon>Resources\kunai-01.ico</ApplicationIcon>
+    <ApplicationIcon>Resources\Icons\kunai-01.ico</ApplicationIcon>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -14,12 +14,6 @@
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Content Include="Resources\kunai-01.ico">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
 <ItemGroup>
     <Content Include="Resources\**">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -36,6 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\FileTypeRegisterService\FileTypeRegisterService.csproj" />
     <ProjectReference Include="..\SharpNeedle\SharpNeedle.csproj" />
   </ItemGroup>
 <ItemGroup>

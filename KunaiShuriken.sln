@@ -11,6 +11,8 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SharpNeedle.Shared", "Sharp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kunai", "Kunai\Kunai.csproj", "{FEACA5A3-E0B1-4D73-9681-4D8B7AA10B22}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileTypeRegisterService", "FileTypeRegisterService\FileTypeRegisterService.csproj", "{6A112CEA-8CA7-436A-A8A1-9B64417A2181}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -43,6 +45,14 @@ Global
 		{FEACA5A3-E0B1-4D73-9681-4D8B7AA10B22}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FEACA5A3-E0B1-4D73-9681-4D8B7AA10B22}.Release|x64.ActiveCfg = Release|Any CPU
 		{FEACA5A3-E0B1-4D73-9681-4D8B7AA10B22}.Release|x64.Build.0 = Release|Any CPU
+		{6A112CEA-8CA7-436A-A8A1-9B64417A2181}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A112CEA-8CA7-436A-A8A1-9B64417A2181}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A112CEA-8CA7-436A-A8A1-9B64417A2181}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6A112CEA-8CA7-436A-A8A1-9B64417A2181}.Debug|x64.Build.0 = Debug|Any CPU
+		{6A112CEA-8CA7-436A-A8A1-9B64417A2181}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A112CEA-8CA7-436A-A8A1-9B64417A2181}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A112CEA-8CA7-436A-A8A1-9B64417A2181}.Release|x64.ActiveCfg = Release|Any CPU
+		{6A112CEA-8CA7-436A-A8A1-9B64417A2181}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -31,7 +31,7 @@ namespace Kunai
         {
             base.OnLoad();
             renderer = new ShurikenRenderHelper(this, new ShurikenRenderer.Vector2(1280, 720), new ShurikenRenderer.Vector2(ClientSize.X, ClientSize.Y));
-
+            
             Title = applicationName;
             _controller = new ImGuiController(ClientSize.X, ClientSize.Y);
             if (Program.arguments.Length > 0)
@@ -41,10 +41,10 @@ namespace Kunai
         }
         protected override void OnResize(ResizeEventArgs e)
         {
-            base.OnResize(e);
-
             // Update the opengl viewport
             GL.Viewport(0, 0, ClientSize.X, ClientSize.Y);
+            base.OnResize(e);
+
             renderer.screenSize = new ShurikenRenderer.Vector2(ClientSize.X, ClientSize.Y);
             // Tell ImGui of the new size
             _controller.WindowResized(ClientSize.X, ClientSize.Y);
@@ -78,8 +78,7 @@ namespace Kunai
 
            
             ImGui.ShowDemoWindow();
-
-            var imguiId = BeginDockSpaceRegion("HierarchyDock", new System.Numerics.Vector2(250, 250), new System.Numerics.Vector2(1100, 1200));
+                var imguiId = BeginDockSpaceRegion("HierarchyDock", new System.Numerics.Vector2(250, 250), new System.Numerics.Vector2(1100, 1200));
             //ImGui.SetNextWindowPos(new System.Numerics.Vector2(Size.X / 2, Size.Y / 2), ImGuiCond.None);
             MenuBarWindow.Render(renderer);
             if (renderer.WorkProjectCsd != null)

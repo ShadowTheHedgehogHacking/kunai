@@ -248,11 +248,6 @@ namespace Shuriken.Rendering
             quad.BottomLeft.Color = color * gradientBottomLeft;
             quad.BottomRight.Color = color * gradientBottomRight;
 
-            quad.TopLeft.Color = quad.TopLeft.Color;
-            quad.TopRight.Color = quad.TopRight.Color;
-            quad.BottomLeft.Color = quad.BottomLeft.Color;
-            quad.BottomRight.Color = quad.BottomRight.Color;
-
             quad.ZIndex = zIndex;
             quad.Additive = (flags & ElementMaterialFlags.AdditiveBlending) != 0;
             quad.LinearFiltering = (flags & ElementMaterialFlags.LinearFiltering) != 0;

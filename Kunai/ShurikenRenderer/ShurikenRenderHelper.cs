@@ -153,7 +153,9 @@ namespace Kunai.ShurikenRenderer
             }
             foreach (var node in in_Node.Nodes)
             {
-                return RecursiveGetScene(node, in_Scene);
+                var scene =  RecursiveGetScene(node, in_Scene);
+                if (scene != null)
+                    return scene;
             }
             return null;
         }
@@ -235,6 +237,9 @@ namespace Kunai.ShurikenRenderer
             visibilityData = null;
             InspectorWindow.Reset();
             SpriteHelper.ClearTextures();
+
+            /// TODO: SHARPNEEDLE FIX
+            ExtensionKillMe.isColorLittleEndian = WorkProjectCsd.Endianness == Endianness.Little;
 
             //Start loading textures
             ITextureList xTextures = WorkProjectCsd.Textures;

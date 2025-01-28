@@ -2,17 +2,35 @@
 
 public static class ExtensionKillMe
 {
+    public static bool isColorLittleEndian;
     public static System.Numerics.Vector4 ToVec4(this Color<byte> value)
     {
         return new System.Numerics.Vector4(value.R / 255.0f, value.G / 255.0f, value.B / 255.0f, value.A / 255.0f);
     }
     public static System.Numerics.Vector4 Invert(this System.Numerics.Vector4 value)
     {
-        float fixA = value.X;
-        float fixR = value.Y;
-        float fixG = value.Z;
-        float fixB = value.W;
-        return new System.Numerics.Vector4(fixB, fixG, fixR, fixA);
+        /// TODO: SHARPNEEDLE FIX
+        /// There is a "bug" in SharpNeedle where it doesn't consider
+        /// that YNCPs and other big endian files have an inverted color order
+        /// 
+
+        
+        if(isColorLittleEndian)
+        {
+            float fixA = value.X;
+            float fixR = value.Y;
+            float fixG = value.Z;
+            float fixB = value.W;
+            return new System.Numerics.Vector4(fixB, fixG, fixR, fixA);
+        }
+        else
+        {
+            float fixA = value.X;
+            float fixR = value.Y;
+            float fixG = value.Z;
+            float fixB = value.W;
+            return new System.Numerics.Vector4(fixB, fixG, fixR, fixA);
+        }
     }
     public static double Magnitude(this Color<byte> value)
     {

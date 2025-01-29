@@ -13,6 +13,7 @@ using System.IO;
 using Hexa.NET.ImPlot;
 using IconFonts;
 using System.Runtime.InteropServices;
+using Hexa.NET.ImGuizmo;
 
 namespace Kunai
 {
@@ -203,6 +204,8 @@ namespace Kunai
 
             ImPlot.CreateContext();
             ImPlot.SetImGuiContext(ImGui.GetCurrentContext());
+
+            ImGuizmo.SetImGuiContext(ImGui.GetCurrentContext());
             var io = ImGui.GetIO();
             //io.Fonts.AddFontDefault();
 

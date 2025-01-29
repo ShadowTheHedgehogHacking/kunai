@@ -25,13 +25,15 @@ namespace Kunai.Window
             }
             public bool IsNull() => string.IsNullOrEmpty(Icon);
         }
-        public static bool VisibilityNode(string in_Name, ref bool in_Visibile, ref bool in_IsSelected, Action in_RightClickAction = null, bool in_ShowArrow = true, SIconData in_Icon = new())
+        public static bool VisibilityNode(string in_Name, ref bool in_Visibile, ref bool in_IsSelected, Action in_RightClickAction = null, bool in_ShowArrow = true, SIconData in_Icon = new(), string in_ID = "")
         {
             bool returnVal = true;
+            bool idPresent = !string.IsNullOrEmpty(in_ID);
+            string idName = idPresent ? in_ID : in_Name;
             //Make header fit the content
             ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new System.Numerics.Vector2(0, 3));
             var isLeaf = !in_ShowArrow ? ImGuiTreeNodeFlags.Leaf : ImGuiTreeNodeFlags.None;
-            returnVal = ImGui.TreeNodeEx($"##{in_Name}header", isLeaf | ImGuiTreeNodeFlags.SpanFullWidth | ImGuiTreeNodeFlags.FramePadding | ImGuiTreeNodeFlags.AllowOverlap);
+            returnVal = ImGui.TreeNodeEx($"##{idName}header", isLeaf | ImGuiTreeNodeFlags.SpanFullWidth | ImGuiTreeNodeFlags.FramePadding | ImGuiTreeNodeFlags.AllowOverlap);
             ImGui.PopStyleVar();
             //Rightclick action
             if (in_RightClickAction != null)
@@ -44,7 +46,7 @@ namespace Kunai.Window
             }                
             //Visibility checkbox
             ImGui.SameLine(0, 1 * ImGui.GetStyle().ItemSpacing.X);
-            ImGui.Checkbox($"##{in_Name}togg", ref in_Visibile);
+            ImGui.Checkbox($"##{idName}togg", ref in_Visibile);
             ImGui.SameLine(0, 1 * ImGui.GetStyle().ItemSpacing.X);
             //Show text with icon (cant have them merged because of stupid imgui c# bindings)
 
@@ -56,11 +58,12 @@ namespace Kunai.Window
             ImGui.PushStyleColor(ImGuiCol.Border, ImGui.ColorConvertFloat4ToU32(new Vector4(0, 0, 0, 0)));
             ImGui.PushStyleColor(ImGuiCol.Button, ImGui.ColorConvertFloat4ToU32(new Vector4(0, 0, 0, 0)));
             bool iconPresent = !in_Icon.IsNull();
-            in_IsSelected = ImGui.Button($"##invButton{in_Name}", new Vector2(-1, 25));
+            in_IsSelected = ImGui.Button($"##invButton{idName}", new Vector2(-1, 25));
             ImGui.PopStyleColor(3);
 
             //Begin drawing text & icon if it exists
             ImGui.SetNextItemAllowOverlap();
+            ImGui.PushID($"##text{idName}");
             ImGui.BeginGroup();
 
             if (iconPresent)
@@ -83,6 +86,7 @@ namespace Kunai.Window
             ImGui.Text(iconPresent ? $" {in_Name}" : in_Name);
 
             ImGui.EndGroup();
+            ImGui.PopID();
             return returnVal;
         }
         public static void ItemRowsBackground(Vector4 color, float lineHeight = -1.0f)

@@ -110,9 +110,9 @@ namespace Kunai.Window
             bool mirrorY = materialFlags.HasFlag(ElementMaterialFlags.MirrorY);
             Vector2 rectSize = new System.Numerics.Vector2((int)selectedCast.Width, (int)selectedCast.Height);
             Vector2 topLeftVert = selectedCast.TopLeft * KunaiProject.Instance.ViewportSize;
-            Vector2 topRightVert = selectedCast.TopRight;
-            Vector2 bottomLeftVert = selectedCast.BottomLeft;
-            Vector2 bottomRightVert = selectedCast.BottomRight;
+            Vector2 topRightVert = selectedCast.TopRight * KunaiProject.Instance.ViewportSize;
+            Vector2 bottomLeftVert = selectedCast.BottomLeft * KunaiProject.Instance.ViewportSize;
+            Vector2 bottomRightVert = selectedCast.BottomRight * KunaiProject.Instance.ViewportSize;
             float rotation = info.Rotation;
             Vector2 origin = selectedCast.Origin;
             Vector2 translation = info.Translation;
@@ -167,15 +167,15 @@ namespace Kunai.Window
 
                 ImGui.SeparatorText("Vertices");
                 ImGui.SetItemTooltip("These 4 values determine the 4 points that generate the quad (3D element) that the cast will render on. Use with caution");
-                ImGui.InputFloat2("Top Left", ref topLeftVert);
-                ImGui.InputFloat2("Top Right", ref topRightVert);
-                ImGui.InputFloat2("Bottom Left", ref bottomLeftVert);
-                ImGui.InputFloat2("Bottom Right", ref bottomRightVert);
+                ImGui.DragFloat2("Top Left", ref topLeftVert);
+                ImGui.DragFloat2("Top Right", ref topRightVert);
+                ImGui.DragFloat2("Bottom Left", ref bottomLeftVert);
+                ImGui.DragFloat2("Bottom Right", ref bottomRightVert);
 
             }
             if (ImGui.CollapsingHeader("Transform"))
             {
-                ImGui.InputFloat("Rotation", ref rotation);
+                ImGui.DragFloat("Rotation", ref rotation);
                 ImGui.SetItemTooltip("Rotation in degrees.");
                 ImGui.InputFloat2("Origin", ref origin);
                 ImGui.SetItemTooltip("Value used to offset the position of the cast (translation), this cannot be changed by animations.");
@@ -306,10 +306,10 @@ namespace Kunai.Window
             if (mirrorY) materialFlags |= ElementMaterialFlags.MirrorY; else materialFlags &= ~ElementMaterialFlags.MirrorY;
             selectedCast.Width = (uint)rectSize.X;
             selectedCast.Height = (uint)rectSize.Y;
-            selectedCast.TopLeft = topLeftVert;
-            selectedCast.TopRight = topRightVert;
-            selectedCast.BottomLeft = bottomLeftVert;
-            selectedCast.BottomRight = bottomRightVert;
+            selectedCast.TopLeft = topLeftVert / KunaiProject.Instance.ViewportSize;
+            selectedCast.TopRight = topRightVert / KunaiProject.Instance.ViewportSize;
+            selectedCast.BottomLeft = bottomLeftVert / KunaiProject.Instance.ViewportSize;
+            selectedCast.BottomRight = bottomRightVert / KunaiProject.Instance.ViewportSize;
             info.Rotation = rotation;
             selectedCast.Origin = origin;
             info.Translation = translation;

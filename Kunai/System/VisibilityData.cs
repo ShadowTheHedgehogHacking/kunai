@@ -17,9 +17,13 @@ namespace Kunai
         {
             public Cast Cast;
             public bool Active = true;
-            public SCast(Cast in_Scene)
+            public int ID;
+            public SScene Parent;
+            public SCast(Cast in_Scene, SScene parent)
             {
+                ID = new Random().Next(0, 1000);
                 Cast = in_Scene;
+                Parent = parent;
             }
         }
         public class SAnimation
@@ -52,15 +56,17 @@ namespace Kunai
             public List<SAnimation> Animation = new List<SAnimation>();
             public List<SCast> Casts = new List<SCast>();
             public KeyValuePair<string, Scene> Scene;
+            public SNode Parent;
             public bool Active = true;
-            public SScene(KeyValuePair<string, Scene> in_Scene)
+            public SScene(KeyValuePair<string, Scene> in_Scene, SNode in_Node)
             {
                 Scene = in_Scene;
+                Parent = in_Node;
                 foreach (var group in Scene.Value.Families)
                 {
                     foreach (var cast in group.Casts)
                     {
-                        Casts.Add(new SCast(cast));
+                        Casts.Add(new SCast(cast, this));
                     }
                 }
                 foreach (var mot in Scene.Value.Motions)
@@ -87,7 +93,7 @@ namespace Kunai
                 Node = in_Node;
                 foreach (var scene in Node.Value.Scenes)
                 {
-                    Scene.Add(new SScene(scene));
+                    Scene.Add(new SScene(scene, this));
                 }
                 foreach (var scene in in_Node.Value.Children)
                 {
@@ -97,6 +103,13 @@ namespace Kunai
             public SScene GetVisibility(Scene in_Scene)
             {
                 return Scene.FirstOrDefault(in_Node => in_Node.Scene.Value == in_Scene);
+            }
+
+            internal void Remove(SScene in_Scene)
+            {
+                in_Scene.Animation.Clear();
+                Node.Value.Scenes.Remove(in_Scene.Scene);
+                Scene.Remove(in_Scene);
             }
         }
 

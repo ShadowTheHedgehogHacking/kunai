@@ -2,6 +2,7 @@
 using IconFonts;
 using Kunai.ShurikenRenderer;
 using SharpNeedle.Ninja.Csd;
+using Shuriken.Rendering;
 using System;
 using System.Numerics;
 using static Kunai.Window.ImKunaiTreeNode;
@@ -35,7 +36,7 @@ namespace Kunai.Window
                     }
             }
             //Casts
-            if (ImKunaiTreeNode.VisibilityNode(in_Cast.Name, ref vis.Active, ref selectedcast, in_ShowArrow: in_Cast.Children.Count > 0, in_Icon: icon))
+            if (ImKunaiTreeNode.VisibilityNode(in_Cast.Name, ref vis.Active, ref selectedcast, in_ShowArrow: in_Cast.Children.Count > 0, in_Icon: icon, in_ID: $"##{in_Cast.Name}_{vis.ID}"))
             {
                 for (int x = 0; x < in_Cast.Children.Count; x++)
                 {
@@ -56,7 +57,7 @@ namespace Kunai.Window
             in_Parent.Families.Add(newFamily);
             return newFamily;
         }
-        public static Cast CreateNewCastFromDefault(string in_Name, Cast in_Parent)
+        public static Cast CreateNewCastFromDefault(string in_Name, Cast in_Parent, DrawType in_Type)
         {
             Cast newCast = new Cast();
             newCast.SpriteIndices = new int[32];
@@ -64,15 +65,15 @@ namespace Kunai.Window
                 newCast.SpriteIndices[i] = -1;
             newCast.Parent = in_Parent;
             var info = newCast.Info;
-            newCast.Field04 = 1;
+            newCast.Field04 = (uint)in_Type;
             newCast.Name = in_Name;
             info.Scale = new System.Numerics.Vector2(1, 1);
             info.SpriteIndex = -1;
             newCast.Enabled = true;
-            newCast.TopLeft = new System.Numerics.Vector2(-0.02f, -0.03f);
-            newCast.BottomLeft = new System.Numerics.Vector2(-0.02f, 0.03f);
-            newCast.TopRight = new System.Numerics.Vector2(0.02f, -0.03f);
-            newCast.BottomRight = new System.Numerics.Vector2(0.02f, 0.03f);
+            newCast.TopLeft = new System.Numerics.Vector2(-25, -25) / KunaiProject.Instance.ViewportSize;
+            newCast.BottomLeft = new System.Numerics.Vector2(-25, 25) / KunaiProject.Instance.ViewportSize;
+            newCast.TopRight = new System.Numerics.Vector2(25, -25) / KunaiProject.Instance.ViewportSize;
+            newCast.BottomRight = new System.Numerics.Vector2(25, 25) / KunaiProject.Instance.ViewportSize;
             info.Color = Vector4.One.ToSharpNeedleColor();
             info.GradientTopLeft = Vector4.One.ToSharpNeedleColor();
             info.GradientBottomLeft = Vector4.One.ToSharpNeedleColor();
@@ -81,15 +82,33 @@ namespace Kunai.Window
             newCast.Info = info;
             return newCast;
         }
-        public static void AddCastOption(SVisibilityData.SScene in_Scene)
+        static void NewCast(SVisibilityData.SScene in_Scene, DrawType in_Type)
         {
-            if (ImGui.Selectable("Create New Cast"))
+            Family newFam = CreateNewFamily(in_Scene.Scene.Value);
+            Cast newCast = CreateNewCastFromDefault($"Cast_{in_Scene.Casts.Count}", null, in_Type);
+            newFam.Add(newCast);
+            in_Scene.Casts.Add(new SVisibilityData.SCast(newCast, in_Scene));
+        }
+        static void AddCastOption(SVisibilityData.SScene in_Scene)
+        {
+            if(ImGui.BeginMenu("New Cast..."))
             {
-                Family newFam = CreateNewFamily(in_Scene.Scene.Value);
-                Cast newCast = CreateNewCastFromDefault("New_Cast", null);
-                newFam.Add(newCast);
-                in_Scene.Casts.Add(new SVisibilityData.SCast(newCast));
+                if (ImGui.MenuItem("Null Cast"))
+                {
+                    NewCast(in_Scene, DrawType.None);
+                }
+                if (ImGui.MenuItem("Sprite Cast"))
+                {
+                    NewCast(in_Scene, DrawType.Sprite);
+                }
+                if (ImGui.MenuItem("Font Cast"))
+                {
+                    NewCast(in_Scene, DrawType.Font);
+                }
+                ImGui.EndMenu();
             }
+            if (ImGui.Selectable("Delete"))
+                in_Scene.Parent.Remove(in_Scene);
         }
         public static Action SceneRightClickAction(SVisibilityData.SScene in_Scene)
         {
@@ -106,28 +125,27 @@ namespace Kunai.Window
             //Scene Node
             if (ImKunaiTreeNode.VisibilityNode($"{in_VisNode.Node.Key}", ref in_VisNode.Active, ref selectedNode, in_Icon: NodeIconResource.SceneNode))
             {
-
                 foreach (var inNode in in_VisNode.Nodes)
                     DrawSceneNode(inNode);
-                foreach (SVisibilityData.SScene g in in_VisNode.Scene)
+                for (int i = 0; i < in_VisNode.Scene.Count; i++)
                 {
-                    
+                    SVisibilityData.SScene scene = in_VisNode.Scene[i];
                     //Scene
-                    if (ImKunaiTreeNode.VisibilityNode(g.Scene.Key, ref g.Active, ref selectedScene, SceneRightClickAction(g), in_Icon: NodeIconResource.Scene))
+                    if (ImKunaiTreeNode.VisibilityNode(scene.Scene.Key, ref scene.Active, ref selectedScene, SceneRightClickAction(scene), in_Icon: NodeIconResource.Scene))
                     {
-                        for (int i = 0; i < g.Scene.Value.Families.Count; i++)
+                        for (int x = 0; x < scene.Scene.Value.Families.Count; x++)
                         {
-                            var family = g.Scene.Value.Families[i];
+                            var family = scene.Scene.Value.Families[x];
 
                             var castFamilyRoot = family.Casts[0];
-                            RecursiveCastWidget(g, castFamilyRoot);
+                            RecursiveCastWidget(scene, castFamilyRoot);
 
                         }
                         ImGui.TreePop();
                     }
                     if (selectedScene)
                     {
-                        InspectorWindow.SelectScene(g.Scene);
+                        InspectorWindow.SelectScene(scene.Scene);
                     }
                 }
 

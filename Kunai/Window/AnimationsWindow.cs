@@ -62,10 +62,13 @@ namespace Kunai.Window
                     if (selectedScene.Value != null)
                     {
                         SVisibilityData.SScene sceneVisData = in_Renderer.VisibilityData.GetScene(selectedScene.Value);
-                        foreach (SVisibilityData.SAnimation sceneMotion in sceneVisData.Animation)
+                        if(sceneVisData != null)
                         {
-                            DrawMotionElement(sceneMotion);
-                        }
+                            foreach (SVisibilityData.SAnimation sceneMotion in sceneVisData.Animation)
+                            {
+                                DrawMotionElement(sceneMotion);
+                            }
+                        }                          
                     }
                     ImGui.EndListBox();
                 }

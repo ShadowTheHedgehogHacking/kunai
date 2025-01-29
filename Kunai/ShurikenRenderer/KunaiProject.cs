@@ -1,5 +1,6 @@
 ﻿using Amicitia.IO.Binary;
 using Hexa.NET.ImGui;
+using Hexa.NET.ImGuizmo;
 using Kunai.Window;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.Desktop;
@@ -207,7 +208,6 @@ namespace Kunai.ShurikenRenderer
                 // actually draw the scene
                 {
                     RenderToViewport(in_CsdProject, in_DeltaTime);
-
                 }
                 // unbind our bo so nothing else uses it
                 GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);

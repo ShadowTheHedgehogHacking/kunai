@@ -3,6 +3,7 @@ using IconFonts;
 using Kunai.ShurikenRenderer;
 using SharpNeedle.Ninja.Csd;
 using System;
+using static Kunai.Window.ImKunaiTreeNode;
 
 namespace Kunai.Window
 {
@@ -13,7 +14,26 @@ namespace Kunai.Window
         {
             bool selectedcast = false;
             var vis = in_Scene.GetVisibility(in_Cast);
-            if (ImKunaiTreeNode.VisibilityNode(in_Cast.Name, ref vis.Active, ref selectedcast, in_ShowArrow: in_Cast.Children.Count > 0))
+            string icon = "";
+            switch(in_Cast.GetDrawType())
+            {
+                case Shuriken.Rendering.DrawType.Sprite:
+                    {
+                        icon = FontAwesome6.Image;
+                        break;
+                    }
+                case Shuriken.Rendering.DrawType.None:
+                    {
+                        icon = FontAwesome6.SquarePlus;
+                        break;
+                    }
+                case Shuriken.Rendering.DrawType.Font:
+                    {
+                        icon = FontAwesome6.Font;
+                        break;
+                    }
+            }
+            if (ImKunaiTreeNode.VisibilityNode(in_Cast.Name, ref vis.Active, ref selectedcast, in_ShowArrow: in_Cast.Children.Count > 0, in_Icon: new SIconData(icon)))
             {
                 for (int x = 0; x < in_Cast.Children.Count; x++)
                 {
@@ -56,7 +76,7 @@ namespace Kunai.Window
             bool selectedNode = false;
             bool selectedScene = false;
             //Scene Node
-            if (ImKunaiTreeNode.VisibilityNode($"{in_VisNode.Node.Key}", ref in_VisNode.Active, ref selectedNode, in_Icon: FontAwesome6.FolderClosed))
+            if (ImKunaiTreeNode.VisibilityNode($"{in_VisNode.Node.Key}", ref in_VisNode.Active, ref selectedNode, in_Icon: new SIconData(FontAwesome6.FolderClosed, new System.Numerics.Vector4(0.992156f, 0.76078f, 0,1))))
             {
 
                 foreach (var inNode in in_VisNode.Nodes)
@@ -74,7 +94,7 @@ namespace Kunai.Window
                         }
                     };
                     //Scene
-                    if (ImKunaiTreeNode.VisibilityNode(g.Scene.Key, ref g.Active, ref selectedScene, rightClick, in_Icon: FontAwesome6.SquareFull))
+                    if (ImKunaiTreeNode.VisibilityNode(g.Scene.Key, ref g.Active, ref selectedScene, rightClick, in_Icon: new SIconData(FontAwesome6.Film, new System.Numerics.Vector4(0, 0.58039f, 1, 1))))
                     {
                         for (int i = 0; i < g.Scene.Value.Families.Count; i++)
                         {

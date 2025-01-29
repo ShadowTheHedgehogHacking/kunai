@@ -10,7 +10,22 @@ namespace Kunai.Window
 {
     public static class ImKunaiTreeNode
     {
-        public static bool VisibilityNode(string in_Name, ref bool in_Visibile, ref bool in_IsSelected, Action in_RightClickAction = null, bool in_ShowArrow = true, string in_Icon = "")
+        public struct SIconData
+        {
+            public string Icon;
+            public Vector4 Color = Vector4.One;
+            public SIconData(string icon)
+            {
+                Icon = icon;
+            }
+            public SIconData(string icon, Vector4 color)
+            {
+                Icon = icon;
+                Color = color;
+            }
+            public bool IsNull() => string.IsNullOrEmpty(Icon);
+        }
+        public static bool VisibilityNode(string in_Name, ref bool in_Visibile, ref bool in_IsSelected, Action in_RightClickAction = null, bool in_ShowArrow = true, SIconData in_Icon = new())
         {
             bool returnVal = true;
             //Make header fit the content
@@ -40,7 +55,7 @@ namespace Kunai.Window
             ImGui.PushStyleColor(ImGuiCol.FrameBg, ImGui.ColorConvertFloat4ToU32(new Vector4(0, 0, 0, 0)));
             ImGui.PushStyleColor(ImGuiCol.Border, ImGui.ColorConvertFloat4ToU32(new Vector4(0, 0, 0, 0)));
             ImGui.PushStyleColor(ImGuiCol.Button, ImGui.ColorConvertFloat4ToU32(new Vector4(0, 0, 0, 0)));
-            bool iconPresent = !string.IsNullOrEmpty(in_Icon);
+            bool iconPresent = !in_Icon.IsNull();
             in_IsSelected = ImGui.Button($"##invButton{in_Name}", new Vector2(-1, 25));
             ImGui.PopStyleColor(3);
 
@@ -55,7 +70,7 @@ namespace Kunai.Window
                 ImGui.SameLine(0, 0);
                 ImGui.SetNextItemAllowOverlap();
                 ImGui.SetCursorScreenPos(p);
-                ImGui.Text(in_Icon);
+                ImGui.TextColored(in_Icon.Color, in_Icon.Icon);
                 ImGui.PopFont();
                 ImGui.SameLine(0, 0);
             }

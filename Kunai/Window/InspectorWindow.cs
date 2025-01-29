@@ -44,6 +44,7 @@ namespace Kunai.Window
             }
             return in_A;
         }
+
         public void DrawSceneInspector()
         {
             KeyValuePair<string, Scene> selectedScene = ShurikenRenderHelper.Instance.SelectionData.SelectedScene;
@@ -67,10 +68,14 @@ namespace Kunai.Window
             ImGui.InputText("Name", ref name, 256);
             ImGui.InputFloat("Framerate", ref fps);
             ImGui.InputInt("Version", ref vers);
-            ImGui.InputInt("Priority", ref priority);
+            ImGui.InputInt("Priority", ref priority);   
             ImGui.InputFloat("Aspect Ratio", ref aspectRatio);
             ImGui.SameLine();
             ImGui.Text($"({simplifiedWidth}:{simplifiedHeight})");
+            
+            selectedScene.Value.AspectRatio = aspectRatio;
+            selectedScene.Value.AspectRatio = aspectRatio;
+            selectedScene.Value.FrameRate = fps;
         }
         public bool EmptyTextureButton(int in_Id)
         {

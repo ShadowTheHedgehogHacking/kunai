@@ -1,4 +1,5 @@
 ﻿using Hexa.NET.ImGui;
+using IconFonts;
 using Kunai.ShurikenRenderer;
 using System;
 
@@ -17,7 +18,13 @@ namespace Kunai.Window
                 ZoomFactor += ImGui.GetIO().MouseWheel / 5;
                 ZoomFactor = Math.Clamp(ZoomFactor, 0.5f, 5);
                 float windowHeight = ImGui.GetWindowWidth() * (in_Renderer.ViewportSize.Y / in_Renderer.ViewportSize.X);
-                ImGui.SliderFloat("Zoom", ref ZoomFactor, 0.5f, 5);
+                
+                ImGui.PushFont(ImGuiController.FontAwesomeFont);
+                ImGui.Text(FontAwesome6.MagnifyingGlass);
+                ImGui.PopFont();
+                ImGui.SameLine();
+                ImGui.SetNextItemWidth(-1);
+                ImGui.SliderFloat("##zoom", ref ZoomFactor, 0.5f, 5);
                 var size = new System.Numerics.Vector2(ImGui.GetWindowWidth(), windowHeight) * ZoomFactor;
 
                 if(in_Renderer.WorkProjectCsd == null)

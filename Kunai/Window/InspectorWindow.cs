@@ -80,16 +80,20 @@ namespace Kunai.Window
         }
         public void DrawCastInspector()
         {
+            /// Before you ask
+            /// ImGui bindings for C# are mega ass.
+            /// Keep that in mind.
             Cast selectedCast = ShurikenRenderHelper.Instance.SelectionData.SelectedCast;
             if (selectedCast == null)
                 return;
             ImGui.SeparatorText("Cast");
-            string[] typeStrings = { "No Draw", "Sprite", "Font" };
+            string[] typeStrings = { "Null (No Draw)", "Sprite", "Font" };
+            string[] blendingStr = { "NRM", "ADD" };
+            string[] filteringStr = { "NONE", "LINEAR" };
 
             ElementMaterialFlags materialFlags = (ElementMaterialFlags)selectedCast.Field38;
             CastInfo info = selectedCast.Info;
             ElementInheritanceFlags inheritanceFlags = (ElementInheritanceFlags)selectedCast.InheritanceFlags.Value;
-
 
             string name = selectedCast.Name;
             int field00 = (int)selectedCast.Field00;
@@ -209,6 +213,20 @@ namespace Kunai.Window
             }
             if (ImGui.CollapsingHeader("Material"))
             {
+                int blendingType = materialFlags.HasFlag(ElementMaterialFlags.AdditiveBlending) ? 1 : 0;
+                int filterType = materialFlags.HasFlag(ElementMaterialFlags.LinearFiltering) ? 1 : 0;
+                float width = ImGui.GetWindowSize().X / 2 - 80;
+                ImGui.PushItemWidth(width);
+                if (ImGui.Combo("Blending", ref blendingType, blendingStr, 2))
+                {
+                    materialFlags  = materialFlags.SetFlag(ElementMaterialFlags.AdditiveBlending, blendingType == 1);
+                }
+                ImGui.SameLine();
+                ImGui.PushItemWidth(width);
+                if (ImGui.Combo("Filtering", ref filterType, filteringStr, 2))
+                {
+                    materialFlags = materialFlags.SetFlag(ElementMaterialFlags.LinearFiltering, filterType == 1);
+                }
                 ImGui.BeginDisabled(type != (int)DrawType.Sprite);
                 ImGui.InputInt("Selected Sprite", ref spriteIndex);
                 spriteIndex = Math.Clamp(spriteIndex, -1, 32); //can go over 32 for scu

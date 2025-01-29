@@ -13,15 +13,11 @@ namespace Kunai.Window
         {
             bool selectedcast = false;
             var vis = in_Scene.GetVisibility(in_Cast);
-            if (ImguiControls.CollapsingHeaderVisibility(in_Cast.Name, ref vis.Active, ref selectedcast, in_ShowArrow: in_Cast.Children.Count > 0))
+            if (ImKunaiTreeNode.VisibilityNode(in_Cast.Name, ref vis.Active, ref selectedcast, in_ShowArrow: in_Cast.Children.Count > 0))
             {
                 for (int x = 0; x < in_Cast.Children.Count; x++)
                 {
                     RecursiveCastWidget(in_Scene, in_Cast.Children[x]);
-                    //for (int i = 0; i < in_Cast.Children[x].Children.Count; i++)
-                    //{
-                    //    RecursiveCastWidget(in_Scene, in_Cast.Children[x].Children[i]);
-                    //}
                 }
                 ImGui.TreePop();
             }
@@ -42,6 +38,8 @@ namespace Kunai.Window
         {
             Cast newCast = new Cast();
             newCast.SpriteIndices = new int[32];
+            for (int i = 0; i < 32; i++)
+                newCast.SpriteIndices[i] = -1;
             newCast.Parent = in_Parent;
             var info = newCast.Info;
             newCast.Field04 = 1;
@@ -58,14 +56,14 @@ namespace Kunai.Window
             bool selectedNode = false;
             bool selectedScene = false;
             //Scene Node
-            if (ImguiControls.CollapsingHeaderVisibility($"{in_VisNode.Node.Key}", ref in_VisNode.Active, ref selectedNode, in_Icon: FontAwesome6.FolderClosed))
+            if (ImKunaiTreeNode.VisibilityNode($"{in_VisNode.Node.Key}", ref in_VisNode.Active, ref selectedNode, in_Icon: FontAwesome6.FolderClosed))
             {
 
                 foreach (var inNode in in_VisNode.Nodes)
                     DrawSceneNode(inNode);
                 foreach (var g in in_VisNode.Scene)
                 {
-                    Action rightClick = () => 
+                    Action rightClick = () =>
                     {
                         if (ImGui.Selectable("Create new cast"))
                         {
@@ -76,7 +74,7 @@ namespace Kunai.Window
                         }
                     };
                     //Scene
-                    if (ImguiControls.CollapsingHeaderVisibility(g.Scene.Key, ref g.Active, ref selectedScene, rightClick, in_Icon: FontAwesome6.SquareFull))
+                    if (ImKunaiTreeNode.VisibilityNode(g.Scene.Key, ref g.Active, ref selectedScene, rightClick, in_Icon: FontAwesome6.SquareFull))
                     {
                         for (int i = 0; i < g.Scene.Value.Families.Count; i++)
                         {
@@ -119,14 +117,20 @@ namespace Kunai.Window
                 ImGui.BeginDisabled(true);
                 _searchBox.Render();
                 ImGui.EndDisabled();
-                if (in_Proj.WorkProjectCsd != null)
-                {
-                    foreach (var f in MainWindow.Renderer.VisibilityData.Nodes)
-                    {
-                        DrawSceneNode(f);
-                    }
+                ImKunaiTreeNode.ItemRowsBackground(new System.Numerics.Vector4(20, 20, 20, 64));
+                //if (ImGui.BeginListBox("##hierarchylist", new System.Numerics.Vector2(-1, -1)))
+                //{
 
-                }
+                    if (in_Proj.WorkProjectCsd != null)
+                    {
+                        foreach (var f in MainWindow.Renderer.VisibilityData.Nodes)
+                        {
+                            DrawSceneNode(f);
+                        }
+
+                    }
+                    //ImGui.EndListBox();
+                //}
             }
             ImGui.End();
         }

@@ -25,9 +25,13 @@ namespace Kunai.Window
             ImGui.SetNextWindowSize(new System.Numerics.Vector2(size1 * 2.5f, ImGui.GetWindowViewport().Size.Y / 3), ImGuiCond.Always);
             if (ImGui.Begin("Animations", MainWindow.WindowFlags | ImGuiWindowFlags.NoTitleBar))
             {
-                ImGui.BeginGroup();
+                
                 ImGui.Checkbox("Show Quads", ref in_Renderer.Config.ShowQuads);
+                ImGui.SetNextItemWidth(60);
                 ImGui.SameLine();
+                ImGui.InputDouble("Time", ref in_Renderer.Config.Time, "%.2f");
+                ImGui.SameLine();
+                ImGui.BeginGroup();
                 ImGui.PushFont(ImGuiController.FontAwesomeFont);
                 if (ImGui.Button(FontAwesome6.Camera))
                 {
@@ -48,9 +52,6 @@ namespace Kunai.Window
                     in_Renderer.Config.Time = 0;
                 }
                 ImGui.PopFont();
-                ImGui.SetNextItemWidth(60);
-                ImGui.SameLine();
-                ImGui.InputDouble("Time", ref in_Renderer.Config.Time, "%.2f");
                 ImGui.EndGroup();
 
 
@@ -79,7 +80,7 @@ namespace Kunai.Window
         private void DrawMotionElement(SVisibilityData.SAnimation in_SceneMotion)
         {
             bool selected = false;
-            if (ImguiControls.CollapsingHeaderVisibility(in_SceneMotion.Motion.Key, ref in_SceneMotion.Active, ref selected, in_ShowArrow: true))
+            if (ImKunaiTreeNode.VisibilityNode(in_SceneMotion.Motion.Key, ref in_SceneMotion.Active, ref selected, in_ShowArrow: true))
             {
                 foreach (FamilyMotion familyMotion in in_SceneMotion.Motion.Value.FamilyMotions)
                 {
@@ -127,7 +128,10 @@ namespace Kunai.Window
                             double time = in_Renderer.Config.Time * selectedScene.Value.FrameRate;
                             _points.Clear();
                             //Line for the anim time
-                            ImPlot.DragLineX(0, &time, new Vector4(1, 1, 1, 1), 1);
+                            if(ImPlot.DragLineX(0, &time, new Vector4(1, 1, 1, 1), 1))
+                            {
+                                in_Renderer.Config.Time = time / selectedScene.Value.FrameRate;
+                            }
 
                             bool isFloatValue = Renderer.SelectionData.TrackAnimation.Property != KeyProperty.Color
                                 && Renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientBottomRight

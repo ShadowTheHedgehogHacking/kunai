@@ -25,12 +25,12 @@ namespace Kunai.Window
         private static List<string> _fontNames = new List<string>();
         public static void SelectCast(Cast in_Cast)
         {
-            ShurikenRenderHelper.Instance.SelectionData.SelectedCast = in_Cast;
+            KunaiProject.Instance.SelectionData.SelectedCast = in_Cast;
             SelectionType = ESelectionType.Cast;
         }
         public static void SelectScene(KeyValuePair<string, Scene> in_Cast)
         {
-            ShurikenRenderHelper.Instance.SelectionData.SelectedScene = in_Cast;
+            KunaiProject.Instance.SelectionData.SelectedScene = in_Cast;
             SelectionType = ESelectionType.Scene;
         }
 
@@ -47,7 +47,7 @@ namespace Kunai.Window
 
         public void DrawSceneInspector()
         {
-            KeyValuePair<string, Scene> selectedScene = ShurikenRenderHelper.Instance.SelectionData.SelectedScene;
+            KeyValuePair<string, Scene> selectedScene = KunaiProject.Instance.SelectionData.SelectedScene;
             if (selectedScene.Value == null)
                 return;
             ImGui.SeparatorText("Scene");
@@ -88,7 +88,7 @@ namespace Kunai.Window
             /// Before you ask
             /// ImGui bindings for C# are mega ass.
             /// Keep that in mind.
-            Cast selectedCast = ShurikenRenderHelper.Instance.SelectionData.SelectedCast;
+            Cast selectedCast = KunaiProject.Instance.SelectionData.SelectedCast;
             if (selectedCast == null)
                 return;
             ImGui.SeparatorText("Cast");
@@ -216,82 +216,85 @@ namespace Kunai.Window
                     ImGui.DragFloat("Kerning", ref kerning, 0.0005f);
                 }
             }
-            if (ImGui.CollapsingHeader("Material"))
+            if (type != 0)
             {
-                int blendingType = materialFlags.HasFlag(ElementMaterialFlags.AdditiveBlending) ? 1 : 0;
-                int filterType = materialFlags.HasFlag(ElementMaterialFlags.LinearFiltering) ? 1 : 0;
-                float width = ImGui.GetWindowSize().X / 2 - 80;
-                ImGui.PushItemWidth(width);
-                if (ImGui.Combo("Blending", ref blendingType, blendingStr, 2))
+                if (ImGui.CollapsingHeader("Material"))
                 {
-                    materialFlags  = materialFlags.SetFlag(ElementMaterialFlags.AdditiveBlending, blendingType == 1);
-                }
-                ImGui.SameLine();
-                ImGui.PushItemWidth(width);
-                if (ImGui.Combo("Filtering", ref filterType, filteringStr, 2))
-                {
-                    materialFlags = materialFlags.SetFlag(ElementMaterialFlags.LinearFiltering, filterType == 1);
-                }
-                ImGui.BeginDisabled(type != (int)DrawType.Sprite);
-                ImGui.InputInt("Selected Sprite", ref spriteIndex);
-                spriteIndex = Math.Clamp(spriteIndex, -1, 32); //can go over 32 for scu
-                if (ImGui.BeginListBox("##listpatterns", new System.Numerics.Vector2(-1, 160)))
-                {
-                    //Draw Pattern selector
-                    for (int i = 0; i < selectedCast.SpriteIndices.Length; i++)
+                    int blendingType = materialFlags.HasFlag(ElementMaterialFlags.AdditiveBlending) ? 1 : 0;
+                    int filterType = materialFlags.HasFlag(ElementMaterialFlags.LinearFiltering) ? 1 : 0;
+                    float width = ImGui.GetWindowSize().X / 2 - 80;
+                    ImGui.PushItemWidth(width);
+                    if (ImGui.Combo("Blending", ref blendingType, blendingStr, 2))
                     {
-                        int patternIdx = Math.Min(selectedCast.SpriteIndices.Length - 1, (int)selectedCast.SpriteIndices[i]);
+                        materialFlags = materialFlags.SetFlag(ElementMaterialFlags.AdditiveBlending, blendingType == 1);
+                    }
+                    ImGui.SameLine();
+                    ImGui.PushItemWidth(width);
+                    if (ImGui.Combo("Filtering", ref filterType, filteringStr, 2))
+                    {
+                        materialFlags = materialFlags.SetFlag(ElementMaterialFlags.LinearFiltering, filterType == 1);
+                    }
+                    ImGui.BeginDisabled(type != (int)DrawType.Sprite);
+                    ImGui.InputInt("Selected Sprite", ref spriteIndex);
+                    spriteIndex = Math.Clamp(spriteIndex, -1, 32); //can go over 32 for scu
+                    if (ImGui.BeginListBox("##listpatterns", new System.Numerics.Vector2(-1, 160)))
+                    {
+                        //Draw Pattern selector
+                        for (int i = 0; i < selectedCast.SpriteIndices.Length; i++)
+                        {
+                            int patternIdx = Math.Min(selectedCast.SpriteIndices.Length - 1, (int)selectedCast.SpriteIndices[i]);
 
-                        //Draw button with a different color if its the currently active pattern
-                        if (i == spriteIndex) ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(200, 200, 200, 255));
-                        // Draw sprite preview if it isnt set to the default square
-                        if (patternIdx == -1)
-                        {
-                            EmptyTextureButton(i);
-                        }
-                        else
-                        {
-                            Sprite spriteReference = SpriteHelper.TryGetSprite(selectedCast.SpriteIndices[i]);
-                            if (spriteReference != null)
+                            //Draw button with a different color if its the currently active pattern
+                            if (i == spriteIndex) ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(200, 200, 200, 255));
+                            // Draw sprite preview if it isnt set to the default square
+                            if (patternIdx == -1)
                             {
-
-                                ShurikenRenderer.Vector2 uvTl = new ShurikenRenderer.Vector2(
-                                spriteReference.Start.X / spriteReference.Texture.Width,
-                                -(spriteReference.Start.Y / spriteReference.Texture.Height));
-
-                                ShurikenRenderer.Vector2 uvBr = uvTl + new ShurikenRenderer.Vector2(
-                                spriteReference.Dimensions.X / spriteReference.Texture.Width,
-                                -(spriteReference.Dimensions.Y / spriteReference.Texture.Height));
-
-                                if (spriteReference.Texture.GlTex == null)
+                                EmptyTextureButton(i);
+                            }
+                            else
+                            {
+                                Sprite spriteReference = SpriteHelper.TryGetSprite(selectedCast.SpriteIndices[i]);
+                                if (spriteReference != null)
                                 {
-                                    EmptyTextureButton(i);
-                                }
-                                else
-                                {
-                                    //This is so stupid, this is how youre supposed to do it according to the HexaNET issues
-                                    unsafe
+
+                                    ShurikenRenderer.Vector2 uvTl = new ShurikenRenderer.Vector2(
+                                    spriteReference.Start.X / spriteReference.Texture.Width,
+                                    -(spriteReference.Start.Y / spriteReference.Texture.Height));
+
+                                    ShurikenRenderer.Vector2 uvBr = uvTl + new ShurikenRenderer.Vector2(
+                                    spriteReference.Dimensions.X / spriteReference.Texture.Width,
+                                    -(spriteReference.Dimensions.Y / spriteReference.Texture.Height));
+
+                                    if (spriteReference.Texture.GlTex == null)
                                     {
-                                        const int bufferSize = 256;
-                                        byte* buffer = stackalloc byte[bufferSize];
-                                        StrBuilder sb = new(buffer, bufferSize);
-                                        sb.Append($"##pattern{i}");
-                                        sb.End();
-                                        //Draw sprite
-                                        ImGui.ImageButton(sb, new ImTextureID(spriteReference.Texture.GlTex.Id), new System.Numerics.Vector2(50, 50), uvTl, uvBr);
+                                        EmptyTextureButton(i);
+                                    }
+                                    else
+                                    {
+                                        //This is so stupid, this is how youre supposed to do it according to the HexaNET issues
+                                        unsafe
+                                        {
+                                            const int bufferSize = 256;
+                                            byte* buffer = stackalloc byte[bufferSize];
+                                            StrBuilder sb = new(buffer, bufferSize);
+                                            sb.Append($"##pattern{i}");
+                                            sb.End();
+                                            //Draw sprite
+                                            ImGui.ImageButton(sb, new ImTextureID(spriteReference.Texture.GlTex.Id), new System.Numerics.Vector2(50, 50), uvTl, uvBr);
 
+                                        }
                                     }
                                 }
+                                if (i != selectedCast.SpriteIndices.Length - 1)
+                                    ImGui.SameLine();
                             }
-                            if (i != selectedCast.SpriteIndices.Length - 1)
-                                ImGui.SameLine();
+                            if (i == spriteIndex)
+                                ImGui.PopStyleColor();
                         }
-                        if (i == spriteIndex)
-                            ImGui.PopStyleColor();
+                        ImGui.EndListBox();
                     }
-                    ImGui.EndListBox();
+                    ImGui.EndDisabled();
                 }
-                ImGui.EndDisabled();
             }
             selectedCast.Name = name;
             selectedCast.Field00 = (uint)field00;
@@ -331,7 +334,7 @@ namespace Kunai.Window
             selectedCast.Text = text;
             selectedCast.Field4C = (uint)BitConverter.ToInt32(BitConverter.GetBytes(-kerning), 0);
         }
-        public override void Update(ShurikenRenderHelper in_Proj)
+        public override void Update(KunaiProject in_Proj)
         {
             ImGui.SetNextWindowPos(new System.Numerics.Vector2((ImGui.GetWindowViewport().Size.X / 4.5f) * 3.5f, MenuBarWindow.MenuBarHeight), ImGuiCond.Always);
             ImGui.SetNextWindowSize(new System.Numerics.Vector2(ImGui.GetWindowViewport().Size.X / 4.5f, ImGui.GetWindowViewport().Size.Y - MenuBarWindow.MenuBarHeight), ImGuiCond.Always);
@@ -363,8 +366,8 @@ namespace Kunai.Window
         }
         internal static void Reset()
         {
-            ShurikenRenderHelper.Instance.SelectionData.SelectedCast = null;
-            ShurikenRenderHelper.Instance.SelectionData.SelectedScene = new();
+            KunaiProject.Instance.SelectionData.SelectedCast = null;
+            KunaiProject.Instance.SelectionData.SelectedScene = new();
         }
     }
 }

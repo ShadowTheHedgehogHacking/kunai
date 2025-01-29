@@ -3,6 +3,7 @@ using IconFonts;
 using Kunai.ShurikenRenderer;
 using SharpNeedle.Ninja.Csd;
 using System;
+using System.Numerics;
 using static Kunai.Window.ImKunaiTreeNode;
 
 namespace Kunai.Window
@@ -14,26 +15,27 @@ namespace Kunai.Window
         {
             bool selectedcast = false;
             var vis = in_Scene.GetVisibility(in_Cast);
-            string icon = "";
+            SIconData icon = new();
             switch(in_Cast.GetDrawType())
             {
                 case Shuriken.Rendering.DrawType.Sprite:
                     {
-                        icon = FontAwesome6.Image;
+                        icon = NodeIconResource.CastSprite;
                         break;
                     }
                 case Shuriken.Rendering.DrawType.None:
                     {
-                        icon = FontAwesome6.SquarePlus;
+                        icon = NodeIconResource.CastNull;
                         break;
                     }
                 case Shuriken.Rendering.DrawType.Font:
                     {
-                        icon = FontAwesome6.Font;
+                        icon = NodeIconResource.CastFont;
                         break;
                     }
             }
-            if (ImKunaiTreeNode.VisibilityNode(in_Cast.Name, ref vis.Active, ref selectedcast, in_ShowArrow: in_Cast.Children.Count > 0, in_Icon: new SIconData(icon)))
+            //Casts
+            if (ImKunaiTreeNode.VisibilityNode(in_Cast.Name, ref vis.Active, ref selectedcast, in_ShowArrow: in_Cast.Children.Count > 0, in_Icon: icon))
             {
                 for (int x = 0; x < in_Cast.Children.Count; x++)
                 {
@@ -65,36 +67,53 @@ namespace Kunai.Window
             newCast.Field04 = 1;
             newCast.Name = in_Name;
             info.Scale = new System.Numerics.Vector2(1, 1);
-            newCast.TopLeft = new System.Numerics.Vector2(-0.1f, 0);
-            newCast.BottomLeft = new System.Numerics.Vector2(-0.1f, 0.1f);
-            newCast.TopRight = new System.Numerics.Vector2(0.1f, 0);
-            newCast.BottomRight = new System.Numerics.Vector2(0.1f, 0.1f);
+            info.SpriteIndex = -1;
+            newCast.Enabled = true;
+            newCast.TopLeft = new System.Numerics.Vector2(-0.02f, -0.03f);
+            newCast.BottomLeft = new System.Numerics.Vector2(-0.02f, 0.03f);
+            newCast.TopRight = new System.Numerics.Vector2(0.02f, -0.03f);
+            newCast.BottomRight = new System.Numerics.Vector2(0.02f, 0.03f);
+            info.Color = Vector4.One.ToSharpNeedleColor();
+            info.GradientTopLeft = Vector4.One.ToSharpNeedleColor();
+            info.GradientBottomLeft = Vector4.One.ToSharpNeedleColor();
+            info.GradientTopRight = Vector4.One.ToSharpNeedleColor();
+            info.GradientBottomRight = Vector4.One.ToSharpNeedleColor();
+            newCast.Info = info;
             return newCast;
+        }
+        public static void AddCastOption(SVisibilityData.SScene in_Scene)
+        {
+            if (ImGui.Selectable("Create New Cast"))
+            {
+                Family newFam = CreateNewFamily(in_Scene.Scene.Value);
+                Cast newCast = CreateNewCastFromDefault("New_Cast", null);
+                newFam.Add(newCast);
+                in_Scene.Casts.Add(new SVisibilityData.SCast(newCast));
+            }
+        }
+        public static Action SceneRightClickAction(SVisibilityData.SScene in_Scene)
+        {
+            Action rightClick = () =>
+            {
+                AddCastOption(in_Scene);
+            };
+            return rightClick;
         }
         private static void DrawSceneNode(SVisibilityData.SNode in_VisNode)
         {
             bool selectedNode = false;
             bool selectedScene = false;
             //Scene Node
-            if (ImKunaiTreeNode.VisibilityNode($"{in_VisNode.Node.Key}", ref in_VisNode.Active, ref selectedNode, in_Icon: new SIconData(FontAwesome6.FolderClosed, new System.Numerics.Vector4(0.992156f, 0.76078f, 0,1))))
+            if (ImKunaiTreeNode.VisibilityNode($"{in_VisNode.Node.Key}", ref in_VisNode.Active, ref selectedNode, in_Icon: NodeIconResource.SceneNode))
             {
 
                 foreach (var inNode in in_VisNode.Nodes)
                     DrawSceneNode(inNode);
-                foreach (var g in in_VisNode.Scene)
+                foreach (SVisibilityData.SScene g in in_VisNode.Scene)
                 {
-                    Action rightClick = () =>
-                    {
-                        if (ImGui.Selectable("Create new cast"))
-                        {
-                            Family newFam = CreateNewFamily(g.Scene.Value);
-                            Cast newCast = CreateNewCastFromDefault("New_Cast", null);
-                            newFam.Add(newCast);
-                            g.Casts.Add(new SVisibilityData.SCast(newCast));
-                        }
-                    };
+                    
                     //Scene
-                    if (ImKunaiTreeNode.VisibilityNode(g.Scene.Key, ref g.Active, ref selectedScene, rightClick, in_Icon: new SIconData(FontAwesome6.Film, new System.Numerics.Vector4(0, 0.58039f, 1, 1))))
+                    if (ImKunaiTreeNode.VisibilityNode(g.Scene.Key, ref g.Active, ref selectedScene, SceneRightClickAction(g), in_Icon: NodeIconResource.Scene))
                     {
                         for (int i = 0; i < g.Scene.Value.Families.Count; i++)
                         {
@@ -128,7 +147,7 @@ namespace Kunai.Window
             //}
 
         }
-        public override void Update(ShurikenRenderHelper in_Proj)
+        public override void Update(KunaiProject in_Proj)
         {
             ImGui.SetNextWindowPos(new System.Numerics.Vector2(0, MenuBarWindow.MenuBarHeight), ImGuiCond.Always);
             ImGui.SetNextWindowSize(new System.Numerics.Vector2(ImGui.GetWindowViewport().Size.X / 4.5f, ImGui.GetWindowViewport().Size.Y), ImGuiCond.Always);

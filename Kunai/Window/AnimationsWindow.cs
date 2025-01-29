@@ -18,7 +18,7 @@ namespace Kunai.Window
     {
         private static List<ImPlotPoint> _points = new List<ImPlotPoint>();
 
-        public override void Update(ShurikenRenderHelper in_Renderer)
+        public override void Update(KunaiProject in_Renderer)
         {
             var size1 = ImGui.GetWindowViewport().Size.X / 4.5f;
             ImGui.SetNextWindowPos(new System.Numerics.Vector2(size1, ImGui.GetWindowViewport().Size.Y / 1.5f), ImGuiCond.Always);
@@ -58,7 +58,7 @@ namespace Kunai.Window
                 //The list of anims, anim tracks and cast animations
                 if (ImGui.BeginListBox("##animlist", new System.Numerics.Vector2(ImGui.GetWindowSize().X / 5, -1)))
                 {
-                    var selectedScene = ShurikenRenderHelper.Instance.SelectionData.SelectedScene;
+                    var selectedScene = KunaiProject.Instance.SelectionData.SelectedScene;
                     if (selectedScene.Value != null)
                     {
                         SVisibilityData.SScene sceneVisData = in_Renderer.VisibilityData.GetScene(selectedScene.Value);
@@ -107,7 +107,7 @@ namespace Kunai.Window
                 }
             }
         }
-        private void DrawPlot(ShurikenRenderHelper in_Renderer)
+        private void DrawPlot(KunaiProject in_Renderer)
         {
             unsafe
             {
@@ -118,7 +118,7 @@ namespace Kunai.Window
                     StrBuilder sb = new(buffer, bufferSize);
                     sb.Append($"##anim");
                     sb.End();
-                    var selectedScene = ShurikenRenderHelper.Instance.SelectionData.SelectedScene;
+                    var selectedScene = KunaiProject.Instance.SelectionData.SelectedScene;
                     ImPlot.SetupAxisLimits(ImAxis.X1, 0, 60);
                     ImPlot.SetupAxisLimits(ImAxis.Y1, 0, 10);
                     if (selectedScene.Value != null)

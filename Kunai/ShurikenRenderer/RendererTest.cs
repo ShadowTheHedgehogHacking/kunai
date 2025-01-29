@@ -194,6 +194,7 @@ namespace Shuriken.Rendering
         /// <param name="q">The quad to push to the buffer.</param>
         public void PushQuad(Quad in_Q)
         {
+            /// SharpNeedle uses ARGB color, this inverts it so that colors look right
             _buffer[BufferPos++] = in_Q.TopLeft.WithInvertedColor();
             _buffer[BufferPos++] = in_Q.BottomLeft.WithInvertedColor();
             _buffer[BufferPos++] = in_Q.TopRight.WithInvertedColor();

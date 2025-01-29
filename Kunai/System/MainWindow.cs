@@ -24,7 +24,7 @@ namespace Kunai
         private static MemoryStream _iconData;
         private float _test = 1;
         private ImGuiController _controller;
-        public static ShurikenRenderHelper Renderer;
+        public static KunaiProject Renderer;
         public static ImGuiWindowFlags WindowFlags = ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse;
         public MainWindow() : base(GameWindowSettings.Default, new NativeWindowSettings(){ Size = new Vector2i(1600, 900), APIVersion = new Version(3, 3) })
         { }
@@ -32,7 +32,7 @@ namespace Kunai
         {
             base.OnLoad();
             Title = ApplicationName;
-            Renderer = new ShurikenRenderHelper(this, new ShurikenRenderer.Vector2(1280, 720), new ShurikenRenderer.Vector2(ClientSize.X, ClientSize.Y));
+            Renderer = new KunaiProject(this, new ShurikenRenderer.Vector2(1280, 720), new ShurikenRenderer.Vector2(ClientSize.X, ClientSize.Y));
             _controller = new ImGuiController(ClientSize.X, ClientSize.Y);
 
             Renderer.Windows.Add(new MenuBarWindow());

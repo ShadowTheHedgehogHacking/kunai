@@ -5,17 +5,33 @@ using System.Numerics;
 using System;
 
 namespace Shuriken.Rendering
-{public enum DrawType : uint
 {
-    [Description("No Draw")]
-    None,
-
-    [Description("Sprite")]
-    Sprite,
-
-    [Description("Font")]
-    Font
-}
+    public enum DrawType : uint
+    {
+        [Description("No Draw")]
+        None,
+        [Description("Sprite")]
+        Sprite,
+        [Description("Font")]
+        Font
+    }
+    [Flags]
+    public enum AnimationType : uint
+    {
+        None = 0,
+        HideFlag = 1,
+        XPosition = 2,
+        YPosition = 4,
+        Rotation = 8,
+        XScale = 16,
+        YScale = 32,
+        SubImage = 64,
+        Color = 128,
+        GradientTl = 256,
+        GradientBl = 512,
+        GradientTr = 1024,
+        GradientBr = 2048
+    }
     [Flags]
     public enum ElementInheritanceFlags
     {
@@ -164,7 +180,5 @@ namespace Shuriken.Rendering
             Texture = new Texture();
             HasChanged = false;
         }
-
-        public event PropertyChangedEventHandler PropertyChanged;
     }
 }

@@ -8,7 +8,7 @@ namespace Kunai.Window
     public class ViewportWindow : WindowBase
     {
         public static float ZoomFactor = 1;
-        public override void Update(ShurikenRenderHelper in_Renderer)
+        public override void Update(KunaiProject in_Renderer)
         {
             var size1 = ImGui.GetWindowViewport().Size.X / 4.5f;
             ImGui.SetNextWindowPos(new System.Numerics.Vector2(size1, MenuBarWindow.MenuBarHeight), ImGuiCond.Always);

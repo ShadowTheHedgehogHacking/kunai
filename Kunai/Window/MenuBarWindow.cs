@@ -33,7 +33,7 @@ namespace Kunai.Window
             proc.StartInfo.Verb = "runas";
             proc.Start();
         }
-        public override void Update(ShurikenRenderHelper in_Renderer)
+        public override void Update(KunaiProject in_Renderer)
         {
             if (ImGui.BeginMainMenuBar())
             {

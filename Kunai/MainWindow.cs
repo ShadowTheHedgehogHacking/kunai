@@ -68,6 +68,7 @@ namespace Kunai
 
             float deltaTime = (float)(in_E.Time);
             Renderer.Render(Renderer.WorkProjectCsd, (float)deltaTime);
+            //ImGui.ShowMetricsWindow();
             _controller.Render();
             if (Renderer.WorkProjectCsd != null)            
                 Title = ApplicationName + $" - [{Renderer.Config.WorkFilePath}]";

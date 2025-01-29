@@ -1,6 +1,8 @@
 ﻿using Hexa.NET.ImGui;
+using IconFonts;
 using Kunai.ShurikenRenderer;
 using SharpNeedle.Ninja.Csd;
+using System;
 
 namespace Kunai.Window
 {
@@ -11,7 +13,7 @@ namespace Kunai.Window
         {
             bool selectedcast = false;
             var vis = in_Scene.GetVisibility(in_Cast);
-            if (ImguiControls.CollapsingHeaderVisibility(in_Cast.Name, ref vis.Active, ref selectedcast, in_Cast.Children.Count > 0))
+            if (ImguiControls.CollapsingHeaderVisibility(in_Cast.Name, ref vis.Active, ref selectedcast, in_ShowArrow: in_Cast.Children.Count > 0))
             {
                 for (int x = 0; x < in_Cast.Children.Count; x++)
                 {
@@ -55,14 +57,26 @@ namespace Kunai.Window
         {
             bool selectedNode = false;
             bool selectedScene = false;
-            if (ImguiControls.CollapsingHeaderVisibility($"#{in_VisNode.Node.Key}", ref in_VisNode.Active, ref selectedNode))
+            //Scene Node
+            if (ImguiControls.CollapsingHeaderVisibility($"{in_VisNode.Node.Key}", ref in_VisNode.Active, ref selectedNode, in_Icon: FontAwesome6.FolderClosed))
             {
 
                 foreach (var inNode in in_VisNode.Nodes)
                     DrawSceneNode(inNode);
                 foreach (var g in in_VisNode.Scene)
                 {
-                    if (ImguiControls.CollapsingHeaderVisibility(g.Scene.Key, ref g.Active, ref selectedScene))
+                    Action rightClick = () => 
+                    {
+                        if (ImGui.Selectable("Create new cast"))
+                        {
+                            Family newFam = CreateNewFamily(g.Scene.Value);
+                            Cast newCast = CreateNewCastFromDefault("New_Cast", null);
+                            newFam.Add(newCast);
+                            g.Casts.Add(new SVisibilityData.SCast(newCast));
+                        }
+                    };
+                    //Scene
+                    if (ImguiControls.CollapsingHeaderVisibility(g.Scene.Key, ref g.Active, ref selectedScene, rightClick, in_Icon: FontAwesome6.SquareFull))
                     {
                         for (int i = 0; i < g.Scene.Value.Families.Count; i++)
                         {
@@ -73,17 +87,6 @@ namespace Kunai.Window
 
                         }
                         ImGui.TreePop();
-                    }
-                    if(ImGui.BeginPopupContextItem())
-                    {
-                        if(ImGui.Selectable("Create new cast"))
-                        {
-                            Family newFam = CreateNewFamily(g.Scene.Value);
-                            Cast newCast = CreateNewCastFromDefault("New_Cast", null);
-                            newFam.Add(newCast);
-                            g.Casts.Add(new SVisibilityData.SCast(newCast));
-                        }
-                        ImGui.EndPopup();
                     }
                     if (selectedScene)
                     {

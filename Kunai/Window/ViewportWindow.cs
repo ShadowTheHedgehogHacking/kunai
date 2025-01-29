@@ -11,7 +11,7 @@ namespace Kunai.Window
         {
             var size1 = ImGui.GetWindowViewport().Size.X / 4.5f;
             ImGui.SetNextWindowPos(new System.Numerics.Vector2(size1, MenuBarWindow.MenuBarHeight), ImGuiCond.Always);
-            ImGui.SetNextWindowSize(new System.Numerics.Vector2(size1 * 2.5f, ImGui.GetWindowViewport().Size.Y / 1.5f), ImGuiCond.Always);
+            ImGui.SetNextWindowSize(new System.Numerics.Vector2(size1 * 2.5f, ImGui.GetWindowViewport().Size.Y / 1.5f - MenuBarWindow.MenuBarHeight), ImGuiCond.Always);
             if (ImGui.Begin("Viewport", MainWindow.WindowFlags))
             {                
                 ZoomFactor += ImGui.GetIO().MouseWheel / 5;

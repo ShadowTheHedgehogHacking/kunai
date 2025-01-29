@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <StartupObject>Kunai.Program</StartupObject>
     <ApplicationIcon>Resources\Icons\kunai-01.ico</ApplicationIcon>

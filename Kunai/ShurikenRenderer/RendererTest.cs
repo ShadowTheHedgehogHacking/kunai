@@ -6,6 +6,7 @@ using Kunai.ShurikenRenderer;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Linq;
 
 
 
@@ -280,7 +281,6 @@ namespace Shuriken.Rendering
         /// </summary>
         public void End()
         {
-            //quads.Sort((x, y) => x.ZIndex.CompareTo(y.ZIndex));
 
             foreach (var quad in _quads)
             {

@@ -576,7 +576,7 @@ namespace Kunai.ShurikenRenderer
                         in_UiElement.TopLeft, in_UiElement.BottomLeft, in_UiElement.TopRight, in_UiElement.BottomRight,
                         position, rotation * MathF.PI / 180.0f, scale, in_Scene.AspectRatio, spr, nextSpr, sprId % 1, color,
                         gradientTopLeft, gradientBottomLeft, gradientTopRight, gradientBottomRight,
-                        in_UiElement.Priority, flags);
+                        (int)in_Scene.Priority + in_UiElement.Priority, flags);
                 }
                 else if (type == DrawType.Font)
                 {

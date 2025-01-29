@@ -9,6 +9,7 @@ using Hexa.NET.Utilities.Text;
 using SharpNeedle.Ninja.Csd.Motions;
 using System.Collections.Generic;
 using System.Numerics;
+using IconFonts;
 
 namespace Kunai.Window
 {
@@ -22,14 +23,33 @@ namespace Kunai.Window
             var size1 = ImGui.GetWindowViewport().Size.X / 4.5f;
             ImGui.SetNextWindowPos(new System.Numerics.Vector2(size1, ImGui.GetWindowViewport().Size.Y / 1.5f), ImGuiCond.Always);
             ImGui.SetNextWindowSize(new System.Numerics.Vector2(size1 * 2.5f, ImGui.GetWindowViewport().Size.Y / 3), ImGuiCond.Always);
-            if (ImGui.Begin("Animations", MainWindow.WindowFlags))
+            if (ImGui.Begin("Animations", MainWindow.WindowFlags | ImGuiWindowFlags.NoTitleBar))
             {
                 ImGui.BeginGroup();
-                ImGui.Checkbox("Play", ref in_Renderer.Config.PlayingAnimations);
-                ImGui.SameLine();
                 ImGui.Checkbox("Show Quads", ref in_Renderer.Config.ShowQuads);
                 ImGui.SameLine();
+                ImGui.PushFont(ImGuiController.FontAwesomeFont);
+                if (ImGui.Button(FontAwesome6.Camera))
+                {
+                }
+                ImGui.SameLine();
+                if (ImGui.Button(FontAwesome6.Stop))
+                {
+                    in_Renderer.Config.PlayingAnimations = false;
+                    in_Renderer.Config.Time = 0;
+                }
+                ImGui.SameLine();
+                if (ImGui.Button(in_Renderer.Config.PlayingAnimations ? FontAwesome6.Pause : FontAwesome6.Play))
+                    in_Renderer.Config.PlayingAnimations = !in_Renderer.Config.PlayingAnimations;
+
+                ImGui.SameLine();
+                if (ImGui.Button(FontAwesome6.RotateRight))
+                {
+                    in_Renderer.Config.Time = 0;
+                }
+                ImGui.PopFont();
                 ImGui.SetNextItemWidth(60);
+                ImGui.SameLine();
                 ImGui.InputDouble("Time", ref in_Renderer.Config.Time, "%.2f");
                 ImGui.EndGroup();
 
@@ -59,7 +79,7 @@ namespace Kunai.Window
         private void DrawMotionElement(SVisibilityData.SAnimation in_SceneMotion)
         {
             bool selected = false;
-            if (ImguiControls.CollapsingHeaderVisibility(in_SceneMotion.Motion.Key, ref in_SceneMotion.Active, ref selected, true))
+            if (ImguiControls.CollapsingHeaderVisibility(in_SceneMotion.Motion.Key, ref in_SceneMotion.Active, ref selected, in_ShowArrow: true))
             {
                 foreach (FamilyMotion familyMotion in in_SceneMotion.Motion.Value.FamilyMotions)
                 {

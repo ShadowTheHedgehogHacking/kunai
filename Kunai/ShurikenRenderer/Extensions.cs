@@ -1,5 +1,7 @@
 ﻿using Kunai.ShurikenRenderer;
 using SharpNeedle;
+using SharpNeedle.Ninja.Csd;
+using Shuriken.Rendering;
 using System;
 using System.Linq;
 using System.Numerics;
@@ -119,6 +121,10 @@ public static class AnimationTypeMethods
             default:
                 return keyframe.Value.Float;
         }
+    }
+    public static DrawType GetDrawType(this Cast cast)
+    {
+        return (DrawType)cast.Field04;
     }
     public static Vector4 GetColor(this SharpNeedle.Ninja.Csd.Motions.KeyFrameList in_List, float in_Frame)
     {

@@ -107,11 +107,11 @@ namespace Kunai.Window
             float rotation = info.Rotation;
             Vector2 origin = selectedCast.Origin;
             Vector2 translation = info.Translation;
-            Vector4 color = info.Color.ToVec4();
-            Vector4 colorTl = info.GradientTopLeft.ToVec4();
-            Vector4 colorTr = info.GradientTopRight.ToVec4();
-            Vector4 colorBl = info.GradientBottomLeft.ToVec4();
-            Vector4 colorBr = info.GradientBottomRight.ToVec4();
+            Vector4 color = info.Color.ToVec4().Invert();
+            Vector4 colorTl = info.GradientTopLeft.ToVec4().Invert();
+            Vector4 colorTr = info.GradientTopRight.ToVec4().Invert();
+            Vector4 colorBl = info.GradientBottomLeft.ToVec4().Invert();
+            Vector4 colorBr = info.GradientBottomRight.ToVec4().Invert();
 
             bool inheritPosX = inheritanceFlags.HasFlag(ElementInheritanceFlags.InheritXPosition);
             bool inheritPosY = inheritanceFlags.HasFlag(ElementInheritanceFlags.InheritYPosition);
@@ -287,11 +287,11 @@ namespace Kunai.Window
             info.Rotation = rotation;
             selectedCast.Origin = origin;
             info.Translation = translation;
-            //info.Color = color.ToSharpNeedleColorInverted();
-            //info.GradientTopLeft = colorTL.ToSharpNeedleColorInverted();
-            //info.GradientTopRight = colorTR.ToSharpNeedleColorInverted();
-            //info.GradientBottomLeft = colorBL.ToSharpNeedleColorInverted();
-            //info.GradientBottomRight = colorBR.ToSharpNeedleColorInverted();
+            info.Color = color.Invert().ToSharpNeedleColor();
+            info.GradientTopLeft = colorTl.Invert().ToSharpNeedleColor();
+            info.GradientTopRight = colorTr.Invert().ToSharpNeedleColor();
+            info.GradientBottomLeft = colorBl.Invert().ToSharpNeedleColor();
+            info.GradientBottomRight = colorBr.Invert().ToSharpNeedleColor();
             info.SpriteIndex = spriteIndex;
             info.Scale = scale;
 

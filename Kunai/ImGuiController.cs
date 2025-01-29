@@ -174,7 +174,17 @@ namespace Kunai
             style.Colors[(int)ImGuiCol.NavWindowingDimBg] = new System.Numerics.Vector4(0.800000011920929f, 0.800000011920929f, 0.800000011920929f, 0.2000000029802322f);
             style.Colors[(int)ImGuiCol.ModalWindowDimBg] = new System.Numerics.Vector4(0.800000011920929f, 0.800000011920929f, 0.800000011920929f, 0.3499999940395355f);
         }
-        public ImGuiController(int in_Width, int in_Height)
+
+        uint[] icons_ranges = new uint[3] { FontAwesome6.IconMin, FontAwesome6.IconMax, 0 };
+        public static ImFontPtr DefaultFont;
+        public static ImFontPtr FontAwesomeFont;
+        unsafe uint* range {
+            get {
+                fixed (uint* range = &icons_ranges[0])
+                    return range;
+            }
+        }
+        public unsafe ImGuiController(int in_Width, int in_Height)
         {
             _windowWidth = in_Width;
             _windowHeight = in_Height;
@@ -196,9 +206,23 @@ namespace Kunai
             var io = ImGui.GetIO();
             //io.Fonts.AddFontDefault();
 
+                ImFontConfig config = new ImFontConfig
+                {
+                    MergeMode = 1,
+                    OversampleH = 3,
+                    OversampleV = 3,
+                    GlyphOffset = new System.Numerics.Vector2(0,0),
+                    FontDataOwnedByAtlas = 0,
+                    PixelSnapH = 1,
+                    GlyphMaxAdvanceX = 16,
+                    RasterizerMultiply = 2.0f,
+                    GlyphRanges = range,
+                };
+                //io.Fonts.AddFontFromFileTTF(IconFonts.FontA\wesome6.FontIconFileNameFAR, 16, icons_config, new uint[64]{ Icon });
+                DefaultFont = io.Fonts.AddFontFromFileTTF(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "RobotoVariable.ttf"), 16 * GetDpiScaling());
+            FontAwesomeFont = io.Fonts.AddFontFromFileTTF(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", FontAwesome6.FontIconFileNameFAS), 16 * GetDpiScaling(), null, range);
+                io.Fonts.Build();
             
-            //io.Fonts.AddFontFromFileTTF(IconFonts.FontAwesome6.FontIconFileNameFAR, 16, icons_config, new uint[64]{ Icon });
-            io.Fonts.AddFontFromFileTTF(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "RobotoVariable.ttf"), 16 * GetDpiScaling());
             //unsafe
             //{
             //    io.Fonts.AddFontFromFileTTF(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, IconFonts.FontAwesome6.FontIconFileNameFAR), 16, &icons_config, ranges.Data);

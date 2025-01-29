@@ -2,7 +2,6 @@
 using Hexa.NET.ImGui;
 using Kunai.Window;
 using OpenTK.Graphics.OpenGL;
-using OpenTK.Mathematics;
 using OpenTK.Windowing.Desktop;
 using SharpNeedle.Ninja.Csd;
 using SharpNeedle.Ninja.Csd.Motions;
@@ -14,6 +13,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.InteropServices;
 
 namespace Kunai.ShurikenRenderer
@@ -25,7 +25,7 @@ namespace Kunai.ShurikenRenderer
         public struct SViewportData
         {
             public int CsdRenderTextureHandle;
-            public Vector2i FramebufferSize;
+            public OpenTK.Mathematics.Vector2i FramebufferSize;
             public int RenderbufferHandle;
             public int FramebufferHandle;
         }
@@ -95,7 +95,7 @@ namespace Kunai.ShurikenRenderer
             SpriteHelper.ClearTextures();
 
             /// TODO: SHARPNEEDLE FIX
-            ExtensionKillMe.IsColorLittleEndian = WorkProjectCsd.Endianness == Endianness.Little;
+           // ExtensionKillMe.IsColorLittleEndian = WorkProjectCsd.Endianness == Endianness.Little;
 
             //Start loading textures
             ITextureList xTextures = WorkProjectCsd.Textures;
@@ -149,7 +149,7 @@ namespace Kunai.ShurikenRenderer
                 System.Numerics.Vector2 wsize = ScreenSize;
 
                 // make sure the buffers are the currect size
-                Vector2i wsizei = new((int)wsize.X, (int)wsize.Y);
+                OpenTK.Mathematics.Vector2i wsizei = new((int)wsize.X, (int)wsize.Y);
                 if (_viewportData.FramebufferSize != wsizei)
                 {
                     _viewportData.FramebufferSize = wsizei;
@@ -217,7 +217,7 @@ namespace Kunai.ShurikenRenderer
         }
         private void RenderToViewport(CsdProject in_CsdProject, float in_DeltaTime)
         {
-            GL.ClearColor(Color4.DarkGray);
+            GL.ClearColor(OpenTK.Mathematics.Color4.DarkGray);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             Renderer.Width = (int)ViewportSize.X;

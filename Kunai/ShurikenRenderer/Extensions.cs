@@ -8,10 +8,15 @@ using System.Numerics;
 
 public static class ExtensionKillMe
 {
-    public static bool IsColorLittleEndian;
     public static System.Numerics.Vector4 ToVec4(this Color<byte> in_Value)
     {
         return new System.Numerics.Vector4(in_Value.R / 255.0f, in_Value.G / 255.0f, in_Value.B / 255.0f, in_Value.A / 255.0f);
+    }
+    public static Vector2 Rotate(this Vector2 v, float in_Angle)
+    {
+        return new Vector2(
+            v.X * MathF.Cos(in_Angle) + v.Y * MathF.Sin(in_Angle),
+            v.Y * MathF.Cos(in_Angle) - v.X * MathF.Sin(in_Angle));
     }
     public static System.Numerics.Vector4 Invert(this System.Numerics.Vector4 in_Value)
     {
@@ -20,23 +25,11 @@ public static class ExtensionKillMe
         /// that YNCPs and other big endian files have an inverted color order
         /// 
 
-        
-        if(IsColorLittleEndian)
-        {
             float fixA = in_Value.X;
             float fixR = in_Value.Y;
             float fixG = in_Value.Z;
             float fixB = in_Value.W;
             return new System.Numerics.Vector4(fixB, fixG, fixR, fixA);
-        }
-        else
-        {
-            float fixA = in_Value.X;
-            float fixR = in_Value.Y;
-            float fixG = in_Value.Z;
-            float fixB = in_Value.W;
-            return new System.Numerics.Vector4(fixB, fixG, fixR, fixA);
-        }
     }
     public static double Magnitude(this Color<byte> in_Value)
     {

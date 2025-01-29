@@ -32,7 +32,7 @@ namespace Kunai
         {
             base.OnLoad();
             Title = ApplicationName;
-            Renderer = new KunaiProject(this, new ShurikenRenderer.Vector2(1280, 720), new ShurikenRenderer.Vector2(ClientSize.X, ClientSize.Y));
+            Renderer = new KunaiProject(this, new System.Numerics.Vector2(1280, 720), new System.Numerics.Vector2(ClientSize.X, ClientSize.Y));
             _controller = new ImGuiController(ClientSize.X, ClientSize.Y);
 
             Renderer.Windows.Add(new MenuBarWindow());
@@ -51,7 +51,7 @@ namespace Kunai
             GL.Viewport(0, 0, ClientSize.X, ClientSize.Y);
             base.OnResize(in_E);
 
-            Renderer.ScreenSize = new ShurikenRenderer.Vector2(ClientSize.X, ClientSize.Y);
+            Renderer.ScreenSize = new System.Numerics.Vector2(ClientSize.X, ClientSize.Y);
             // Tell ImGui of the new size
             _controller.WindowResized(ClientSize.X, ClientSize.Y);
         }

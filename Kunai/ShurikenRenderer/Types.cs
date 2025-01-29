@@ -91,8 +91,8 @@ namespace Shuriken.Rendering
     public class Sprite
     {
         public readonly int Id;
-        public Kunai.ShurikenRenderer.Vector2 Start { get; set; }
-        public Kunai.ShurikenRenderer.Vector2 Dimensions { get; set; }
+        public Vector2 Start { get; set; }
+        public Vector2 Dimensions { get; set; }
         public Texture Texture { get; set; }
 
         // Used for saving to avoid corruption in un-edited values
@@ -105,13 +105,13 @@ namespace Shuriken.Rendering
         public int X
         {
             get { return (int)Start.X; }
-            set { Start.X = value; CreateCrop(); HasChanged = true; }
+            set { Start = new Vector2(value, Start.Y); CreateCrop(); HasChanged = true; }
         }
 
         public int Y
         {
             get { return (int)Start.Y; }
-            set { Start.Y = value; CreateCrop(); HasChanged = true; }
+            set { Start = new Vector2(Start.X, value); CreateCrop(); HasChanged = true; }
         }
 
         public int Width
@@ -121,7 +121,7 @@ namespace Shuriken.Rendering
             {
                 if (X + value <= Texture.Width)
                 {
-                    Dimensions.X = value;
+                    Dimensions = new Vector2(value, Dimensions.Y);
                     CreateCrop();
                     HasChanged = true;
                 }
@@ -135,7 +135,7 @@ namespace Shuriken.Rendering
             {
                 if (Y + value <= Texture.Height)
                 {
-                    Dimensions.Y = value;
+                    Dimensions = new Vector2(Dimensions.X, value);
                     CreateCrop();
                     HasChanged = true;
                 }
@@ -159,8 +159,7 @@ namespace Shuriken.Rendering
             Texture = in_Tex;
 
             Start = new Vector2(MathF.Round(in_Left * in_Tex.Width), MathF.Round(in_Top * in_Tex.Height));
-            Start.X = Math.Clamp(Start.X, 0, Texture.Width);
-            Start.Y = Math.Clamp(Start.Y, 0, Texture.Height);
+            Start = new Vector2(Math.Clamp(Start.X, 0, Texture.Width), Math.Clamp(Start.Y, 0, Texture.Height));
 
             Dimensions = new Vector2(MathF.Round((in_Right - in_Left) * in_Tex.Width), MathF.Round((in_Bottom - in_Top) * in_Tex.Height));
             CreateCrop();

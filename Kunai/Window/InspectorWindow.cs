@@ -109,7 +109,7 @@ namespace Kunai.Window
             bool mirrorX = materialFlags.HasFlag(ElementMaterialFlags.MirrorX);
             bool mirrorY = materialFlags.HasFlag(ElementMaterialFlags.MirrorY);
             Vector2 rectSize = new System.Numerics.Vector2((int)selectedCast.Width, (int)selectedCast.Height);
-            Vector2 topLeftVert = selectedCast.TopLeft;
+            Vector2 topLeftVert = selectedCast.TopLeft * KunaiProject.Instance.ViewportSize;
             Vector2 topRightVert = selectedCast.TopRight;
             Vector2 bottomLeftVert = selectedCast.BottomLeft;
             Vector2 bottomRightVert = selectedCast.BottomRight;
@@ -257,11 +257,11 @@ namespace Kunai.Window
                                 if (spriteReference != null)
                                 {
 
-                                    ShurikenRenderer.Vector2 uvTl = new ShurikenRenderer.Vector2(
+                                    Vector2 uvTl = new Vector2(
                                     spriteReference.Start.X / spriteReference.Texture.Width,
                                     -(spriteReference.Start.Y / spriteReference.Texture.Height));
 
-                                    ShurikenRenderer.Vector2 uvBr = uvTl + new ShurikenRenderer.Vector2(
+                                    Vector2 uvBr = uvTl + new Vector2(
                                     spriteReference.Dimensions.X / spriteReference.Texture.Width,
                                     -(spriteReference.Dimensions.Y / spriteReference.Texture.Height));
 

@@ -203,14 +203,14 @@ namespace Shuriken.Rendering
         }
 
         public void DrawSprite(
-            Kunai.ShurikenRenderer.Vector2 in_TopLeft, Kunai.ShurikenRenderer.Vector2 in_BottomLeft, Kunai.ShurikenRenderer.Vector2 in_TopRight, Kunai.ShurikenRenderer.Vector2 in_BottomRight,
-            Kunai.ShurikenRenderer.Vector2 in_Position, float in_Rotation, Kunai.ShurikenRenderer.Vector2 in_Scale, float in_AspectRatio,
+            Vector2 in_TopLeft, Vector2 in_BottomLeft, Vector2 in_TopRight, Vector2 in_BottomRight,
+            Vector2 in_Position, float in_Rotation, Vector2 in_Scale, float in_AspectRatio,
             Sprite in_Sprite, Sprite in_NextSprite, float in_SpriteFactor, Vector4 in_Color,
             Vector4 in_GradientTopLeft, Vector4 in_GradientBottomLeft, Vector4 in_GradientTopRight, Vector4 in_GradientBottomRight,
             int in_ZIndex, ElementMaterialFlags in_Flags)
         {
             var quad = new Quad();
-            var aspect = new Kunai.ShurikenRenderer.Vector2(in_AspectRatio, 1.0f);
+            var aspect = new Vector2(in_AspectRatio, 1.0f);
 
             quad.TopLeft.Position = in_Position + (in_TopLeft * in_Scale * aspect).Rotate(in_Rotation) / aspect;
             quad.BottomLeft.Position = in_Position + (in_BottomLeft * in_Scale * aspect).Rotate(in_Rotation) / aspect;

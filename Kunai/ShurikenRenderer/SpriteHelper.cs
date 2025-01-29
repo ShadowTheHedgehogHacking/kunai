@@ -4,6 +4,7 @@ using Shuriken.Rendering;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Numerics;
 using System.Windows.Media;
 using Sprite = Shuriken.Rendering.Sprite;
 using Texture = Shuriken.Rendering.Texture;

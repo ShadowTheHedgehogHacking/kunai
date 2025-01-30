@@ -15,6 +15,7 @@ namespace Kunai.Window
             ImGui.SetNextWindowSize(new System.Numerics.Vector2(size1 * 2.5f, ImGui.GetWindowViewport().Size.Y / 1.5f - MenuBarWindow.MenuBarHeight), ImGuiCond.Always);
             if (ImGui.Begin("Viewport", MainWindow.WindowFlags))
             {                
+                if(ImGui.IsWindowHovered())
                 ZoomFactor += ImGui.GetIO().MouseWheel / 5;
                 ZoomFactor = Math.Clamp(ZoomFactor, 0.5f, 5);
                 float windowHeight = ImGui.GetWindowWidth() * (in_Renderer.ViewportSize.Y / in_Renderer.ViewportSize.X);

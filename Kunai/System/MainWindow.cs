@@ -40,6 +40,7 @@ namespace Kunai
             Renderer.Windows.Add(new HierarchyWindow());
             Renderer.Windows.Add(new InspectorWindow());
             Renderer.Windows.Add(new ViewportWindow());
+            Renderer.Windows.Add(new CropEditor());
             if (Program.Arguments.Length > 0)
             {
                 Renderer.LoadFile(Program.Arguments[0]);

@@ -9,6 +9,8 @@ using System.Drawing;
 using System.Windows.Interop;
 using OpenTK.Graphics.OpenGL;
 using System;
+using System.Collections.Generic;
+using System.Numerics;
 
 namespace Shuriken.Rendering
 {    
@@ -18,10 +20,11 @@ namespace Shuriken.Rendering
         public string FullName { get; }
         public int Width { get; private set; }
         public int Height { get; private set; }
+        public Vector2 Size { get { return new Vector2(Width, Height); } set { Width = (int)value.X; Height = (int)value.Y; } }
 
         public BitmapSource ImageSource { get; private set; }
         internal GlTexture GlTex { get; private set; }
-        public ObservableCollection<int> Sprites { get; set; }
+        public List<int> Sprites { get; set; }
 
         private void CreateTexture(ScratchImage in_Img)
         {
@@ -167,7 +170,7 @@ namespace Shuriken.Rendering
             ImageSource = null;
             GlTex = null;
 
-            Sprites = new ObservableCollection<int>();
+            Sprites = new List<int>();
         }
     }
 }

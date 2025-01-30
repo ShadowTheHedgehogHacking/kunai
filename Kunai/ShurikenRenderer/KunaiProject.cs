@@ -1,9 +1,11 @@
 ﻿using Amicitia.IO.Binary;
+using ColoursXncpGen;
 using Hexa.NET.ImGui;
 using Hexa.NET.ImGuizmo;
 using Kunai.Window;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.Desktop;
+using SharpNeedle;
 using SharpNeedle.Ninja.Csd;
 using SharpNeedle.Ninja.Csd.Motions;
 using SharpNeedle.Utilities;
@@ -16,6 +18,7 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Kunai.ShurikenRenderer
 {
@@ -78,16 +81,40 @@ namespace Kunai.ShurikenRenderer
         }
         public void LoadFile(string in_Path)
         {
-            try
+            /// Colors and Colors Ultimate have a unique situation where
+            /// they have texture lists as files instead of being combined
+            /// as is the case literally everywhere else!
+            /// 
+            /// There's probably a better way to detect if a tls or dxl file exists, but 
+            /// this should work.
+            bool isTlsFilePresent = File.Exists(Path.ChangeExtension(in_Path, "tls"));
+            bool isDxlFilePresent = File.Exists(Path.ChangeExtension(in_Path, "dxl"));
+
+            if(isTlsFilePresent || isDxlFilePresent)
             {
+                byte[] file = File.ReadAllBytes(in_Path);
+                byte[] textureList = File.ReadAllBytes(Path.ChangeExtension(in_Path, isTlsFilePresent ? "tls" : "dxl"));
+                byte[] output = FileManager.Combine(file, textureList);
+                MemoryStream stream = new MemoryStream(output);
+                BinaryObjectReader reader = new BinaryObjectReader(stream,Amicitia.IO.Streams.StreamOwnership.Retain, Endianness.Little);
+                File.WriteAllBytes(in_Path + "_Test", output);
+                WorkProjectCsd = ResourceUtility.Open<CsdProject>(@in_Path + "_Test");
+                Console.WriteLine("");
+            }
+            else
+            {
+                //try
+                //{
                 WorkProjectCsd = ResourceUtility.Open<CsdProject>(@in_Path);
+                //}
+                //catch (Exception ex)
+                //{
+                //    //Implement cross platform messagebox
+                //    ShowMessageBoxCross("Error", ex.Message, true);
+                //    return;
+                //}
             }
-            catch (Exception ex)
-            {
-                //Implement cross platform messagebox
-                ShowMessageBoxCross("Error", ex.Message, true);
-                return;
-            }
+
             //Reset what needs to be reset
             string root = Path.GetDirectoryName(Path.GetFullPath(@in_Path));
             Config.WorkFilePath = in_Path;
@@ -270,6 +297,8 @@ namespace Kunai.ShurikenRenderer
             {
                 var transform = new CastTransform();
                 transform.Color = new System.Numerics.Vector4(1, 1, 1, 1);
+                if (family.Casts.Count == 0)
+                    continue;
                 Cast cast = family.Casts[0];
 
                 UpdateCast(in_Scene, cast, transform, idx, (float)(in_DeltaTime * in_Scene.FrameRate), vis);
@@ -356,6 +385,12 @@ namespace Kunai.ShurikenRenderer
             if (hideFlag)
                 return;
 
+            var visibilityDataCast = in_Vis.GetVisibility(in_UiElement);
+            if (visibilityDataCast == null)
+            {
+                Console.WriteLine("CRITICAL ERROR! Missing visibility for cast!!! Please fix!");
+                return;
+            }
             // Inherit position scale
             // TODO: Is this handled through flags?
             position.X *= in_Transform.Scale.X;
@@ -398,7 +433,7 @@ namespace Kunai.ShurikenRenderer
             var type = (DrawType)in_UiElement.Field04;
             var flags = (ElementMaterialFlags)in_UiElement.Field38;
 
-            if (in_Vis.GetVisibility(in_UiElement).Active && in_UiElement.Enabled)
+            if (visibilityDataCast.Active && in_UiElement.Enabled)
             {
                 if (type == DrawType.Sprite)
                 {
@@ -476,8 +511,24 @@ namespace Kunai.ShurikenRenderer
         {
             return _viewportData.CsdRenderTextureHandle;
         }
+        void RecursiveSetCropListNode(SceneNode in_Node, List<SharpNeedle.Ninja.Csd.Sprite> in_Sprites, List<Vector2> in_TexSizes)
+        {
+            foreach(var s in in_Node.Scenes)
+            {
+                s.Value.Sprites = in_Sprites;
+                s.Value.Textures = in_TexSizes;
+            }
+            foreach(var c in in_Node.Children)
+            {
+                RecursiveSetCropListNode(in_Node, in_Sprites, in_TexSizes);
+            }
+        }
         public void SaveCurrentFile(string in_Path)
         {
+            List<SharpNeedle.Ninja.Csd.Sprite> subImageList = new();
+            List<Vector2> sizes = new List<Vector2>();
+            SpriteHelper.BuildCropList(ref subImageList, ref sizes);
+            RecursiveSetCropListNode(WorkProjectCsd.Project.Root, subImageList, sizes);
             WorkProjectCsd.Write(in_Path == null ? Config.WorkFilePath : in_Path);
         }
 

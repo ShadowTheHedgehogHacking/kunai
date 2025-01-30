@@ -67,12 +67,43 @@ namespace Kunai.Window
 
             ImGui.InputText("Name", ref name, 256);
             ImGui.InputFloat("Framerate", ref fps);
-            ImGui.InputInt("Version", ref vers);
-            ImGui.InputInt("Priority", ref priority);   
             ImGui.InputFloat("Aspect Ratio", ref aspectRatio);
-            ImGui.SameLine();
-            ImGui.Text($"({simplifiedWidth}:{simplifiedHeight})");
-            
+            ImGui.InputInt("Version", ref vers);
+            ImGui.InputInt("Priority", ref priority);
+            ImGui.Text($"Ratio: ({simplifiedWidth}:{simplifiedHeight})");
+            ImGui.SeparatorText("Info");
+            var space = ImGui.GetContentRegionAvail();
+            if(ImGui.BeginListBox("##crops", new Vector2(-1, space.Y/2 - 5)))
+            {
+                int idx = 0;
+                foreach(var s in selectedScene.Value.Sprites)
+                {
+                    if(ImGui.TreeNode($"Crop ({idx})"))
+                    {
+                        ImGui.Text($"Texture Index: {s.TextureIndex.ToString()}");
+                        ImGui.Text($"Top-Left: {s.TopLeft.ToString()}");
+                        ImGui.Text($"Bottom-Right: {s.BottomRight.ToString()}");
+                        ImGui.TreePop();
+                    }
+                    idx++;
+                }
+                ImGui.EndListBox();
+            }
+            ImGui.Separator();
+            if (ImGui.BeginListBox("##textures", new Vector2(-1, space.Y/2 - 5)))
+            {
+                int idx = 0;
+                foreach (var s in selectedScene.Value.Textures)
+                {
+                    if (ImGui.TreeNode($"Texture ({idx})"))
+                    {
+                        ImGui.Text($"Size: {s.ToString()}");
+                        ImGui.TreePop();
+                    }
+                    idx++;
+                }
+                ImGui.EndListBox();
+            }
             selectedScene.Value.AspectRatio = aspectRatio;
             selectedScene.Value.AspectRatio = aspectRatio;
             selectedScene.Value.FrameRate = fps;
@@ -130,7 +161,7 @@ namespace Kunai.Window
             bool inheritScaleY = inheritanceFlags.HasFlag(ElementInheritanceFlags.InheritScaleY);
             int spriteIndex = (int)info.SpriteIndex;
             string text = selectedCast.Text;
-            float kerning = -BitConverter.ToSingle(BitConverter.GetBytes(selectedCast.Field4C));
+            float kerning = BitConverter.ToSingle(BitConverter.GetBytes(selectedCast.Field4C)) * 100;
             string fontname = selectedCast.FontName;
 
             int indexFont = _fontNames.IndexOf(fontname);
@@ -213,7 +244,7 @@ namespace Kunai.Window
                     ImGui.PushID("textInput");
                     ImGui.InputText("Text", ref text, 512);
                     ImGui.PopID();
-                    ImGui.DragFloat("Kerning", ref kerning, 0.0005f);
+                    ImGui.DragFloat("Kerning", ref kerning, 0.005f);
                 }
             }
             if (type != 0)
@@ -257,13 +288,7 @@ namespace Kunai.Window
                                 if (spriteReference != null)
                                 {
 
-                                    Vector2 uvTl = new Vector2(
-                                    spriteReference.Start.X / spriteReference.Texture.Width,
-                                    -(spriteReference.Start.Y / spriteReference.Texture.Height));
-
-                                    Vector2 uvBr = uvTl + new Vector2(
-                                    spriteReference.Dimensions.X / spriteReference.Texture.Width,
-                                    -(spriteReference.Dimensions.Y / spriteReference.Texture.Height));
+                                    var uvCoords = spriteReference.GetImGuiUV();
 
                                     if (spriteReference.Texture.GlTex == null)
                                     {
@@ -271,18 +296,7 @@ namespace Kunai.Window
                                     }
                                     else
                                     {
-                                        //This is so stupid, this is how youre supposed to do it according to the HexaNET issues
-                                        unsafe
-                                        {
-                                            const int bufferSize = 256;
-                                            byte* buffer = stackalloc byte[bufferSize];
-                                            StrBuilder sb = new(buffer, bufferSize);
-                                            sb.Append($"##pattern{i}");
-                                            sb.End();
-                                            //Draw sprite
-                                            ImGui.ImageButton(sb, new ImTextureID(spriteReference.Texture.GlTex.Id), new System.Numerics.Vector2(50, 50), uvTl, uvBr);
-
-                                        }
+                                        ImKunaiTreeNode.SpriteImageButton($"##pattern{i}", spriteReference);
                                     }
                                 }
                                 if (i != selectedCast.SpriteIndices.Length - 1)
@@ -332,7 +346,7 @@ namespace Kunai.Window
             selectedCast.Field38 = (uint)materialFlags;
             selectedCast.FontName = fontname;
             selectedCast.Text = text;
-            selectedCast.Field4C = (uint)BitConverter.ToInt32(BitConverter.GetBytes(-kerning), 0);
+            selectedCast.Field4C = (uint)BitConverter.ToInt32(BitConverter.GetBytes(kerning / 100), 0);
         }
         public override void Update(KunaiProject in_Proj)
         {

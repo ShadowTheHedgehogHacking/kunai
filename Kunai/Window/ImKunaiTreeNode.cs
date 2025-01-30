@@ -1,4 +1,5 @@
 ﻿using Hexa.NET.ImGui;
+using Hexa.NET.Utilities.Text;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,6 +25,37 @@ namespace Kunai.Window
                 Color = color;
             }
             public bool IsNull() => string.IsNullOrEmpty(Icon);
+        }
+        public static unsafe bool SpriteImageButton(string in_ID, Shuriken.Rendering.Sprite in_Spr)
+        {
+            //This is so stupid, this is how youre supposed to do it according to the HexaNET issues
+            unsafe
+            {
+                const int bufferSize = 256;
+                byte* buffer = stackalloc byte[bufferSize];
+                StrBuilder sb = new(buffer, bufferSize);
+                sb.Append($"##{in_ID}");
+                sb.End();
+                var uvCoords = in_Spr.GetImGuiUV();
+                //Draw sprite
+                return ImGui.ImageButton(sb, new ImTextureID(in_Spr.Texture.GlTex.Id), new System.Numerics.Vector2(50, 50), uvCoords[0], uvCoords[1]);
+
+            }
+        }
+        public static unsafe void SpriteImage(string in_ID, Shuriken.Rendering.Sprite in_Spr)
+        {
+            unsafe
+            {
+                const int bufferSize = 256;
+                byte* buffer = stackalloc byte[bufferSize];
+                StrBuilder sb = new(buffer, bufferSize);
+                sb.Append($"##{in_ID}");
+                sb.End();
+                var uvCoords = in_Spr.GetImGuiUV();
+                //Draw sprite
+                ImGui.Image(new ImTextureID(in_Spr.Texture.GlTex.Id), new System.Numerics.Vector2(50, 50), uvCoords[0], uvCoords[1]);
+
+            }
         }
         public static bool VisibilityNode(string in_Name, ref bool in_Visibile, ref bool in_IsSelected, Action in_RightClickAction = null, bool in_ShowArrow = true, SIconData in_Icon = new(), string in_ID = "")
         {

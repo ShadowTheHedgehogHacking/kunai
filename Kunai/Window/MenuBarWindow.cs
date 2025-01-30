@@ -48,9 +48,19 @@ namespace Kunai.Window
                             in_Renderer.LoadFile(@testdial.Path);
                         }
                     }
-                    if (ImGui.MenuItem("Save", "Ctrl + S"))
+                    if (ImGui.MenuItem("Save...", "Ctrl + S"))
                     {
                         in_Renderer.SaveCurrentFile(null);
+                    }
+                    if (ImGui.MenuItem("Save As...", "Ctrl + Shift + S"))
+                    {
+                        var result = NativeFileDialogSharp.Dialog.FileSave(Filters, KunaiProject.Instance.Config.WorkFilePath);
+                        if(result.IsOk)
+                        {
+                            string path = result.Path;
+                            if (!Path.HasExtension(path)) path += ".xncp";
+                            in_Renderer.SaveCurrentFile(result.Path);
+                        }
                     }
                     ImGui.EndMenu();
                 }

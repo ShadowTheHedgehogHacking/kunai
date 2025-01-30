@@ -78,6 +78,23 @@ namespace Kunai
             {
                 return Casts.FirstOrDefault(in_Node => in_Node.Cast == in_Cast);
             }
+            public void Remove(SCast in_Cast)
+            {
+                Family familyOfCast = null;
+                foreach(var f in Scene.Value.Families)
+                {
+                    if(f.Casts.Contains(in_Cast.Cast))
+                    {
+                        familyOfCast = f;
+                        f.Remove(in_Cast.Cast);
+                        break;
+                    }
+                }
+                if(familyOfCast != null)
+                    if(familyOfCast.Count == 0)
+                        Scene.Value.Families.Remove(familyOfCast);
+                Casts.Remove(in_Cast);
+            }
         }
         public class SNode
         {

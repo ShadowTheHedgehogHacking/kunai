@@ -102,6 +102,28 @@ namespace Shuriken.Rendering
         public float OriginalRight { get; set; }
         public bool HasChanged { get; set; }
 
+        public Vector2 RelativeStart
+        {
+            get
+            {
+                return Start / Texture.Size;
+            }
+            set
+            {
+                Start = value * Texture.Size;
+            }
+        }
+        public Vector2 RelativeSize
+        {
+            get
+            {
+                return Dimensions / Texture.Size;
+            }
+            set
+            {
+                Dimensions = value * Texture.Size;
+            }
+        }
         public int X
         {
             get { return (int)Start.X; }
@@ -152,16 +174,30 @@ namespace Shuriken.Rendering
                     Crop = new CroppedBitmap(Texture.ImageSource, new Int32Rect(X, Y, Width, Height));
             }
         }
+        public Vector2[] GetImGuiUV()
+        {
+            Vector2 uvTl = new Vector2(
+                Start.X / Texture.Width,
+                -(Start.Y / Texture.Height));
 
+            Vector2 uvBr = uvTl + new Vector2(
+            Dimensions.X / Texture.Width,
+            -(Dimensions.Y / Texture.Height));
+
+            return [uvTl, uvBr];
+        }
+
+        public void GenerateCoordinates(Vector2 in_TextureSize)
+        {
+            Start = new Vector2(MathF.Round(OriginalLeft * in_TextureSize.X), MathF.Round(OriginalTop * in_TextureSize.Y));
+            Start = new Vector2(Math.Clamp(Start.X, 0, in_TextureSize.X), Math.Clamp(Start.Y, 0, in_TextureSize.Y));
+            Dimensions = new Vector2(MathF.Round((OriginalRight - OriginalLeft) * in_TextureSize.X), MathF.Round((OriginalBottom - OriginalTop) * in_TextureSize.Y));
+        }
         public Sprite(int in_Id, Texture in_Tex, float in_Top = 0.0f, float in_Left = 0.0f, float in_Bottom = 1.0f, float in_Right = 1.0f)
         {
             Id = in_Id;
             Texture = in_Tex;
 
-            Start = new Vector2(MathF.Round(in_Left * in_Tex.Width), MathF.Round(in_Top * in_Tex.Height));
-            Start = new Vector2(Math.Clamp(Start.X, 0, Texture.Width), Math.Clamp(Start.Y, 0, Texture.Height));
-
-            Dimensions = new Vector2(MathF.Round((in_Right - in_Left) * in_Tex.Width), MathF.Round((in_Bottom - in_Top) * in_Tex.Height));
             CreateCrop();
 
             OriginalTop = in_Top;
@@ -169,6 +205,7 @@ namespace Shuriken.Rendering
             OriginalBottom = in_Bottom;
             OriginalRight = in_Right;
             HasChanged = false;
+            GenerateCoordinates(in_Tex.Size);
         }
 
         public Sprite()

@@ -97,6 +97,49 @@ namespace Kunai.ShurikenRenderer
         private static int _nextSpriteId = 1;
         private static List<Crop> _ncpSubimages = new List<Crop>();
         public static TextureList TextureList;
+        public static List<Vector2> TextureSizesOriginal;
+
+        public static void AddTexture(Texture texture)
+        {
+            TextureList.Textures.Add(texture);
+            TextureSizesOriginal.Add(texture.Size);
+        }
+        public static void BuildCropList(ref List<SharpNeedle.Ninja.Csd.Sprite> subImages, ref List<Vector2> in_TextureSizes)
+        {
+            subImages = new();
+            in_TextureSizes = TextureSizesOriginal;
+            if(in_TextureSizes.Count < TextureList.Textures.Count)
+            {
+                for (int i = 0; i < TextureList.Textures.Count - in_TextureSizes.Count; i++)
+                {
+                    in_TextureSizes.Add(TextureList.Textures[i].Size);
+                }
+            }
+            TextureList texList = TextureList;
+            foreach (var entry in Sprites)
+            {
+                Shuriken.Rendering.Sprite sprite = entry.Value;
+                int textureIndex = texList.Textures.IndexOf(sprite.Texture);
+                if(sprite.Crop != null)
+                {
+                    SharpNeedle.Ninja.Csd.Sprite subImage = new();
+                    subImage.TextureIndex = textureIndex;
+                    subImage.TopLeft = new Vector2((float)sprite.X / sprite.Texture.Width, (float)sprite.Y / sprite.Texture.Height);
+                    subImage.BottomRight = new Vector2((float)(sprite.X + sprite.Width) / sprite.Texture.Width, (float)(sprite.Y + sprite.Height) / sprite.Texture.Height);
+                    subImages.Add(subImage);
+                }
+                else
+                {
+                    var size = in_TextureSizes[textureIndex] * new Vector2(1280, 720);
+                    sprite.GenerateCoordinates(size);
+                    SharpNeedle.Ninja.Csd.Sprite subImage = new();
+                    subImage.TextureIndex = textureIndex;
+                    subImage.TopLeft = new Vector2((float)sprite.X / size.X, (float)sprite.Y / size.Y);
+                    subImage.BottomRight = new Vector2((float)(sprite.X + sprite.Width) / size.X, (float)(sprite.Y + sprite.Height) / size.Y);
+                    subImages.Add(subImage);
+                }
+            }
+        }
         public static Sprite TryGetSprite(int in_Id)
         {
             Sprites.TryGetValue(in_Id+1, out Sprite sprite);
@@ -113,8 +156,24 @@ namespace Kunai.ShurikenRenderer
             return AppendSprite(spr);
         }
 
+        public static void RecurFindFirstTextureListFromFile(SceneNode in_Node)
+        {
+            foreach(var s in in_Node.Scenes)
+            {
+                if(s.Value.Textures.Count != 0)
+                {
+                    TextureSizesOriginal = s.Value.Textures;
+                    return;
+                }
+            }
+            foreach(var n in in_Node.Children)
+            {
+                RecurFindFirstTextureListFromFile(n.Value);
+            }
+        }
         public static void LoadTextures(CsdProject in_CsdProject)
         {
+            RecurFindFirstTextureListFromFile(in_CsdProject.Project.Root);
             _ncpSubimages.Clear();
             Sprites.Clear();
             GetSubImages(in_CsdProject.Project.Root);

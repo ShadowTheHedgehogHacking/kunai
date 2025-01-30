@@ -1,5 +1,6 @@
 ﻿using Hexa.NET.ImGui;
 using Hexa.NET.Utilities.Text;
+using Kunai.ShurikenRenderer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,24 @@ using System.Threading.Tasks;
 
 namespace Kunai.Window
 {
+    public struct STextureSelectorResult
+    {
+        public int TextureIndex; 
+        public int SpriteIndex;
+        public STextureSelectorResult(int textureIndex, int spriteIndex)
+        {
+            TextureIndex = textureIndex;
+            SpriteIndex = spriteIndex;
+        }
+        public bool IsCropSelected()
+        {
+            return TextureIndex != -2 && SpriteIndex != -2;
+        }
+        public int GetSpriteIndex()
+        {
+            return SpriteHelper.TextureList.Textures[TextureIndex].Sprites[SpriteIndex] - 1;
+        }
+    }
     public static class ImKunaiTreeNode
     {
         public struct SIconData
@@ -25,6 +44,36 @@ namespace Kunai.Window
                 Color = color;
             }
             public bool IsNull() => string.IsNullOrEmpty(Icon);
+        }
+        public static STextureSelectorResult TextureSelector(KunaiProject in_Renderer)
+        {
+            int selectedIndex = -2;
+            int selectedSpriteIndex = -2;
+            int idx = 0;
+            foreach (var t in in_Renderer.WorkProjectCsd.Textures)
+            {
+                if (ImGui.TreeNode(t.Name))
+                {
+                    int idx2 = 0;
+                    foreach (var s in SpriteHelper.TextureList.Textures[idx].Sprites)
+                    {
+                        Shuriken.Rendering.Sprite spr = SpriteHelper.Sprites[s];
+
+                        if (ImKunaiTreeNode.SpriteImageButton($"##crop{idx2}", spr))
+                        {
+                            selectedIndex = idx;
+                            selectedSpriteIndex = idx2;
+                        }
+                        ImGui.SameLine();
+                        ImGui.Text($"Crop ({idx2})");
+                        idx2++;
+                    }
+
+                    ImGui.TreePop();
+                }
+                idx++;
+            }
+            return new STextureSelectorResult(selectedIndex, selectedSpriteIndex);
         }
         public static unsafe bool SpriteImageButton(string in_ID, Shuriken.Rendering.Sprite in_Spr)
         {

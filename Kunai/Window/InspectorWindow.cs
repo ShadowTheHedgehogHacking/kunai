@@ -21,10 +21,13 @@ namespace Kunai.Window
             Cast
         }
         public static ESelectionType SelectionType;
+        static bool isEditingCrop;
 
         private static List<string> _fontNames = new List<string>();
         public static void SelectCast(Cast in_Cast)
         {
+
+            isEditingCrop = false;
             KunaiProject.Instance.SelectionData.SelectedCast = in_Cast;
             SelectionType = ESelectionType.Cast;
         }
@@ -306,6 +309,32 @@ namespace Kunai.Window
                                 ImGui.PopStyleColor();
                         }
                         ImGui.EndListBox();
+                    }
+                    if(!isEditingCrop)
+                    {
+                        ImGui.SetNextItemWidth(-1);
+                        if (ImGui.Button("Edit current pattern", new Vector2(-1, 32)))
+                        {
+                            isEditingCrop = true;
+                        }
+                    }
+                    else
+                    {
+                        if(ImGui.BeginListBox("##listpatternsselection", new Vector2(-1, 250)))
+                        {
+                            var result = ImKunaiTreeNode.TextureSelector(Renderer);
+                            if (result.IsCropSelected())
+                            {                                
+                                selectedCast.SpriteIndices[spriteIndex] = result.GetSpriteIndex();
+                            }
+
+                            ImGui.EndListBox();
+                        }
+                        if (ImGui.Button("Stop editing pattern", new Vector2(-1, 32)))
+                        {
+                            isEditingCrop = false;
+                        }
+
                     }
                     ImGui.EndDisabled();
                 }

@@ -101,6 +101,9 @@ namespace Kunai.ShurikenRenderer
 
         public static void AddTexture(Texture texture)
         {
+            var texture2 = new TextureMirage(texture.Name + ".dds");
+            KunaiProject.Instance.WorkProjectCsd.Textures.Add(texture2);
+            texture.Sprites.Add(CreateSprite(texture));
             TextureList.Textures.Add(texture);
             TextureSizesOriginal.Add(texture.Size);
         }

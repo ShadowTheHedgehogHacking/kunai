@@ -11,6 +11,8 @@ using SharpNeedle.Ninja.Csd.Motions;
 using SharpNeedle.Utilities;
 using Shuriken.Models;
 using Shuriken.Rendering;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -19,6 +21,8 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
+using Font = SharpNeedle.Ninja.Csd.Font;
+using PixelFormat = OpenTK.Graphics.OpenGL.PixelFormat;
 
 namespace Kunai.ShurikenRenderer
 {
@@ -58,6 +62,7 @@ namespace Kunai.ShurikenRenderer
         private GameWindow _window;
         private int _currentDrawPriority;
         public List<WindowBase> Windows = new List<WindowBase>();
+        bool saveScreenshotWhenRendered = false;
         public KunaiProject(GameWindow in_Window2, Vector2 in_ViewportSize, Vector2 in_ClientSize)
         {
             if (Instance != null)
@@ -173,12 +178,13 @@ namespace Kunai.ShurikenRenderer
         {
             if (in_CsdProject != null)
             {
+                bool isSavingScreenshot = saveScreenshotWhenRendered;
                 // Get the size of the child (i.e. the whole draw size of the windows).
                 System.Numerics.Vector2 wsize = ScreenSize;
 
                 // make sure the buffers are the currect size
                 OpenTK.Mathematics.Vector2i wsizei = new((int)wsize.X, (int)wsize.Y);
-                if (_viewportData.FramebufferSize != wsizei)
+                if (_viewportData.FramebufferSize != wsizei || isSavingScreenshot)
                 {
                     _viewportData.FramebufferSize = wsizei;
 
@@ -200,7 +206,11 @@ namespace Kunai.ShurikenRenderer
                     _viewportData.CsdRenderTextureHandle = GL.GenTexture();
                     GL.BindTexture(TextureTarget.Texture2D, _viewportData.CsdRenderTextureHandle);
                     GL.ObjectLabel(ObjectLabelIdentifier.Texture, _viewportData.CsdRenderTextureHandle, 16, "GameWindow:Color");
-                    GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb, wsizei.X, wsizei.Y, 0, OpenTK.Graphics.OpenGL.PixelFormat.Rgb, PixelType.UnsignedByte, IntPtr.Zero);
+                    //IMPORTANT!
+                    //Rgba for screenshots, rgb for everything else
+                    var pixelInternalFormat = isSavingScreenshot ? PixelInternalFormat.Rgba : PixelInternalFormat.Rgba;
+                    var pixelFormat = isSavingScreenshot ? PixelFormat.Rgba : PixelFormat.Rgba;
+                    GL.TexImage2D(TextureTarget.Texture2D, 0, pixelInternalFormat, wsizei.X, wsizei.Y, 0, pixelFormat, PixelType.UnsignedByte, IntPtr.Zero);
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
                     GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, _viewportData.CsdRenderTextureHandle, 0);
@@ -212,6 +222,7 @@ namespace Kunai.ShurikenRenderer
                     GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, _viewportData.RenderbufferHandle);
                     GL.ObjectLabel(ObjectLabelIdentifier.Renderbuffer, _viewportData.RenderbufferHandle, 16, "GameWindow:Depth");
                     GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.DepthComponent32f, wsizei.X, wsizei.Y);
+
                     GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, _viewportData.RenderbufferHandle);
                     //GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, 0);
 
@@ -234,7 +245,42 @@ namespace Kunai.ShurikenRenderer
                 GL.Viewport(0, 0, wsizei.X, wsizei.Y); // change the viewport to window
                 // actually draw the scene
                 {
-                    RenderToViewport(in_CsdProject, in_DeltaTime);
+                    GL.Enable(EnableCap.Blend);
+                    RenderToViewport(in_CsdProject, in_DeltaTime, isSavingScreenshot);
+                }
+
+                if(isSavingScreenshot)
+                {
+                    //Save framebuffer to a pixel buffer
+                    byte[] buffer = new byte[wsizei.X * wsizei.Y * 4];
+                    GL.ReadPixels(0, 0, wsizei.X, wsizei.Y, PixelFormat.Rgba, PixelType.UnsignedByte, buffer);
+
+                    Image<SixLabors.ImageSharp.PixelFormats.Rgba32> screenshot = 
+                        Image.LoadPixelData<SixLabors.ImageSharp.PixelFormats.Rgba32>(buffer, wsizei.X, wsizei.Y);
+
+                    //Flip vertically to fix orientation
+                    screenshot.Mutate(x => x.Flip(FlipMode.Vertical));
+
+                    //screenshot.Mutate(ctx =>
+                    //{
+                    //    ctx.ProcessPixelRowsAsVector4(rows =>
+                    //    {
+                    //        for (int y = 0; y < rows.Length; y++)
+                    //        {
+                    //            rows[y].W = 1.0f - rows[y].W;
+                    //        }
+                    //    });
+                    //});
+                    var fileDialog = NativeFileDialogSharp.Dialog.FileSave("png");
+                    if(fileDialog.IsOk)
+                    {
+                        string path = fileDialog.Path;
+                        if (!Path.HasExtension(path))
+                            path += ".png";
+                        screenshot.SaveAsPng(path);
+                    }
+
+                    saveScreenshotWhenRendered = false;
                 }
                 // unbind our bo so nothing else uses it
                 GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
@@ -242,9 +288,9 @@ namespace Kunai.ShurikenRenderer
             }
             UpdateWindows();
         }
-        private void RenderToViewport(CsdProject in_CsdProject, float in_DeltaTime)
-        {
-            GL.ClearColor(OpenTK.Mathematics.Color4.DarkGray);
+        private void RenderToViewport(CsdProject in_CsdProject, float in_DeltaTime, bool in_ScreenshotMode)
+        {            
+            GL.ClearColor(in_ScreenshotMode ? OpenTK.Mathematics.Color4.Transparent : OpenTK.Mathematics.Color4.DarkGray);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             Renderer.Width = (int)ViewportSize.X;
@@ -520,16 +566,16 @@ namespace Kunai.ShurikenRenderer
             }
             foreach(var c in in_Node.Children)
             {
-                RecursiveSetCropListNode(in_Node, in_Sprites, in_TexSizes);
+                RecursiveSetCropListNode(c.Value, in_Sprites, in_TexSizes);
             }
         }
         public void SaveCurrentFile(string in_Path)
         {
             List<SharpNeedle.Ninja.Csd.Sprite> subImageList = new();
             List<Vector2> sizes = new List<Vector2>();
-            SpriteHelper.BuildCropList(ref subImageList, ref sizes);
-            RecursiveSetCropListNode(WorkProjectCsd.Project.Root, subImageList, sizes);
-            WorkProjectCsd.Write(in_Path == null ? Config.WorkFilePath : in_Path);
+            //SpriteHelper.BuildCropList(ref subImageList, ref sizes);
+            //RecursiveSetCropListNode(WorkProjectCsd.Project.Root, subImageList, sizes);
+            WorkProjectCsd.Write(in_Path == null ? Config.WorkFilePath : in_Path, false);
         }
 
         internal void UpdateWindows()
@@ -539,6 +585,11 @@ namespace Kunai.ShurikenRenderer
                 window.Renderer = this;
                 window.Update(this);
             }
+        }
+
+        internal void SaveScreenshot()
+        {
+            saveScreenshotWhenRendered = true;
         }
     }
 }

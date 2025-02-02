@@ -53,29 +53,6 @@ namespace Kunai.Window
                         selectedIndex = result.TextureIndex;
                     if (result.SpriteIndex != -2)
                         selectedSpriteIndex = result.SpriteIndex;
-                    //foreach (var t in in_Renderer.WorkProjectCsd.Textures)
-                    //{
-                    //    if(ImGui.TreeNode(t.Name))
-                    //    {
-                    //        int idx2 = 0;
-                    //        foreach(var s in SpriteHelper.TextureList.Textures[idx].Sprites)
-                    //        {
-                    //            Shuriken.Rendering.Sprite spr = SpriteHelper.Sprites[s];
-                    //
-                    //            if(ImKunaiTreeNode.SpriteImageButton($"##crop{idx2}", spr))
-                    //            {
-                    //                selectedIndex = idx;
-                    //                selectedSpriteIndex = idx2;
-                    //            }
-                    //            ImGui.SameLine();
-                    //            ImGui.Text($"Crop ({idx2})");
-                    //            idx2++;
-                    //        }
-                    //
-                    //        ImGui.TreePop();
-                    //    }
-                    //    idx++;
-                    //}
                     ImGui.EndListBox();
                 }
                 ImGui.SameLine();

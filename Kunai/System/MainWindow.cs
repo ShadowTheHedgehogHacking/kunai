@@ -66,7 +66,6 @@ namespace Kunai
             GL.Enable(EnableCap.Blend);
             GL.Disable(EnableCap.CullFace);
             GL.BlendEquation(BlendEquationMode.FuncAdd);
-
             float deltaTime = (float)(in_E.Time);
             Renderer.Render(Renderer.WorkProjectCsd, (float)deltaTime);
             //ImGui.ShowMetricsWindow();

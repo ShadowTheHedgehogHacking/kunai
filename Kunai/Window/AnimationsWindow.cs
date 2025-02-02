@@ -10,6 +10,7 @@ using SharpNeedle.Ninja.Csd.Motions;
 using System.Collections.Generic;
 using System.Numerics;
 using IconFonts;
+using OpenTK.Graphics.OpenGL;
 
 namespace Kunai.Window
 {
@@ -35,6 +36,7 @@ namespace Kunai.Window
                 ImGui.PushFont(ImGuiController.FontAwesomeFont);
                 if (ImGui.Button(FontAwesome6.Camera))
                 {
+                    in_Renderer.SaveScreenshot();
                 }
                 ImGui.SameLine();
                 if (ImGui.Button(FontAwesome6.Stop))

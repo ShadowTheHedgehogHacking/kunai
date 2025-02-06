@@ -208,8 +208,8 @@ namespace Kunai.ShurikenRenderer
                     GL.ObjectLabel(ObjectLabelIdentifier.Texture, _viewportData.CsdRenderTextureHandle, 16, "GameWindow:Color");
                     //IMPORTANT!
                     //Rgba for screenshots, rgb for everything else
-                    var pixelInternalFormat = isSavingScreenshot ? PixelInternalFormat.Rgba : PixelInternalFormat.Rgba;
-                    var pixelFormat = isSavingScreenshot ? PixelFormat.Rgba : PixelFormat.Rgba;
+                    var pixelInternalFormat = isSavingScreenshot ? PixelInternalFormat.Rgba : PixelInternalFormat.Rgb;
+                    var pixelFormat = isSavingScreenshot ? PixelFormat.Rgba : PixelFormat.Rgb;
                     GL.TexImage2D(TextureTarget.Texture2D, 0, pixelInternalFormat, wsizei.X, wsizei.Y, 0, pixelFormat, PixelType.UnsignedByte, IntPtr.Zero);
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);

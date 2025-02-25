@@ -1,12 +1,9 @@
-﻿
-
-using Hexa.NET.ImGui;
+﻿using Hexa.NET.ImGui;
 using Hexa.NET.ImPlot;
 using Hexa.NET.ImGuizmo;
 using Kunai.ShurikenRenderer;
-using static SharpNeedle.HedgehogEngine.Mirage.SampleChunkNode;
 using Hexa.NET.Utilities.Text;
-using SharpNeedle.Ninja.Csd.Motions;
+using SharpNeedle.Framework.Ninja.Csd.Motions;
 using System.Collections.Generic;
 using System.Numerics;
 using IconFonts;
@@ -152,7 +149,7 @@ namespace Kunai.Window
                                 if (ImPlot.DragPoint(i, &point.X, &point.Y, Renderer.SelectionData.KeyframeSelected == Renderer.SelectionData.TrackAnimation.Frames[i] ? new System.Numerics.Vector4(1, 0.9f, 1, 1) : new System.Numerics.Vector4(0, 0.9f, 0, 1), 8, ImPlotDragToolFlags.None, &isClicked))
                                 {
                                     if (isFloatValue)
-                                        Renderer.SelectionData.TrackAnimation.Frames[i].Value = new SharpNeedle.Ninja.Csd.Motions.KeyFrame.Union((float)point.Y);
+                                        Renderer.SelectionData.TrackAnimation.Frames[i].Value = new SharpNeedle.Framework.Ninja.Csd.Motions.KeyFrame.Union((float)point.Y);
                                     Renderer.SelectionData.TrackAnimation.Frames[i].Frame = (uint)point.X;
                                 }
                                 if (isClicked)

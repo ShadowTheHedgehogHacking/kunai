@@ -6,8 +6,11 @@ using Kunai.Window;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.Desktop;
 using SharpNeedle;
-using SharpNeedle.Ninja.Csd;
-using SharpNeedle.Ninja.Csd.Motions;
+using SharpNeedle.Framework.Ninja;
+using SharpNeedle.Framework.Ninja.Csd;
+using SharpNeedle.Framework.Ninja.Csd.Motions;
+using SharpNeedle.IO;
+using SharpNeedle.Resource;
 using SharpNeedle.Utilities;
 using Shuriken.Models;
 using Shuriken.Rendering;
@@ -21,7 +24,7 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
-using Font = SharpNeedle.Ninja.Csd.Font;
+using Font = SharpNeedle.Framework.Ninja.Csd.Font;
 using PixelFormat = OpenTK.Graphics.OpenGL.PixelFormat;
 
 namespace Kunai.ShurikenRenderer
@@ -86,6 +89,8 @@ namespace Kunai.ShurikenRenderer
         }
         public void LoadFile(string in_Path)
         {
+            WorkProjectCsd = null;
+            VisibilityData = null;
             /// Colors and Colors Ultimate have a unique situation where
             /// they have texture lists as files instead of being combined
             /// as is the case literally everywhere else!
@@ -97,13 +102,39 @@ namespace Kunai.ShurikenRenderer
 
             if(isTlsFilePresent || isDxlFilePresent)
             {
-                byte[] file = File.ReadAllBytes(in_Path);
-                byte[] textureList = File.ReadAllBytes(Path.ChangeExtension(in_Path, isTlsFilePresent ? "tls" : "dxl"));
-                byte[] output = FileManager.Combine(file, textureList);
-                MemoryStream stream = new MemoryStream(output);
-                BinaryObjectReader reader = new BinaryObjectReader(stream,Amicitia.IO.Streams.StreamOwnership.Retain, Endianness.Little);
-                File.WriteAllBytes(in_Path + "_Test", output);
-                WorkProjectCsd = ResourceUtility.Open<CsdProject>(@in_Path + "_Test");
+                byte[] csdFile = File.ReadAllBytes(in_Path);
+                string path = isDxlFilePresent ? Path.ChangeExtension(in_Path, "dxl") : Path.ChangeExtension(in_Path, "tls");
+                byte[] textureList = File.ReadAllBytes(path);
+
+                using var reader = new BinaryObjectReader(@in_Path, Endianness.Big, Encoding.ASCII);
+                var test = reader.ReadObject<InfoChunk>();
+                using var reader2 = new BinaryObjectReader(path, Endianness.Little, Encoding.ASCII);
+                var test2 = reader.ReadObject<TextureListNN>();
+                //File.WriteAllBytes(in_Path + "_Test", output);
+
+                if (isTlsFilePresent)
+                {
+                    ShowMessageBoxCross("Warning", "Split gncp files are not yet supported.", true);
+                }   
+                if(isDxlFilePresent)
+                {
+                    //Merge both files using the same method as ColoursXncpGen
+                    byte[] output = FileManager.Combine(csdFile, textureList);
+                    using (var memstr = new MemoryStream(output))
+                    {
+                        VirtualFile file = new VirtualFile(Path.GetFileName(in_Path), new VirtualDirectory(Directory.GetParent(in_Path).FullName));
+                        file.BaseStream = memstr;
+                        WorkProjectCsd = ResourceManager.Instance.Open<CsdProject>(file, true);
+                    }
+                }
+
+                
+                //Endianness endianness = isDxlFilePresent ? Endianness.Little : Endianness.Big;
+                //BinaryObjectReader reader = new BinaryObjectReader(in_Path, endianness, Encoding.UTF8);
+                //BinaryObjectReader readerTx = new BinaryObjectReader(path, endianness, Encoding.UTF8);
+                //WorkProjectCsd = new CsdProject();
+                //WorkProjectCsd.Project = reader.ReadObject<ProjectChunk>();
+                //WorkProjectCsd.Textures = isDxlFilePresent ? readerTx.ReadObject<TextureListMirage>() : readerTx.ReadObject<TextureListNN>();
                 Console.WriteLine("");
             }
             else
@@ -557,7 +588,7 @@ namespace Kunai.ShurikenRenderer
         {
             return _viewportData.CsdRenderTextureHandle;
         }
-        void RecursiveSetCropListNode(SceneNode in_Node, List<SharpNeedle.Ninja.Csd.Sprite> in_Sprites, List<Vector2> in_TexSizes)
+        void RecursiveSetCropListNode(SceneNode in_Node, List<SharpNeedle.Framework.Ninja.Csd.Sprite> in_Sprites, List<Vector2> in_TexSizes)
         {
             foreach(var s in in_Node.Scenes)
             {
@@ -571,11 +602,11 @@ namespace Kunai.ShurikenRenderer
         }
         public void SaveCurrentFile(string in_Path)
         {
-            List<SharpNeedle.Ninja.Csd.Sprite> subImageList = new();
+            List<SharpNeedle.Framework.Ninja.Csd.Sprite> subImageList = new();
             List<Vector2> sizes = new List<Vector2>();
             //SpriteHelper.BuildCropList(ref subImageList, ref sizes);
             //RecursiveSetCropListNode(WorkProjectCsd.Project.Root, subImageList, sizes);
-            WorkProjectCsd.Write(in_Path == null ? Config.WorkFilePath : in_Path, false);
+            WorkProjectCsd.Write(string.IsNullOrEmpty(in_Path) ? Config.WorkFilePath : in_Path);
         }
 
         internal void UpdateWindows()

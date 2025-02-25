@@ -1,11 +1,7 @@
-﻿using SharpNeedle.Ninja.Csd;
-using SharpNeedle.SurfRide.Draw;
-using Shuriken.Rendering;
+﻿using SharpNeedle.Framework.Ninja.Csd;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Numerics;
-using System.Windows.Media;
 using Sprite = Shuriken.Rendering.Sprite;
 using Texture = Shuriken.Rendering.Texture;
 namespace Kunai.ShurikenRenderer
@@ -107,7 +103,7 @@ namespace Kunai.ShurikenRenderer
             TextureList.Textures.Add(texture);
             TextureSizesOriginal.Add(texture.Size);
         }
-        public static void BuildCropList(ref List<SharpNeedle.Ninja.Csd.Sprite> subImages, ref List<Vector2> in_TextureSizes)
+        public static void BuildCropList(ref List<SharpNeedle.Framework.Ninja.Csd.Sprite> subImages, ref List<Vector2> in_TextureSizes)
         {
             subImages = new();
             in_TextureSizes = TextureSizesOriginal;
@@ -125,7 +121,7 @@ namespace Kunai.ShurikenRenderer
                 int textureIndex = texList.Textures.IndexOf(sprite.Texture);
                 if(sprite.Crop != null)
                 {
-                    SharpNeedle.Ninja.Csd.Sprite subImage = new();
+                    SharpNeedle.Framework.Ninja.Csd.Sprite subImage = new();
                     subImage.TextureIndex = textureIndex;
                     subImage.TopLeft = new Vector2((float)sprite.X / sprite.Texture.Width, (float)sprite.Y / sprite.Texture.Height);
                     subImage.BottomRight = new Vector2((float)(sprite.X + sprite.Width) / sprite.Texture.Width, (float)(sprite.Y + sprite.Height) / sprite.Texture.Height);
@@ -135,7 +131,7 @@ namespace Kunai.ShurikenRenderer
                 {
                     var size = in_TextureSizes[textureIndex] * new Vector2(1280, 720);
                     sprite.GenerateCoordinates(size);
-                    SharpNeedle.Ninja.Csd.Sprite subImage = new();
+                    SharpNeedle.Framework.Ninja.Csd.Sprite subImage = new();
                     subImage.TextureIndex = textureIndex;
                     subImage.TopLeft = new Vector2((float)sprite.X / size.X, (float)sprite.Y / size.Y);
                     subImage.BottomRight = new Vector2((float)(sprite.X + sprite.Width) / size.X, (float)(sprite.Y + sprite.Height) / size.Y);
@@ -182,7 +178,7 @@ namespace Kunai.ShurikenRenderer
             GetSubImages(in_CsdProject.Project.Root);
             LoadSubimages(TextureList, _ncpSubimages);
         }
-        public static void GetSubImages(SharpNeedle.Ninja.Csd.SceneNode in_Node)
+        public static void GetSubImages(SharpNeedle.Framework.Ninja.Csd.SceneNode in_Node)
         {
             foreach (var scene in in_Node.Scenes)
             {

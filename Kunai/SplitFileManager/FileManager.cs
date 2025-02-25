@@ -10,6 +10,7 @@ namespace ColoursXncpGen
     class FileManager
     {
         private static byte[] signature = { 0x46, 0x41, 0x50, 0x43 };
+        private static byte[] signature2 = { 0x43, 0x50, 0x41, 0x46};
 
         public static byte[] Combine(byte[] file, byte[] dxlFile)
         {

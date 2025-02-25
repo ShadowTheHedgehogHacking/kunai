@@ -1,6 +1,7 @@
 ﻿using Kunai.ShurikenRenderer;
 using SharpNeedle;
-using SharpNeedle.Ninja.Csd;
+using SharpNeedle.Framework.Ninja.Csd;
+using SharpNeedle.Structs;
 using Shuriken.Rendering;
 using System;
 using System.Linq;
@@ -53,7 +54,7 @@ public static class AnimationTypeMethods
                 AnimationType.GradientBr
             }.Contains(in_Type);
     }
-    public static int FindKeyframe(this SharpNeedle.Ninja.Csd.Motions.KeyFrameList in_List, float in_Frame)
+    public static int FindKeyframe(this SharpNeedle.Framework.Ninja.Csd.Motions.KeyFrameList in_List, float in_Frame)
     {
         int min = 0;
         int max = in_List.Count - 1;
@@ -70,7 +71,7 @@ public static class AnimationTypeMethods
 
         return min;
     }
-    public static float GetSingle(this SharpNeedle.Ninja.Csd.Motions.KeyFrameList in_List, float in_Frame)
+    public static float GetSingle(this SharpNeedle.Framework.Ninja.Csd.Motions.KeyFrameList in_List, float in_Frame)
     {
         if (in_List.Count == 0)
             return 0.0f;
@@ -95,10 +96,10 @@ public static class AnimationTypeMethods
 
         switch (keyframe.Interpolation)
         {
-            case SharpNeedle.Ninja.Csd.Motions.InterpolationType.Linear:
+            case SharpNeedle.Framework.Ninja.Csd.Motions.InterpolationType.Linear:
                 return (1.0f - factor) * keyframe.Value.Float + nextKeyframe.Value.Float * factor;
 
-            case SharpNeedle.Ninja.Csd.Motions.InterpolationType.Hermite:
+            case SharpNeedle.Framework.Ninja.Csd.Motions.InterpolationType.Hermite:
                 float valueDelta = nextKeyframe.Value.Float - keyframe.Value.Float;
                 float frameDelta = nextKeyframe.Frame - keyframe.Frame;
 
@@ -119,7 +120,7 @@ public static class AnimationTypeMethods
     {
         return (DrawType)cast.Field04;
     }
-    public static Vector4 GetColor(this SharpNeedle.Ninja.Csd.Motions.KeyFrameList in_List, float in_Frame)
+    public static Vector4 GetColor(this SharpNeedle.Framework.Ninja.Csd.Motions.KeyFrameList in_List, float in_Frame)
     {
         if (in_List.Count == 0)
             return new Vector4();
@@ -153,44 +154,44 @@ public static class AnimationTypeMethods
             A = (byte)((1.0f - factor) * swappedCurrent.A + swappedNext.A * factor)
         }.ToVec4();
     }
-    public static AnimationType ToShurikenAnimationType(this SharpNeedle.Ninja.Csd.Motions.KeyProperty in_Test)
+    public static AnimationType ToShurikenAnimationType(this SharpNeedle.Framework.Ninja.Csd.Motions.KeyProperty in_Test)
     {
         switch (in_Test)
         {
-            case SharpNeedle.Ninja.Csd.Motions.KeyProperty.HideFlag:
+            case SharpNeedle.Framework.Ninja.Csd.Motions.KeyProperty.HideFlag:
                 return AnimationType.HideFlag;
 
-            case SharpNeedle.Ninja.Csd.Motions.KeyProperty.PositionX:
+            case SharpNeedle.Framework.Ninja.Csd.Motions.KeyProperty.PositionX:
                 return AnimationType.XPosition;
 
-            case SharpNeedle.Ninja.Csd.Motions.KeyProperty.PositionY:
+            case SharpNeedle.Framework.Ninja.Csd.Motions.KeyProperty.PositionY:
                 return AnimationType.YPosition;
 
-            case SharpNeedle.Ninja.Csd.Motions.KeyProperty.Rotation:
+            case SharpNeedle.Framework.Ninja.Csd.Motions.KeyProperty.Rotation:
                 return AnimationType.Rotation;
 
-            case SharpNeedle.Ninja.Csd.Motions.KeyProperty.ScaleX:
+            case SharpNeedle.Framework.Ninja.Csd.Motions.KeyProperty.ScaleX:
                 return AnimationType.XScale;
 
-            case SharpNeedle.Ninja.Csd.Motions.KeyProperty.ScaleY:
+            case SharpNeedle.Framework.Ninja.Csd.Motions.KeyProperty.ScaleY:
                 return AnimationType.YScale;
 
-            case SharpNeedle.Ninja.Csd.Motions.KeyProperty.SpriteIndex:
+            case SharpNeedle.Framework.Ninja.Csd.Motions.KeyProperty.SpriteIndex:
                 return AnimationType.SubImage;
 
-            case SharpNeedle.Ninja.Csd.Motions.KeyProperty.Color:
+            case SharpNeedle.Framework.Ninja.Csd.Motions.KeyProperty.Color:
                 return AnimationType.Color;
 
-            case SharpNeedle.Ninja.Csd.Motions.KeyProperty.GradientTopLeft:
+            case SharpNeedle.Framework.Ninja.Csd.Motions.KeyProperty.GradientTopLeft:
                 return AnimationType.GradientTl;
 
-            case SharpNeedle.Ninja.Csd.Motions.KeyProperty.GradientBottomLeft:
+            case SharpNeedle.Framework.Ninja.Csd.Motions.KeyProperty.GradientBottomLeft:
                 return AnimationType.GradientBl;
 
-            case SharpNeedle.Ninja.Csd.Motions.KeyProperty.GradientTopRight:
+            case SharpNeedle.Framework.Ninja.Csd.Motions.KeyProperty.GradientTopRight:
                 return AnimationType.GradientTr;
 
-            case SharpNeedle.Ninja.Csd.Motions.KeyProperty.GradientBottomRight:
+            case SharpNeedle.Framework.Ninja.Csd.Motions.KeyProperty.GradientBottomRight:
                 return AnimationType.GradientBr;
 
         }

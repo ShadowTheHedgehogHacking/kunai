@@ -1,7 +1,7 @@
 ﻿using Hexa.NET.ImGui;
 using IconFonts;
 using Kunai.ShurikenRenderer;
-using SharpNeedle.Ninja.Csd;
+using SharpNeedle.Framework.Ninja.Csd;
 using Shuriken.Rendering;
 using System;
 using System.Numerics;

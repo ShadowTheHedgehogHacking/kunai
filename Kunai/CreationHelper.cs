@@ -1,5 +1,5 @@
 ﻿using Kunai.ShurikenRenderer;
-using SharpNeedle.Ninja.Csd;
+using SharpNeedle.Framework.Ninja.Csd;
 using Shuriken.Rendering;
 using System;
 using System.Collections.Generic;
@@ -60,7 +60,7 @@ namespace Kunai
 
         public static void CreateNewScene(SVisibilityData.SNode in_Node)
         {
-            List<SharpNeedle.Ninja.Csd.Sprite> sprites = new List<SharpNeedle.Ninja.Csd.Sprite>();
+            List<SharpNeedle.Framework.Ninja.Csd.Sprite> sprites = new List<SharpNeedle.Framework.Ninja.Csd.Sprite>();
             List<Vector2> textures = new List<Vector2>();
             if(in_Node.Scene.Count > 0)
             {
@@ -72,7 +72,7 @@ namespace Kunai
             scene.Textures = textures;
             scene.Version = 3;
             scene.AspectRatio = 16.0f / 9.0f;
-            scene.Motions = new CsdDictionary<SharpNeedle.Ninja.Csd.Motions.Motion>();
+            scene.Motions = new CsdDictionary<SharpNeedle.Framework.Ninja.Csd.Motions.Motion>();
             scene.Families = new List<Family>();
             scene.FrameRate = 60;
             var pair = new KeyValuePair<string, Scene>($"New Scene{in_Node.Scene.Count}", scene);

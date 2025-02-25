@@ -1,5 +1,5 @@
-﻿using SharpNeedle.Ninja.Csd;
-using SharpNeedle.Ninja.Csd.Motions;
+﻿using SharpNeedle.Framework.Ninja.Csd;
+using SharpNeedle.Framework.Ninja.Csd.Motions;
 using Shuriken.Rendering;
 using System;
 using System.Collections.Generic;

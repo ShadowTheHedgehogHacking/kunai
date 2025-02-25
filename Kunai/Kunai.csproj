@@ -5,6 +5,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <StartupObject>Kunai.Program</StartupObject>
     <ApplicationIcon>Resources\Icons\kunai-01.ico</ApplicationIcon>
+    <Platforms>AnyCPU;x86</Platforms>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

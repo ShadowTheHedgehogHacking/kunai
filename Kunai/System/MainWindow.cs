@@ -3,7 +3,7 @@ using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
-using SharpNeedle.Ninja.Csd;
+using SharpNeedle.Framework.Ninja.Csd;
 using Kunai.ShurikenRenderer;
 using Kunai.Window;
 using System.Windows;

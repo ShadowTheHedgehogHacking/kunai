@@ -1,6 +1,6 @@
 ﻿using Kunai.ShurikenRenderer;
 using Hexa.NET.ImGui;
-using SharpNeedle.Ninja.Csd;
+using SharpNeedle.Framework.Ninja.Csd;
 using Shuriken.Rendering;
 using Sprite = Shuriken.Rendering.Sprite;
 using Hexa.NET.Utilities.Text;

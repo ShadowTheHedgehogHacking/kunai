@@ -3,6 +3,7 @@ using ColoursXncpGen;
 using Hexa.NET.ImGui;
 using Hexa.NET.ImGuizmo;
 using Kunai.Window;
+using libWiiSharp;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.Desktop;
 using SharpNeedle;
@@ -100,21 +101,40 @@ namespace Kunai.ShurikenRenderer
             bool isTlsFilePresent = File.Exists(Path.ChangeExtension(in_Path, "tls"));
             bool isDxlFilePresent = File.Exists(Path.ChangeExtension(in_Path, "dxl"));
 
-            if(isTlsFilePresent || isDxlFilePresent)
+            SpriteHelper.TextureList = new TextureList("textures");
+            if (isTlsFilePresent || isDxlFilePresent)
             {
                 byte[] csdFile = File.ReadAllBytes(in_Path);
                 string path = isDxlFilePresent ? Path.ChangeExtension(in_Path, "dxl") : Path.ChangeExtension(in_Path, "tls");
                 byte[] textureList = File.ReadAllBytes(path);
 
-                using var reader = new BinaryObjectReader(@in_Path, Endianness.Big, Encoding.ASCII);
-                var test = reader.ReadObject<InfoChunk>();
-                using var reader2 = new BinaryObjectReader(path, Endianness.Little, Encoding.ASCII);
-                var test2 = reader.ReadObject<TextureListNN>();
                 //File.WriteAllBytes(in_Path + "_Test", output);
 
                 if (isTlsFilePresent)
                 {
-                    ShowMessageBoxCross("Warning", "Split gncp files are not yet supported.", true);
+                    var tlsFile = TPL.Load(path);
+                    TextureListNN newTexList = new TextureListNN();
+                    string csdName = Path.GetFileName(in_Path);
+                    for (var i = 0; i < tlsFile.NumOfTextures; i++)
+                    {
+                        var image = tlsFile.ExtractTextureBytes(i);
+                        newTexList.Add(new TextureNN($"{csdName}_{i}.dds"));
+                    }
+                    ShowMessageBoxCross("Warning", "TLS Files are not currently supported by Kunai.\nPlease extract them using a tool such as bra", true);
+
+                    using var reader = new BinaryObjectReader(@in_Path, Endianness.Big, Encoding.ASCII);
+                    var test = reader.ReadObject<InfoChunk>();
+                    WorkProjectCsd = new CsdProject();
+                    foreach (IChunk chunk in test.Chunks)
+                    {
+                        switch (chunk)
+                        {
+                            case ProjectChunk project:
+                                WorkProjectCsd.Project = project;
+                                break;
+                        }
+                    }
+                    WorkProjectCsd.Textures = newTexList;
                 }   
                 if(isDxlFilePresent)
                 {
@@ -127,15 +147,6 @@ namespace Kunai.ShurikenRenderer
                         WorkProjectCsd = ResourceManager.Instance.Open<CsdProject>(file, true);
                     }
                 }
-
-                
-                //Endianness endianness = isDxlFilePresent ? Endianness.Little : Endianness.Big;
-                //BinaryObjectReader reader = new BinaryObjectReader(in_Path, endianness, Encoding.UTF8);
-                //BinaryObjectReader readerTx = new BinaryObjectReader(path, endianness, Encoding.UTF8);
-                //WorkProjectCsd = new CsdProject();
-                //WorkProjectCsd.Project = reader.ReadObject<ProjectChunk>();
-                //WorkProjectCsd.Textures = isDxlFilePresent ? readerTx.ReadObject<TextureListMirage>() : readerTx.ReadObject<TextureListNN>();
-                Console.WriteLine("");
             }
             else
             {
@@ -158,14 +169,10 @@ namespace Kunai.ShurikenRenderer
             InspectorWindow.Reset();
             SpriteHelper.ClearTextures();
 
-            /// TODO: SHARPNEEDLE FIX
-           // ExtensionKillMe.IsColorLittleEndian = WorkProjectCsd.Endianness == Endianness.Little;
-
             //Start loading textures
             ITextureList xTextures = WorkProjectCsd.Textures;
             CsdDictionary<Font> xFontList = WorkProjectCsd.Project.Fonts;
             List<string> missingTextures = new List<string>();
-            SpriteHelper.TextureList = new TextureList("textures");
             if (xTextures != null)
             {
                 bool tempChangeExtension = false;

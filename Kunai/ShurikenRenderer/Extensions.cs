@@ -4,6 +4,7 @@ using SharpNeedle.Framework.Ninja.Csd;
 using SharpNeedle.Structs;
 using Shuriken.Rendering;
 using System;
+using System.IO;
 using System.Linq;
 using System.Numerics;
 

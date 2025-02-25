@@ -20,6 +20,9 @@
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
 </ItemGroup>
+<ItemGroup>
+  <Compile Remove="ShurikenRenderer\TPL.cs" />
+</ItemGroup>
   <ItemGroup>
     <PackageReference Include="DirectXTexNet" Version="1.0.7" />
     <PackageReference Include="Hexa.NET.ImGui" Version="2.2.3" />
@@ -33,6 +36,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FileTypeRegisterService\FileTypeRegisterService.csproj" />
+    <ProjectReference Include="..\libWiiSharp\libWiiSharp.csproj" />
     <ProjectReference Include="..\SharpNeedle\Source\SharpNeedle\SharpNeedle.csproj" />
   </ItemGroup>
 <ItemGroup>

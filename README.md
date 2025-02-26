@@ -5,6 +5,8 @@ Kunai is a tool to edit Ninja CSD Project files (XNCP,YNCP,GNCP,SNCP) from Sonic
 The project is called Kunai because it is heavily based on [Shuriken](https://github.com/crash5band/Shuriken), another editor for CSD files.
 
 ## File Support
+ > [!NOTE]  
+> The program cannot write any of these files as **split gncp** and **sncp** files yet, so they can only be saved as other formats.
 Kunai can currently read these file formats:
 - xncp (Sonic the Hedgehog (2006), Sonic Generations)
 - Split xncp (Sonic Colors Ultimate)
@@ -12,5 +14,9 @@ Kunai can currently read these file formats:
 - gncp (Shadow the Hedgehog (GameCube), Sonic and the Secret Rings, Sonic and the Black Knight)
 - Split gncp (Sonic Colors)
 - sncp (Shadow the Hedgehog (PS2))
- > [!NOTE]  
-> The program cannot write these files as **split gncp** and **sncp** files yet, so they can only be saved as other formats.
+
+## Features
+### QOL Improvements
+Compared to Shuriken, Kunai has a different user interface, based off of [HexaEngine's ImGui.NET](https://github.com/HexaEngine/Hexa.NET.ImGui), with a lot of extra colors and icons to easily distinguish different things! 
+
+You can also click directly into the viewport to select Casts, and you can edit animations by dragging the keyframe once an animation is selected by clicking on the scene.

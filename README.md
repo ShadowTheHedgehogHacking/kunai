@@ -1,5 +1,6 @@
 # Kunai CellSprite Editor
 Kunai is a tool to edit Ninja CSD Project files (XNCP,YNCP,GNCP,SNCP) from Sonic the Hedgehog games from Shadow the Hedgehog to Sonic Colors Ultimate.
+To learn more about the process of editing these files, check the HedgeDocs guide page [here.](https://wiki.hedgedocs.com/index.php/How_to_use_Kunai)
 
 ## Why "Kunai"?
 The project is called Kunai because it is heavily based on [Shuriken](https://github.com/crash5band/Shuriken), another editor for CSD files.

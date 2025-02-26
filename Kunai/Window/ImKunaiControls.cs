@@ -28,7 +28,7 @@ namespace Kunai.Window
             return SpriteHelper.TextureList.Textures[TextureIndex].Sprites[SpriteIndex] - 1;
         }
     }
-    public static class ImKunaiTreeNode
+    public static class ImKunaiControls
     {
         public struct SIconData
         {
@@ -59,10 +59,24 @@ namespace Kunai.Window
                     {
                         Shuriken.Rendering.Sprite spr = SpriteHelper.Sprites[s];
 
-                        if (ImKunaiTreeNode.SpriteImageButton($"##crop{idx2}", spr))
+                        if (spr != null)
                         {
-                            selectedIndex = idx;
-                            selectedSpriteIndex = idx2;
+                            if(spr.Texture.GlTex == null)
+                            {
+                                ImKunaiControls.EmptyTextureButton(idx2);
+                            }
+                            else
+                            {
+                                if (ImKunaiControls.SpriteImageButton($"##crop{idx2}", spr))
+                                {
+                                    selectedIndex = idx;
+                                    selectedSpriteIndex = idx2;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            ImKunaiControls.EmptyTextureButton(idx2);
                         }
                         ImGui.SameLine();
                         ImGui.Text($"Crop ({idx2})");
@@ -90,6 +104,12 @@ namespace Kunai.Window
                 return ImGui.ImageButton(sb, new ImTextureID(in_Spr.Texture.GlTex.Id), new System.Numerics.Vector2(50, 50), uvCoords[0], uvCoords[1]);
 
             }
+        }
+        public static bool EmptyTextureButton(int in_Id)
+        {
+            bool val = ImGui.Button($"##pattern{in_Id}", new System.Numerics.Vector2(55, 55));
+            ImGui.SameLine();
+            return val;
         }
         public static unsafe void SpriteImage(string in_ID, Shuriken.Rendering.Sprite in_Spr)
         {

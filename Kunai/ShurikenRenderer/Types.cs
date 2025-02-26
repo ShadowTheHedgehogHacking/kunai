@@ -77,7 +77,7 @@ namespace Shuriken.Rendering
             return this;
         }
     }
-    public class Quad
+    public struct Quad
     {
         public Vertex TopLeft;
         public Vertex TopRight;
@@ -87,6 +87,7 @@ namespace Shuriken.Rendering
         public int ZIndex;
         public bool Additive;
         public bool LinearFiltering;
+        public SSpriteDrawData OriginalData;
     }
     public class Sprite
     {

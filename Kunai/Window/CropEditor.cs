@@ -48,7 +48,7 @@ namespace Kunai.Window
                 if (ImGui.BeginListBox("##texturelist", new System.Numerics.Vector2(size1, -1)))
                 {
                     int idx = 0;
-                    var result = ImKunaiTreeNode.TextureSelector(in_Renderer);
+                    var result = ImKunaiControls.TextureSelector(in_Renderer);
                     if (result.TextureIndex != -2)
                         selectedIndex = result.TextureIndex;
                     if (result.SpriteIndex != -2)

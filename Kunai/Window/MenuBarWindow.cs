@@ -15,7 +15,7 @@ namespace Kunai.Window
     public class MenuBarWindow : WindowBase
     {
         public static float MenuBarHeight = 32;
-        private static readonly string Filters = "xncp,yncp,gncp;xncp;yncp;gncp";
+        private static readonly string Filters = "xncp,yncp,gncp,sncp;";
 
         public static string AddQuotesIfRequired(string in_Path)
         {
@@ -40,28 +40,75 @@ namespace Kunai.Window
                 MenuBarWindow.MenuBarHeight = ImGui.GetWindowSize().Y;
                 if (ImGui.BeginMenu($"File"))
                 {
-                    if (ImGui.MenuItem("Open CSD Project..."))
+                    if (ImGui.MenuItem("Open File..."))
                     {
-                        var testdial = NativeFileDialogSharp.Dialog.FileOpen(Filters);
-                        if (testdial.IsOk)
+                        var dialog = NativeFileDialogSharp.Dialog.FileOpen(Filters);
+                        if (dialog.IsOk)
                         {
-                            in_Renderer.LoadFile(@testdial.Path);
+                            in_Renderer.LoadFile(dialog.Path);
                         }
                     }
-                    if (ImGui.MenuItem("Save...", "Ctrl + S"))
+                    if(ImGui.BeginMenu("Save"))
                     {
-                        in_Renderer.SaveCurrentFile(null);
-                    }
-                    if (ImGui.MenuItem("Save As...", "Ctrl + Shift + S"))
-                    {
-                        var result = NativeFileDialogSharp.Dialog.FileSave(Filters, KunaiProject.Instance.Config.WorkFilePath);
-                        if(result.IsOk)
+                        if (ImGui.MenuItem("Csd Project...", "Ctrl + S"))
                         {
-                            string path = result.Path;
-                            if (!Path.HasExtension(path)) path += ".xncp";
-                            in_Renderer.SaveCurrentFile(result.Path);
+                            in_Renderer.SaveCurrentFile(null);
                         }
+                        ImGui.BeginDisabled();
+                        if (ImGui.MenuItem("Colors GNCP"))
+                        {
+                            in_Renderer.ExportProjectChunk(null, false);
+                        }
+                        ImGui.EndDisabled();
+                        if(ImGui.MenuItem("Colors Ultimate XNCP"))
+                        {
+                            in_Renderer.ExportProjectChunk(null, true);
+
+                        }
+                        ImGui.EndMenu();
                     }
+                    if (ImGui.BeginMenu("Save as..."))
+                    {
+                        if (ImGui.MenuItem("Csd Project...", "Ctrl + S"))
+                        {
+                            var dialog = NativeFileDialogSharp.Dialog.FileSave(Filters);
+                            if (dialog.IsOk)
+                            {
+                                string path = dialog.Path;
+                                if (!Path.HasExtension(path)) path += ".xncp";
+                                in_Renderer.SaveCurrentFile(path);
+                            }
+                        }
+                        ImGui.BeginDisabled();
+                        if (ImGui.MenuItem("Colors GNCP"))
+                        {
+                            var dialog = NativeFileDialogSharp.Dialog.FileSave("gncp");
+                            if (dialog.IsOk)
+                            {
+                                string path = dialog.Path;
+                                if (!Path.HasExtension(path)) path += ".gncp";
+                                in_Renderer.ExportProjectChunk(path, false);
+                            }
+                        }
+                        ImGui.EndDisabled();
+                        if (ImGui.MenuItem("Colors Ultimate XNCP"))
+                        {
+                            var dialog = NativeFileDialogSharp.Dialog.FileSave("xncp");
+                            if (dialog.IsOk)
+                            {
+                                string path = dialog.Path;
+                                if (!Path.HasExtension(path)) path += ".xncp";
+                                in_Renderer.ExportProjectChunk(path, true);
+                            }
+                        }
+                        ImGui.EndMenu();
+                    }
+                    if (ImGui.BeginMenu("Export"))
+                    {
+                        
+                        ImGui.EndMenu();
+                    }
+                    
                     ImGui.EndMenu();
                 }
                 if(ImGui.BeginMenu("Edit"))

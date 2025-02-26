@@ -7,11 +7,32 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Linq;
+using SharpNeedle.Framework.Ninja.Csd;
 
 
 
 namespace Shuriken.Rendering
 {
+    public struct SSpriteDrawData
+    {
+        public int ZIndex;
+        public bool OverrideUVCoords;
+        public Vector2 TopLeft, BottomLeft, TopRight, BottomRight;
+        public Vector2 Position;
+        public float Rotation;
+        public Vector2 Scale;
+        public float AspectRatio;
+        public Sprite Sprite; 
+        public Sprite NextSprite;
+        public float SpriteFactor;
+        public Vector4 Color;
+        public Vector4 GradientTopLeft;
+        public Vector4 GradientBottomLeft;
+        public Vector4 GradientTopRight;
+        public Vector4 GradientBottomRight;
+        public ElementMaterialFlags Flags;
+        public Cast OriginCast;
+    }
     public class Renderer
     {
         public readonly string ShadersDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Shaders");
@@ -24,6 +45,10 @@ namespace Shuriken.Rendering
 
         private Vertex[] _buffer;
         private List<Quad> _quads;
+        public List<Quad> Quads
+        {
+            get { return _quads; }
+        }
 
         private bool _additive;
         private bool _linearFiltering = true;
@@ -192,70 +217,72 @@ namespace Shuriken.Rendering
         /// Pushes the quad parameters onto the vertex buffer.
         /// </summary>
         /// <param name="q">The quad to push to the buffer.</param>
-        public void PushQuad(Quad in_Q)
+        public void PushQuad(Quad in_Quad)
         {
             /// SharpNeedle uses ARGB color, this inverts it so that colors look right
-            _buffer[BufferPos++] = in_Q.TopLeft.WithInvertedColor();
-            _buffer[BufferPos++] = in_Q.BottomLeft.WithInvertedColor();
-            _buffer[BufferPos++] = in_Q.TopRight.WithInvertedColor();
-            _buffer[BufferPos++] = in_Q.BottomRight.WithInvertedColor();
+            _buffer[BufferPos++] = in_Quad.TopLeft.WithInvertedColor();
+            _buffer[BufferPos++] = in_Quad.BottomLeft.WithInvertedColor();
+            _buffer[BufferPos++] = in_Quad.TopRight.WithInvertedColor();
+            _buffer[BufferPos++] = in_Quad.BottomRight.WithInvertedColor();
             NumIndices += 6;
         }
 
-        public void DrawSprite(
-            Vector2 in_TopLeft, Vector2 in_BottomLeft, Vector2 in_TopRight, Vector2 in_BottomRight,
-            Vector2 in_Position, float in_Rotation, Vector2 in_Scale, float in_AspectRatio,
-            Sprite in_Sprite, Sprite in_NextSprite, float in_SpriteFactor, Vector4 in_Color,
-            Vector4 in_GradientTopLeft, Vector4 in_GradientBottomLeft, Vector4 in_GradientTopRight, Vector4 in_GradientBottomRight,
-            int in_ZIndex, ElementMaterialFlags in_Flags)
+        public void DrawSprite(SSpriteDrawData in_DrawData)
         {
+            /// TODO: wtf is NextSprite or SpriteFactor?
             var quad = new Quad();
-            var aspect = new Vector2(in_AspectRatio, 1.0f);
+            var aspect = new Vector2(in_DrawData.AspectRatio, 1.0f);
 
-            quad.TopLeft.Position = in_Position + (in_TopLeft * in_Scale * aspect).Rotate(in_Rotation) / aspect;
-            quad.BottomLeft.Position = in_Position + (in_BottomLeft * in_Scale * aspect).Rotate(in_Rotation) / aspect;
-            quad.TopRight.Position = in_Position + (in_TopRight * in_Scale * aspect).Rotate(in_Rotation) / aspect;
-            quad.BottomRight.Position = in_Position + (in_BottomRight * in_Scale * aspect).Rotate(in_Rotation) / aspect;
+            var topLeft = in_DrawData.OverrideUVCoords ? in_DrawData.TopLeft : in_DrawData.OriginCast.TopLeft;
+            var bottomLeft = in_DrawData.OverrideUVCoords ? in_DrawData.BottomLeft : in_DrawData.OriginCast.BottomLeft;
+            var topRight = in_DrawData.OverrideUVCoords ? in_DrawData.TopRight : in_DrawData.OriginCast.TopRight;
+            var bottomRight = in_DrawData.OverrideUVCoords ? in_DrawData.BottomRight :  in_DrawData.OriginCast.BottomRight;
 
-            if (in_Sprite != null && in_NextSprite != null)
+            quad.TopLeft.Position = in_DrawData.Position + ((topLeft * in_DrawData.Scale * aspect).Rotate(in_DrawData.Rotation) / aspect);
+            quad.BottomLeft.Position = in_DrawData.Position + ((bottomLeft * in_DrawData.Scale * aspect).Rotate(in_DrawData.Rotation) / aspect);
+            quad.TopRight.Position = in_DrawData.Position + ((topRight * in_DrawData.Scale * aspect).Rotate(in_DrawData.Rotation) / aspect);
+            quad.BottomRight.Position = in_DrawData.Position + ((bottomRight * in_DrawData.Scale * aspect).Rotate(in_DrawData.Rotation) / aspect);
+
+            if (in_DrawData.Sprite != null && in_DrawData.NextSprite != null)
             {
                 var begin = new Vector2(
-                    in_Sprite.Start.X / in_Sprite.Texture.Width,
-                    in_Sprite.Start.Y / in_Sprite.Texture.Height);
+                    in_DrawData.Sprite.Start.X / in_DrawData.Sprite.Texture.Width,
+                    in_DrawData.Sprite.Start.Y / in_DrawData.Sprite.Texture.Height);
 
                 var nextBegin = new Vector2(
-                    in_NextSprite.Start.X / in_NextSprite.Texture.Width,
-                    in_NextSprite.Start.Y / in_NextSprite.Texture.Height);
+                    in_DrawData.NextSprite.Start.X / in_DrawData.NextSprite.Texture.Width,
+                    in_DrawData.NextSprite.Start.Y / in_DrawData.NextSprite.Texture.Height);
 
                 var end = begin + new Vector2(
-                    in_Sprite.Dimensions.X / in_Sprite.Texture.Width,
-                    in_Sprite.Dimensions.Y / in_Sprite.Texture.Height);
+                    in_DrawData.Sprite.Dimensions.X / in_DrawData.Sprite.Texture.Width,
+                    in_DrawData.Sprite.Dimensions.Y / in_DrawData.Sprite.Texture.Height);
 
                 var nextEnd = nextBegin + new Vector2(
-                    in_NextSprite.Dimensions.X / in_NextSprite.Texture.Width,
-                    in_NextSprite.Dimensions.Y / in_NextSprite.Texture.Height);
+                    in_DrawData.NextSprite.Dimensions.X / in_DrawData.NextSprite.Texture.Width,
+                    in_DrawData.NextSprite.Dimensions.Y / in_DrawData.NextSprite.Texture.Height);
 
-                begin = (1.0f - in_SpriteFactor) * begin + in_SpriteFactor * nextBegin;
-                end = (1.0f - in_SpriteFactor) * end + in_SpriteFactor * nextEnd;
+                begin = (1.0f - in_DrawData.SpriteFactor) * begin + in_DrawData.SpriteFactor * nextBegin;
+                end = (1.0f - in_DrawData.SpriteFactor) * end + in_DrawData.SpriteFactor * nextEnd;
 
-                if ((in_Flags & ElementMaterialFlags.MirrorX) != 0) (begin.X, end.X) = (end.X, begin.X); // Mirror X
-                if ((in_Flags & ElementMaterialFlags.MirrorY) != 0) (begin.Y, end.Y) = (end.Y, begin.Y); // Mirror Y
+                if ((in_DrawData.Flags & ElementMaterialFlags.MirrorX) != 0) (begin.X, end.X) = (end.X, begin.X); // Mirror X
+                if ((in_DrawData.Flags & ElementMaterialFlags.MirrorY) != 0) (begin.Y, end.Y) = (end.Y, begin.Y); // Mirror Y
 
                 quad.TopLeft.Uv = begin;
                 quad.TopRight.Uv = new Vector2(end.X, begin.Y);
                 quad.BottomLeft.Uv = new Vector2(begin.X, end.Y);
                 quad.BottomRight.Uv = end;
-                quad.Texture = in_Sprite.Texture;
+                quad.Texture = in_DrawData.Sprite.Texture;
             }
 
-            quad.TopLeft.Color = in_Color * in_GradientTopLeft;
-            quad.TopRight.Color = in_Color * in_GradientTopRight;
-            quad.BottomLeft.Color = in_Color * in_GradientBottomLeft;
-            quad.BottomRight.Color = in_Color * in_GradientBottomRight;
+            quad.TopLeft.Color = in_DrawData.Color * in_DrawData.GradientTopLeft;
+            quad.TopRight.Color = in_DrawData.Color * in_DrawData.GradientTopRight;
+            quad.BottomLeft.Color = in_DrawData.Color * in_DrawData.GradientBottomLeft;
+            quad.BottomRight.Color = in_DrawData.Color * in_DrawData.GradientBottomRight;
 
-            quad.ZIndex = in_ZIndex;
-            quad.Additive = (in_Flags & ElementMaterialFlags.AdditiveBlending) != 0;
-            quad.LinearFiltering = (in_Flags & ElementMaterialFlags.LinearFiltering) != 0;
+            quad.ZIndex = in_DrawData.ZIndex;
+            quad.Additive = (in_DrawData.Flags & ElementMaterialFlags.AdditiveBlending) != 0;
+            quad.LinearFiltering = (in_DrawData.Flags & ElementMaterialFlags.LinearFiltering) != 0;
+            quad.OriginalData = in_DrawData;
 
             _quads.Add(quad);
         }

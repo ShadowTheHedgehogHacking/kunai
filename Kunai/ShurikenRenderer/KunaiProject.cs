@@ -1,4 +1,7 @@
 ﻿using Amicitia.IO.Binary;
+using BCnEncoder.Encoder;
+using BCnEncoder.ImageSharp;
+using BCnEncoder.Shared;
 using ColoursXncpGen;
 using Hexa.NET.ImGui;
 using Hexa.NET.ImGuizmo;
@@ -16,6 +19,7 @@ using SharpNeedle.Utilities;
 using Shuriken.Models;
 using Shuriken.Rendering;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
@@ -30,7 +34,7 @@ using PixelFormat = OpenTK.Graphics.OpenGL.PixelFormat;
 
 namespace Kunai.ShurikenRenderer
 {
-    
+
     public class KunaiProject
     {
         public static KunaiProject Instance;
@@ -114,13 +118,38 @@ namespace Kunai.ShurikenRenderer
                 {
                     var tlsFile = TPL.Load(path);
                     TextureListNN newTexList = new TextureListNN();
-                    string csdName = Path.GetFileName(in_Path);
+                    string csdName = Path.GetFileNameWithoutExtension(in_Path);
+                    string parentDir = Directory.GetParent(in_Path).FullName;
+
+                    bool showWarning = false;
                     for (var i = 0; i < tlsFile.NumOfTextures; i++)
                     {
-                        var image = tlsFile.ExtractTextureBytes(i);
-                        newTexList.Add(new TextureNN($"{csdName}_{i}.dds"));
+                        string filePath = Path.Combine(parentDir, $"{csdName}_tex{i}.dds");
+                        if (!File.Exists(filePath))
+                        {
+                            if (!showWarning)
+                            {
+                                showWarning = true;
+                                ShowMessageBoxCross("Warning", "The textures in the tls file will be converted to dds.\nThis process might take some time.", true);
+                            }
+
+                            var image = tlsFile.ExtractTextureBytes(i);
+
+                            using Image<Bgra32> newDDS = Image.LoadPixelData<Bgra32>(image, tlsFile.GetTexture(i).TextureWidth, tlsFile.GetTexture(i).TextureHeight);
+
+                            BcEncoder encoder = new BcEncoder();
+
+                            encoder.OutputOptions.GenerateMipMaps = true;
+                            encoder.OutputOptions.Quality = CompressionQuality.BestQuality;
+                            encoder.OutputOptions.Format = CompressionFormat.Bc3;
+                            encoder.OutputOptions.FileFormat = OutputFileFormat.Dds; //Change to Dds for a dds file.
+
+                            using FileStream fs = File.OpenWrite(filePath);
+                            encoder.EncodeToStream(newDDS.CloneAs<Rgba32>(), fs);
+                        }
+
+                        newTexList.Add(new TextureNN($"{csdName}_tex{i}.dds"));
                     }
-                    ShowMessageBoxCross("Warning", "TLS Files are not currently supported by Kunai.\nPlease extract them using a tool such as bra", true);
 
                     using var reader = new BinaryObjectReader(@in_Path, Endianness.Big, Encoding.ASCII);
                     var test = reader.ReadObject<InfoChunk>();
@@ -135,8 +164,8 @@ namespace Kunai.ShurikenRenderer
                         }
                     }
                     WorkProjectCsd.Textures = newTexList;
-                }   
-                if(isDxlFilePresent)
+                }
+                if (isDxlFilePresent)
                 {
                     //Merge both files using the same method as ColoursXncpGen
                     byte[] output = FileManager.Combine(csdFile, textureList);
@@ -218,7 +247,7 @@ namespace Kunai.ShurikenRenderer
             {
                 bool isSavingScreenshot = saveScreenshotWhenRendered;
                 // Get the size of the child (i.e. the whole draw size of the windows).
-                System.Numerics.Vector2 wsize = ScreenSize;
+                Vector2 wsize = ScreenSize;
 
                 // make sure the buffers are the currect size
                 OpenTK.Mathematics.Vector2i wsizei = new((int)wsize.X, (int)wsize.Y);
@@ -287,13 +316,13 @@ namespace Kunai.ShurikenRenderer
                     RenderToViewport(in_CsdProject, in_DeltaTime, isSavingScreenshot);
                 }
 
-                if(isSavingScreenshot)
+                if (isSavingScreenshot)
                 {
                     //Save framebuffer to a pixel buffer
                     byte[] buffer = new byte[wsizei.X * wsizei.Y * 4];
                     GL.ReadPixels(0, 0, wsizei.X, wsizei.Y, PixelFormat.Rgba, PixelType.UnsignedByte, buffer);
 
-                    Image<SixLabors.ImageSharp.PixelFormats.Rgba32> screenshot = 
+                    Image<SixLabors.ImageSharp.PixelFormats.Rgba32> screenshot =
                         Image.LoadPixelData<SixLabors.ImageSharp.PixelFormats.Rgba32>(buffer, wsizei.X, wsizei.Y);
 
                     //Flip vertically to fix orientation
@@ -310,7 +339,7 @@ namespace Kunai.ShurikenRenderer
                     //    });
                     //});
                     var fileDialog = NativeFileDialogSharp.Dialog.FileSave("png");
-                    if(fileDialog.IsOk)
+                    if (fileDialog.IsOk)
                     {
                         string path = fileDialog.Path;
                         if (!Path.HasExtension(path))
@@ -327,7 +356,7 @@ namespace Kunai.ShurikenRenderer
             UpdateWindows();
         }
         private void RenderToViewport(CsdProject in_CsdProject, float in_DeltaTime, bool in_ScreenshotMode)
-        {            
+        {
             GL.ClearColor(in_ScreenshotMode ? OpenTK.Mathematics.Color4.Transparent : OpenTK.Mathematics.Color4.DarkGray);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
@@ -336,29 +365,14 @@ namespace Kunai.ShurikenRenderer
             Renderer.Start();
             if (Config.PlayingAnimations)
                 Config.Time += in_DeltaTime;
+
+
             RenderNode(in_CsdProject.Project.Root, Config.Time);
             foreach (KeyValuePair<string, SceneNode> node in in_CsdProject.Project.Root.Children)
             {
                 if (!VisibilityData.GetVisibility(node.Value).Active) continue;
                 RenderNode(node.Value, Config.Time);
             }
-            //if (ImGui.Begin("teatatat"))
-            //{
-            //    foreach (var f in renderer.GetQuads())
-            //    {
-            //
-            //        var tl = new Vector2(size.X * f.TopLeft.UV.X, size.Y * f.TopLeft.UV.Y);
-            //        var br = new Vector2(size.X * f.BottomRight.UV.X, size.Y * f.BottomRight.UV.Y);
-            //        ImGui.GetWindowDrawList().AddLine(tl, br, ImGui.GetColorU32(new System.Numerics.Vector4(255, 255, 255, 255)), 2);
-            //
-            //
-            //
-            //        var tr = new Vector2(size.X * f.TopRight.UV.X, size.Y * f.TopRight.UV.Y);
-            //        var bl = new Vector2(size.X * f.BottomLeft.UV.X, size.Y * f.BottomLeft.UV.Y);
-            //        ImGui.GetWindowDrawList().AddLine(tr, bl, ImGui.GetColorU32(new System.Numerics.Vector4(255, 255, 255, 255)), 2);
-            //    }
-            //    ImGui.End();
-            //}
             Renderer.End();
         }
 
@@ -380,7 +394,7 @@ namespace Kunai.ShurikenRenderer
             foreach (var family in in_Scene.Families)
             {
                 var transform = new CastTransform();
-                transform.Color = new System.Numerics.Vector4(1, 1, 1, 1);
+                transform.Color = new Vector4(1, 1, 1, 1);
                 if (family.Casts.Count == 0)
                     continue;
                 Cast cast = family.Casts[0];
@@ -393,16 +407,23 @@ namespace Kunai.ShurikenRenderer
         private void UpdateCast(Scene in_Scene, Cast in_UiElement, CastTransform in_Transform, int in_Priority, float in_Time, SVisibilityData.SScene in_Vis)
         {
             bool hideFlag = in_UiElement.Info.HideFlag != 0;
-            System.Numerics.Vector2 position = new System.Numerics.Vector2(in_UiElement.Info.Translation.X, in_UiElement.Info.Translation.Y);
-            float rotation = in_UiElement.Info.Rotation;
-            var scale = new System.Numerics.Vector2(in_UiElement.Info.Scale.X, in_UiElement.Info.Scale.Y);
             float sprId = in_UiElement.Info.SpriteIndex;
-            var color = in_UiElement.Info.Color.ToVec4();
-            var gradientTopLeft = in_UiElement.Info.GradientTopLeft.ToVec4();
-            var gradientBottomLeft = in_UiElement.Info.GradientBottomLeft.ToVec4();
-            var gradientTopRight = in_UiElement.Info.GradientTopRight.ToVec4();
-            var gradientBottomRight = in_UiElement.Info.GradientBottomRight.ToVec4();
-
+            SSpriteDrawData sSpriteDrawData = new SSpriteDrawData()
+            {
+                Position = new Vector2(in_UiElement.Info.Translation.X, in_UiElement.Info.Translation.Y),
+                Rotation = in_UiElement.Info.Rotation,
+                Scale = new Vector2(in_UiElement.Info.Scale.X, in_UiElement.Info.Scale.Y),
+                Color = in_UiElement.Info.Color.ToVec4(),
+                GradientTopLeft = in_UiElement.Info.GradientTopLeft.ToVec4(),
+                GradientBottomLeft = in_UiElement.Info.GradientBottomLeft.ToVec4(),
+                GradientTopRight = in_UiElement.Info.GradientTopRight.ToVec4(),
+                GradientBottomRight = in_UiElement.Info.GradientBottomRight.ToVec4(),
+                ZIndex = (int)in_Scene.Priority + in_UiElement.Priority,
+                OriginCast = in_UiElement,
+                AspectRatio = in_Scene.AspectRatio,
+                Flags = (ElementMaterialFlags)in_UiElement.Field38
+            };
+            //Redo this at some point
             foreach (var animation in in_Vis.Animation.Where(a => a.Active))
             {
                 for (int i = 0; i < 12; i++)
@@ -420,23 +441,23 @@ namespace Kunai.ShurikenRenderer
                             break;
 
                         case AnimationType.XPosition:
-                            position.X = track.GetSingle(in_Time);
+                            sSpriteDrawData.Position.X = track.GetSingle(in_Time);
                             break;
 
                         case AnimationType.YPosition:
-                            position.Y = track.GetSingle(in_Time);
+                            sSpriteDrawData.Position.Y = track.GetSingle(in_Time);
                             break;
 
                         case AnimationType.Rotation:
-                            rotation = track.GetSingle(in_Time);
+                            sSpriteDrawData.Rotation = track.GetSingle(in_Time);
                             break;
 
                         case AnimationType.XScale:
-                            scale.X = track.GetSingle(in_Time);
+                            sSpriteDrawData.Scale.X = track.GetSingle(in_Time);
                             break;
 
                         case AnimationType.YScale:
-                            scale.Y = track.GetSingle(in_Time);
+                            sSpriteDrawData.Scale.Y = track.GetSingle(in_Time);
                             break;
 
                         case AnimationType.SubImage:
@@ -444,23 +465,23 @@ namespace Kunai.ShurikenRenderer
                             break;
 
                         case AnimationType.Color:
-                            color = track.GetColor(in_Time);
+                            sSpriteDrawData.Color = track.GetColor(in_Time);
                             break;
 
                         case AnimationType.GradientTl:
-                            gradientTopLeft = track.GetColor(in_Time);
+                            sSpriteDrawData.GradientTopLeft = track.GetColor(in_Time);
                             break;
 
                         case AnimationType.GradientBl:
-                            gradientBottomLeft = track.GetColor(in_Time);
+                            sSpriteDrawData.GradientBottomLeft = track.GetColor(in_Time);
                             break;
 
                         case AnimationType.GradientTr:
-                            gradientTopRight = track.GetColor(in_Time);
+                            sSpriteDrawData.GradientTopRight = track.GetColor(in_Time);
                             break;
 
                         case AnimationType.GradientBr:
-                            gradientBottomRight = track.GetColor(in_Time);
+                            sSpriteDrawData.GradientBottomRight = track.GetColor(in_Time);
                             break;
                     }
                 }
@@ -477,66 +498,61 @@ namespace Kunai.ShurikenRenderer
             }
             // Inherit position scale
             // TODO: Is this handled through flags?
-            position.X *= in_Transform.Scale.X;
-            position.Y *= in_Transform.Scale.Y;
+            sSpriteDrawData.Position.X *= in_Transform.Scale.X;
+            sSpriteDrawData.Position.Y *= in_Transform.Scale.Y;
 
             // Rotate through parent transform
             float angle = in_Transform.Rotation * MathF.PI / 180.0f; //to radians
-            float rotatedX = position.X * MathF.Cos(angle) * in_Scene.AspectRatio + position.Y * MathF.Sin(angle);
-            float rotatedY = position.Y * MathF.Cos(angle) - position.X * MathF.Sin(angle) * in_Scene.AspectRatio;
+            float rotatedX = sSpriteDrawData.Position.X * MathF.Cos(angle) * in_Scene.AspectRatio + sSpriteDrawData.Position.Y * MathF.Sin(angle);
+            float rotatedY = sSpriteDrawData.Position.Y * MathF.Cos(angle) - sSpriteDrawData.Position.X * MathF.Sin(angle) * in_Scene.AspectRatio;
 
-            position.X = rotatedX / in_Scene.AspectRatio;
-            position.Y = rotatedY;
+            sSpriteDrawData.Position.X = rotatedX / in_Scene.AspectRatio;
+            sSpriteDrawData.Position.Y = rotatedY;
 
-            position += in_UiElement.Origin;
+            sSpriteDrawData.Position += in_UiElement.Origin;
             var inheritanceFlags = (ElementInheritanceFlags)in_UiElement.InheritanceFlags.Value;
             // Inherit position
             if (inheritanceFlags.HasFlag(ElementInheritanceFlags.InheritXPosition))
-                position.X += in_Transform.Position.X;
+                sSpriteDrawData.Position.X += in_Transform.Position.X;
 
             if (inheritanceFlags.HasFlag(ElementInheritanceFlags.InheritYPosition))
-                position.Y += in_Transform.Position.Y;
+                sSpriteDrawData.Position.Y += in_Transform.Position.Y;
 
             // Inherit rotation
             if (inheritanceFlags.HasFlag(ElementInheritanceFlags.InheritRotation))
-                rotation += in_Transform.Rotation;
+                sSpriteDrawData.Rotation += in_Transform.Rotation;
 
             // Inherit scale
             if (inheritanceFlags.HasFlag(ElementInheritanceFlags.InheritScaleX))
-                scale.X *= in_Transform.Scale.X;
+                sSpriteDrawData.Scale.X *= in_Transform.Scale.X;
 
             if (inheritanceFlags.HasFlag(ElementInheritanceFlags.InheritScaleY))
-                scale.Y *= in_Transform.Scale.Y;
+                sSpriteDrawData.Scale.Y *= in_Transform.Scale.Y;
 
             // Inherit color
             if (inheritanceFlags.HasFlag(ElementInheritanceFlags.InheritColor))
             {
-                var cF = color * in_Transform.Color;
-                color = cF;
+                sSpriteDrawData.Color *= in_Transform.Color;
             }
             var type = (DrawType)in_UiElement.Field04;
             var flags = (ElementMaterialFlags)in_UiElement.Field38;
 
             if (visibilityDataCast.Active && in_UiElement.Enabled)
             {
+                sSpriteDrawData.Rotation *= MathF.PI / 180.0f;
                 if (type == DrawType.Sprite)
                 {
                     int spriteIdx1 = Math.Min(in_UiElement.SpriteIndices.Length - 1, (int)sprId);
                     int spriteIdx2 = Math.Min(in_UiElement.SpriteIndices.Length - 1, (int)sprId + 1);
                     Shuriken.Rendering.Sprite spr = sprId >= 0 ? SpriteHelper.TryGetSprite(in_UiElement.SpriteIndices[spriteIdx1]) : null;
                     Shuriken.Rendering.Sprite nextSpr = sprId >= 0 ? SpriteHelper.TryGetSprite(in_UiElement.SpriteIndices[spriteIdx2]) : null;
-                    if (Config.ShowQuads)
-                    {
-                        spr = null;
-                        nextSpr = null;
-                    }
+                    
                     spr ??= nextSpr;
                     nextSpr ??= spr;
-                    Renderer.DrawSprite(
-                        in_UiElement.TopLeft, in_UiElement.BottomLeft, in_UiElement.TopRight, in_UiElement.BottomRight,
-                        position, rotation * MathF.PI / 180.0f, scale, in_Scene.AspectRatio, spr, nextSpr, sprId % 1, color,
-                        gradientTopLeft, gradientBottomLeft, gradientTopRight, gradientBottomRight,
-                        (int)in_Scene.Priority + in_UiElement.Priority, flags);
+                    sSpriteDrawData.NextSprite = nextSpr;
+                    sSpriteDrawData.SpriteFactor = sprId % 1;
+                    sSpriteDrawData.Sprite = spr;
+                    Renderer.DrawSprite(sSpriteDrawData);
                 }
                 else if (type == DrawType.Font)
                 {
@@ -569,21 +585,20 @@ namespace Kunai.ShurikenRenderer
                         var begin = (Vector2)in_UiElement.TopLeft;
                         var end = begin + new Vector2(width, height);
 
-                        Renderer.DrawSprite(
-                            new Vector2(begin.X + xOffset, begin.Y),
-                            new Vector2(begin.X + xOffset, end.Y),
-                            new Vector2(end.X + xOffset, begin.Y),
-                            new Vector2(end.X + xOffset, end.Y),
-                             position, rotation * MathF.PI / 180.0f, scale, in_Scene.AspectRatio, spr, spr, 0, color,
-                        gradientTopLeft, gradientBottomLeft, gradientTopRight, gradientBottomRight,
-                        in_UiElement.Priority, flags
-                        );
-                        //in_UiElement.Field4C = kerning (space between letters)
+                        sSpriteDrawData.OverrideUVCoords = true;
+                        sSpriteDrawData.TopLeft = new Vector2(begin.X + xOffset, begin.Y);
+                        sSpriteDrawData.BottomLeft = new Vector2(begin.X + xOffset, end.Y);
+                        sSpriteDrawData.TopRight = new Vector2(end.X + xOffset, begin.Y);
+                        sSpriteDrawData.BottomRight = new Vector2(end.X + xOffset, end.Y);
+
+                        sSpriteDrawData.Sprite = spr;
+                        sSpriteDrawData.NextSprite = spr;
+                        Renderer.DrawSprite(sSpriteDrawData);
                         xOffset += width + BitConverter.ToSingle(BitConverter.GetBytes(in_UiElement.Field4C));
                     }
                 }
 
-                var childTransform = new CastTransform(position, rotation, scale, color);
+                var childTransform = new CastTransform(sSpriteDrawData.Position, sSpriteDrawData.Rotation, sSpriteDrawData.Scale, sSpriteDrawData.Color);
 
                 foreach (var child in in_UiElement.Children)
                     UpdateCast(in_Scene, child, childTransform, in_Priority++, in_Time, in_Vis);
@@ -597,12 +612,12 @@ namespace Kunai.ShurikenRenderer
         }
         void RecursiveSetCropListNode(SceneNode in_Node, List<SharpNeedle.Framework.Ninja.Csd.Sprite> in_Sprites, List<Vector2> in_TexSizes)
         {
-            foreach(var s in in_Node.Scenes)
+            foreach (var s in in_Node.Scenes)
             {
                 s.Value.Sprites = in_Sprites;
                 s.Value.Textures = in_TexSizes;
             }
-            foreach(var c in in_Node.Children)
+            foreach (var c in in_Node.Children)
             {
                 RecursiveSetCropListNode(c.Value, in_Sprites, in_TexSizes);
             }
@@ -611,8 +626,8 @@ namespace Kunai.ShurikenRenderer
         {
             List<SharpNeedle.Framework.Ninja.Csd.Sprite> subImageList = new();
             List<Vector2> sizes = new List<Vector2>();
-            //SpriteHelper.BuildCropList(ref subImageList, ref sizes);
-            //RecursiveSetCropListNode(WorkProjectCsd.Project.Root, subImageList, sizes);
+            SpriteHelper.BuildCropList(ref subImageList, ref sizes);
+            RecursiveSetCropListNode(WorkProjectCsd.Project.Root, subImageList, sizes);
             WorkProjectCsd.Write(string.IsNullOrEmpty(in_Path) ? Config.WorkFilePath : in_Path);
         }
 
@@ -628,6 +643,30 @@ namespace Kunai.ShurikenRenderer
         internal void SaveScreenshot()
         {
             saveScreenshotWhenRendered = true;
+        }
+        void CreatePackageFile(IChunk chunk, string in_Path, Endianness endianness)
+        {
+            using BinaryObjectWriter infoWriter = new BinaryObjectWriter(in_Path, Endianness.Little, Encoding.UTF8);
+            InfoChunk info = new()
+            {
+                Signature = BinaryHelper.MakeSignature<uint>(endianness == Endianness.Little ? "NXIF" : "NYIF"),
+            };
+            info.Chunks.Add(chunk);
+            infoWriter.WriteObject(info);
+        }
+        internal void ExportProjectChunk(string in_Path, bool in_Ultimate)
+        {
+            string path = string.IsNullOrEmpty(in_Path) ? Config.WorkFilePath : in_Path;
+            if (in_Ultimate)
+            {
+                CreatePackageFile(WorkProjectCsd.Project, path, Endianness.Little);
+                CreatePackageFile(WorkProjectCsd.Textures, Path.ChangeExtension(path, "dxl"), Endianness.Little);
+            }
+            else
+            {
+                CreatePackageFile(WorkProjectCsd.Project, path, Endianness.Big);
+                ShowMessageBoxCross("Warning", "This program can't export tls files.\nYou will have to create them yourself using BrawlBox.", true);
+            }
         }
     }
 }

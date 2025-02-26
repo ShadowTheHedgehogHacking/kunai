@@ -82,7 +82,7 @@ namespace Kunai.Window
         private void DrawMotionElement(SVisibilityData.SAnimation in_SceneMotion)
         {
             bool selected = false;
-            if (ImKunaiTreeNode.VisibilityNode(in_SceneMotion.Motion.Key, ref in_SceneMotion.Active, ref selected, in_ShowArrow: true))
+            if (ImKunaiControls.VisibilityNode(in_SceneMotion.Motion.Key, ref in_SceneMotion.Active, ref selected, in_ShowArrow: true))
             {
                 foreach (FamilyMotion familyMotion in in_SceneMotion.Motion.Value.FamilyMotions)
                 {

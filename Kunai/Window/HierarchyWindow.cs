@@ -5,7 +5,7 @@ using SharpNeedle.Framework.Ninja.Csd;
 using Shuriken.Rendering;
 using System;
 using System.Numerics;
-using static Kunai.Window.ImKunaiTreeNode;
+using static Kunai.Window.ImKunaiControls;
 
 namespace Kunai.Window
 {
@@ -38,7 +38,7 @@ namespace Kunai.Window
                     }
             }
             //Casts
-            if (ImKunaiTreeNode.VisibilityNode(in_Cast.Name, ref vis.Active, ref selectedcast, CastRightClickAction(vis),in_ShowArrow: in_Cast.Children.Count > 0, in_Icon: icon, in_ID: $"##{in_Cast.Name}_{vis.ID}"))
+            if (ImKunaiControls.VisibilityNode(in_Cast.Name, ref vis.Active, ref selectedcast, CastRightClickAction(vis),in_ShowArrow: in_Cast.Children.Count > 0, in_Icon: icon, in_ID: $"##{in_Cast.Name}_{vis.ID}"))
             {
                 for (int x = 0; x < in_Cast.Children.Count; x++)
                 {
@@ -120,7 +120,7 @@ namespace Kunai.Window
             bool selectedNode = false;
             bool selectedScene = false;
             //Scene Node
-            if (ImKunaiTreeNode.VisibilityNode($"{in_VisNode.Node.Key}", ref in_VisNode.Active, ref selectedNode, SceneNodeRightClickAction(in_VisNode), in_Icon: NodeIconResource.SceneNode))
+            if (ImKunaiControls.VisibilityNode($"{in_VisNode.Node.Key}", ref in_VisNode.Active, ref selectedNode, SceneNodeRightClickAction(in_VisNode), in_Icon: NodeIconResource.SceneNode))
             {
                 foreach (var inNode in in_VisNode.Nodes)
                     DrawSceneNode(inNode);
@@ -128,7 +128,7 @@ namespace Kunai.Window
                 {
                     SVisibilityData.SScene scene = in_VisNode.Scene[i];
                     //Scene
-                    if (ImKunaiTreeNode.VisibilityNode(scene.Scene.Key, ref scene.Active, ref selectedScene, SceneRightClickAction(scene), in_Icon: NodeIconResource.Scene))
+                    if (ImKunaiControls.VisibilityNode(scene.Scene.Key, ref scene.Active, ref selectedScene, SceneRightClickAction(scene), in_Icon: NodeIconResource.Scene))
                     {
                         for (int x = 0; x < scene.Scene.Value.Families.Count; x++)
                         {
@@ -170,7 +170,7 @@ namespace Kunai.Window
                 ImGui.BeginDisabled(true);
                 _searchBox.Render();
                 ImGui.EndDisabled();
-                ImKunaiTreeNode.ItemRowsBackground(new System.Numerics.Vector4(20, 20, 20, 64));
+                ImKunaiControls.ItemRowsBackground(new System.Numerics.Vector4(20, 20, 20, 64));
                 //if (ImGui.BeginListBox("##hierarchylist", new System.Numerics.Vector2(-1, -1)))
                 //{
 

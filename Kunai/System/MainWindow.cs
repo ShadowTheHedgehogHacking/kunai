@@ -14,12 +14,14 @@ using System.Drawing;
 using System.IO;
 using System.Reflection;
 using System;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 
 
 namespace Kunai
 {
     public class MainWindow : GameWindow
     {
+        public static bool IsMouseLeftDown;
         public static readonly string ApplicationName = "Kunai";
         private static MemoryStream _iconData;
         private float _test = 1;
@@ -40,7 +42,6 @@ namespace Kunai
             Renderer.Windows.Add(new HierarchyWindow());
             Renderer.Windows.Add(new InspectorWindow());
             Renderer.Windows.Add(new ViewportWindow());
-            Renderer.Windows.Add(new CropEditor());
             if (Program.Arguments.Length > 0)
             {
                 Renderer.LoadFile(Program.Arguments[0]);
@@ -56,6 +57,27 @@ namespace Kunai
             // Tell ImGui of the new size
             _controller.WindowResized(ClientSize.X, ClientSize.Y);
         }
+        
+        //For whatever fucking stupid reason, Imgui.Net has no "IsMouseDown" function
+        protected override void OnMouseDown(MouseButtonEventArgs e)
+        {
+            base.OnMouseDown(e);
+
+            if (e.Button == MouseButton.Left)
+            {
+                IsMouseLeftDown = true; // Left mouse button pressed
+            }
+        }
+
+        protected override void OnMouseUp(MouseButtonEventArgs e)
+        {
+            base.OnMouseUp(e);
+
+            if (e.Button == MouseButton.Left)
+            {
+                IsMouseLeftDown = false; // Left mouse button released
+            }
+        }
         protected override void OnRenderFrame(FrameEventArgs in_E)
         {
             base.OnRenderFrame(in_E);
@@ -69,6 +91,11 @@ namespace Kunai
             float deltaTime = (float)(in_E.Time);
             Renderer.Render(Renderer.WorkProjectCsd, (float)deltaTime);
             //ImGui.ShowMetricsWindow();
+
+            ImGui.SetNextWindowSize(Renderer.ScreenSize);
+            ImGui.SetNextWindowPos(new System.Numerics.Vector2(0, 0));
+            
+        
             _controller.Render();
             if (Renderer.WorkProjectCsd != null)            
                 Title = ApplicationName + $" - [{Renderer.Config.WorkFilePath}]";

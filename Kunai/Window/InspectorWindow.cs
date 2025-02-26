@@ -11,6 +11,19 @@ using System;
 
 namespace Kunai.Window
 {
+    enum EAlignmentPivot
+    {
+        None,
+        TopLeft,
+        TopCenter,
+        TopRight,
+        MiddleLeft,
+        MiddleCenter,
+        MiddleRight,
+        BottomLeft,
+        BottomCenter,
+        BottomRight
+    }
     public class InspectorWindow : WindowBase
     {
         public enum ESelectionType
@@ -76,12 +89,12 @@ namespace Kunai.Window
             ImGui.Text($"Ratio: ({simplifiedWidth}:{simplifiedHeight})");
             ImGui.SeparatorText("Info");
             var space = ImGui.GetContentRegionAvail();
-            if(ImGui.BeginListBox("##crops", new Vector2(-1, space.Y/2 - 5)))
+            if (ImGui.BeginListBox("##crops", new Vector2(-1, space.Y / 2 - 5)))
             {
                 int idx = 0;
-                foreach(var s in selectedScene.Value.Sprites)
+                foreach (var s in selectedScene.Value.Sprites)
                 {
-                    if(ImGui.TreeNode($"Crop ({idx})"))
+                    if (ImGui.TreeNode($"Crop ({idx})"))
                     {
                         ImGui.Text($"Texture Index: {s.TextureIndex.ToString()}");
                         ImGui.Text($"Top-Left: {s.TopLeft.ToString()}");
@@ -93,7 +106,7 @@ namespace Kunai.Window
                 ImGui.EndListBox();
             }
             ImGui.Separator();
-            if (ImGui.BeginListBox("##textures", new Vector2(-1, space.Y/2 - 5)))
+            if (ImGui.BeginListBox("##textures", new Vector2(-1, space.Y / 2 - 5)))
             {
                 int idx = 0;
                 foreach (var s in selectedScene.Value.Textures)
@@ -110,12 +123,6 @@ namespace Kunai.Window
             selectedScene.Value.AspectRatio = aspectRatio;
             selectedScene.Value.AspectRatio = aspectRatio;
             selectedScene.Value.FrameRate = fps;
-        }
-        public bool EmptyTextureButton(int in_Id)
-        {
-            bool val = ImGui.Button($"##pattern{in_Id}", new System.Numerics.Vector2(55, 55));
-            ImGui.SameLine();
-            return val;
         }
         public void DrawCastInspector()
         {
@@ -179,9 +186,18 @@ namespace Kunai.Window
 
             if (ImGui.CollapsingHeader("Dimensions"))
             {
-                ImGui.Text("insert combo here");
+                var cursorPosAlign = ImGui.GetCursorPosY();
+                if (DrawAlignmentGridRadio(ref selectedCast))
+                {
+                    topLeftVert = selectedCast.TopLeft * KunaiProject.Instance.ViewportSize;
+                    topRightVert = selectedCast.TopRight * KunaiProject.Instance.ViewportSize;
+                    bottomLeftVert = selectedCast.BottomLeft * KunaiProject.Instance.ViewportSize;
+                    bottomRightVert = selectedCast.BottomRight * KunaiProject.Instance.ViewportSize;
+                    translation = selectedCast.Info.Translation;
+                }
                 ImGui.SameLine();
 
+                ImGui.SetCursorPosY(cursorPosAlign);
                 ImGui.BeginGroup();
                 ImGui.SeparatorText("Invert UV");
                 ImGui.PushID("mirrorH");
@@ -283,7 +299,7 @@ namespace Kunai.Window
                             // Draw sprite preview if it isnt set to the default square
                             if (patternIdx == -1)
                             {
-                                EmptyTextureButton(i);
+                                ImKunaiControls.EmptyTextureButton(i);
                             }
                             else
                             {
@@ -295,11 +311,11 @@ namespace Kunai.Window
 
                                     if (spriteReference.Texture.GlTex == null)
                                     {
-                                        EmptyTextureButton(i);
+                                        ImKunaiControls.EmptyTextureButton(i);
                                     }
                                     else
                                     {
-                                        ImKunaiTreeNode.SpriteImageButton($"##pattern{i}", spriteReference);
+                                        ImKunaiControls.SpriteImageButton($"##pattern{i}", spriteReference);
                                     }
                                 }
                                 if (i != selectedCast.SpriteIndices.Length - 1)
@@ -310,7 +326,7 @@ namespace Kunai.Window
                         }
                         ImGui.EndListBox();
                     }
-                    if(!isEditingCrop)
+                    if (!isEditingCrop)
                     {
                         ImGui.SetNextItemWidth(-1);
                         if (ImGui.Button("Edit current pattern", new Vector2(-1, 32)))
@@ -320,11 +336,11 @@ namespace Kunai.Window
                     }
                     else
                     {
-                        if(ImGui.BeginListBox("##listpatternsselection", new Vector2(-1, 250)))
+                        if (ImGui.BeginListBox("##listpatternsselection", new Vector2(-1, 250)))
                         {
-                            var result = ImKunaiTreeNode.TextureSelector(Renderer);
+                            var result = ImKunaiControls.TextureSelector(Renderer);
                             if (result.IsCropSelected())
-                            {                                
+                            {
                                 selectedCast.SpriteIndices[spriteIndex] = result.GetSpriteIndex();
                             }
 
@@ -377,6 +393,86 @@ namespace Kunai.Window
             selectedCast.Text = text;
             selectedCast.Field4C = (uint)BitConverter.ToInt32(BitConverter.GetBytes(kerning / 100), 0);
         }
+        static Vector2 CalculatePivot(Vector2[] quad)
+        {
+            // Find the min and max X and Y values from the 4 corners
+            float minX = Math.Min(Math.Min(quad[0].X, quad[1].X), Math.Min(quad[2].X, quad[3].X));
+            float maxX = Math.Max(Math.Max(quad[0].X, quad[1].X), Math.Max(quad[2].X, quad[3].X));
+
+            float minY = Math.Min(Math.Min(quad[0].Y, quad[1].Y), Math.Min(quad[2].Y, quad[3].Y));
+            float maxY = Math.Max(Math.Max(quad[0].Y, quad[1].Y), Math.Max(quad[2].Y, quad[3].Y));
+
+            // Calculate the center of the quad (for simplicity as pivot example)
+            Vector2 center = (quad[0] + quad[1] + quad[2] + quad[3]) / 4.0f;
+
+            // Normalize the center based on the bounding box
+            float normalizedX = (center.X - minX) / (maxX - minX);
+            float normalizedY = (center.Y - minY) / (maxY - minY);
+
+            return new Vector2(normalizedX, normalizedY);
+        }
+        private bool DrawAlignmentGridRadio(ref Cast in_Cast)
+        {
+            EAlignmentPivot currentPivot = GetPivot(in_Cast);
+            Vector2 quadCenter = CalculatePivot([in_Cast.TopLeft, in_Cast.TopRight, in_Cast.BottomRight, in_Cast.BottomLeft]);
+            Console.WriteLine(quadCenter);
+            bool changed = false;
+            if (ImGui.RadioButton("##tl", currentPivot == EAlignmentPivot.TopLeft))
+            {
+                changed = true;
+                AlignQuadTo(EAlignmentPivot.TopLeft, ref in_Cast);
+            }
+            ImGui.SameLine();
+            if (ImGui.RadioButton("##tc", currentPivot == EAlignmentPivot.TopCenter))
+            {
+                changed = true;
+                AlignQuadTo(EAlignmentPivot.TopCenter, ref in_Cast);
+            }
+            ImGui.SameLine();
+            if (ImGui.RadioButton("##tr", currentPivot == EAlignmentPivot.TopRight))
+            {
+                changed = true;
+                AlignQuadTo(EAlignmentPivot.TopRight, ref in_Cast);
+            }
+
+            if (ImGui.RadioButton("##ml", currentPivot == EAlignmentPivot.MiddleLeft))
+            {
+                changed = true;
+                AlignQuadTo(EAlignmentPivot.MiddleLeft, ref in_Cast);
+            }
+            ImGui.SameLine();
+            if (ImGui.RadioButton("##mc", currentPivot == EAlignmentPivot.MiddleCenter))
+            {
+                changed = true;
+                AlignQuadTo(EAlignmentPivot.MiddleCenter, ref in_Cast);
+            }
+            ImGui.SameLine();
+            if (ImGui.RadioButton("##mr", currentPivot == EAlignmentPivot.MiddleRight))
+            {
+                changed = true;
+                AlignQuadTo(EAlignmentPivot.MiddleRight, ref in_Cast);
+            }
+
+            if (ImGui.RadioButton("##bl", currentPivot == EAlignmentPivot.BottomLeft))
+            {
+                changed = true;
+                AlignQuadTo(EAlignmentPivot.BottomLeft, ref in_Cast);
+            }
+            ImGui.SameLine();
+            if (ImGui.RadioButton("##bc", currentPivot == EAlignmentPivot.BottomCenter))
+            {
+                changed = true;
+                AlignQuadTo(EAlignmentPivot.BottomCenter, ref in_Cast);
+            }
+            ImGui.SameLine();
+            if (ImGui.RadioButton("##br", currentPivot == EAlignmentPivot.BottomRight))
+            {
+                changed = true;
+                AlignQuadTo(EAlignmentPivot.BottomRight, ref in_Cast);
+            }
+            return changed;
+        }
+
         public override void Update(KunaiProject in_Proj)
         {
             ImGui.SetNextWindowPos(new System.Numerics.Vector2((ImGui.GetWindowViewport().Size.X / 4.5f) * 3.5f, MenuBarWindow.MenuBarHeight), ImGuiCond.Always);
@@ -412,5 +508,179 @@ namespace Kunai.Window
             KunaiProject.Instance.SelectionData.SelectedCast = null;
             KunaiProject.Instance.SelectionData.SelectedScene = new();
         }
+
+        public static Vector2 CalculateQuadCenter(Vector2 topLeft, Vector2 topRight, Vector2 bottomLeft, Vector2 bottomRight)
+        {
+            return new Vector2(
+                (topLeft.X + topRight.X + bottomLeft.X + bottomRight.X) / 4,
+                (topLeft.Y + topRight.Y + bottomLeft.Y + bottomRight.Y) / 4
+            );
+        }
+
+        EAlignmentPivot InvertPivot(EAlignmentPivot pivot)
+        {
+            EAlignmentPivot newPivot = EAlignmentPivot.None;
+            switch (pivot)
+            {
+                case EAlignmentPivot.TopLeft:
+                    newPivot = EAlignmentPivot.BottomRight;
+                    break;
+                case EAlignmentPivot.TopCenter:
+                    newPivot = EAlignmentPivot.BottomCenter;
+                    break;
+                case EAlignmentPivot.TopRight:
+                    newPivot = EAlignmentPivot.BottomLeft;
+                    break;
+                case EAlignmentPivot.MiddleLeft:
+                    newPivot = EAlignmentPivot.MiddleRight;
+                    break;
+                case EAlignmentPivot.MiddleCenter:
+                    newPivot = EAlignmentPivot.MiddleCenter;
+                    break;
+                case EAlignmentPivot.MiddleRight:
+                    newPivot = EAlignmentPivot.MiddleLeft;
+                    break;
+                case EAlignmentPivot.BottomLeft:
+                    newPivot = EAlignmentPivot.TopRight;
+                    break;
+                case EAlignmentPivot.BottomCenter:
+                    newPivot = EAlignmentPivot.TopCenter;
+                    break;
+                case EAlignmentPivot.BottomRight:
+                    newPivot = EAlignmentPivot.TopLeft;
+                    break;
+            }
+            return newPivot;
+        }
+        EAlignmentPivot GetPivot(Cast in_Cast)
+        {
+            var size = new Vector2(in_Cast.Width, in_Cast.Height) * 2;
+            var topLeft = in_Cast.TopLeft / (size / Renderer.ViewportSize);
+            var bottomRight = in_Cast.BottomRight / (size / Renderer.ViewportSize);
+            var topRight = in_Cast.TopRight / (size / Renderer.ViewportSize);
+            var bottomLeft = in_Cast.BottomLeft / (size / Renderer.ViewportSize);
+            EAlignmentPivot returnValue = EAlignmentPivot.None;
+            if (topLeft == new Vector2(-1, -1) && topRight == new Vector2(0, -1) && bottomLeft == new Vector2(-1, 0) && bottomRight == new Vector2(0, 0))
+                returnValue = EAlignmentPivot.TopLeft;
+
+            if (topLeft == new Vector2(-0.5f, -1) && topRight == new Vector2(0.5f, -1) && bottomLeft == new Vector2(-0.5f, 0) && bottomRight == new Vector2(0.5f, 0))
+                returnValue = EAlignmentPivot.TopCenter;
+
+            if (topLeft == new Vector2(0, -1) && topRight == new Vector2(1, -1) && bottomLeft == new Vector2(0, 0) && bottomRight == new Vector2(1, 0))
+                returnValue = EAlignmentPivot.TopRight;
+
+            if (topLeft == new Vector2(-1, -0.5f) && topRight == new Vector2(0, -0.5f) && bottomLeft == new Vector2(-1, 0.5f) && bottomRight == new Vector2(0, 0.5f))
+                returnValue = EAlignmentPivot.MiddleLeft;
+
+            if (topLeft == new Vector2(-0.5f, -0.5f) && topRight == new Vector2(0.5f, -0.5f) && bottomLeft == new Vector2(-0.5f, 0.5f) && bottomRight == new Vector2(0.5f, 0.5f))
+                returnValue = EAlignmentPivot.MiddleCenter;
+
+            if (topLeft == new Vector2(0, -0.5f) && topRight == new Vector2(1, -0.5f) && bottomLeft == new Vector2(0, 0.5f) && bottomRight == new Vector2(1, 0.5f))
+                returnValue = EAlignmentPivot.MiddleRight;
+
+            if (topLeft == new Vector2(-1, 0) && topRight == new Vector2(0, 0) && bottomLeft == new Vector2(-1, 1) && bottomRight == new Vector2(0, 1))
+                returnValue = EAlignmentPivot.BottomLeft;
+
+            if (topLeft == new Vector2(-0.5f, 0) && topRight == new Vector2(0.5f, 0) && bottomLeft == new Vector2(-0.5f, 1) && bottomRight == new Vector2(0.5f, 1))
+                returnValue = EAlignmentPivot.BottomCenter;
+
+            if (topLeft == new Vector2(0, 0) && topRight == new Vector2(1, 0) && bottomLeft == new Vector2(0, 1) && bottomRight == new Vector2(1, 1))
+                returnValue =  EAlignmentPivot.BottomRight;
+            return InvertPivot(returnValue);
+        }
+        private void AlignQuadTo(EAlignmentPivot alignmentPosition, ref Cast in_Cast)
+        {
+            Vector2 quadCenter = CalculateQuadCenter(in_Cast.TopLeft, in_Cast.TopRight, in_Cast.BottomLeft, in_Cast.BottomRight);
+
+            var diff1 = in_Cast.Position - quadCenter;
+            Vector2 topLeft = new Vector2(0, 0), topRight = new Vector2(0, 0), bottomLeft = new Vector2(0, 0), bottomRight = new Vector2(0, 0);
+            Vector2 size = (new Vector2(in_Cast.Width, in_Cast.Height) * 2) / Renderer.ViewportSize;
+            switch (InvertPivot(alignmentPosition))
+            {
+                case EAlignmentPivot.TopLeft:
+                    topLeft = new Vector2(-1, -1);
+                    topRight = new Vector2(0, -1);
+                    bottomLeft = new Vector2(-1, 0);
+                    bottomRight = new Vector2(0, 0);
+                    break;
+
+                case EAlignmentPivot.TopCenter:
+                    topLeft = new Vector2(-0.5f, -1);
+                    topRight = new Vector2(0.5f, -1);
+                    bottomLeft = new Vector2(-0.5f, 0);
+                    bottomRight = new Vector2(0.5f, 0);
+                    break;
+
+                case EAlignmentPivot.TopRight:
+                    topLeft = new Vector2(0, -1);
+                    topRight = new Vector2(1, -1);
+                    bottomLeft = new Vector2(0, 0);
+                    bottomRight = new Vector2(1, 0);
+                    break;
+
+                case EAlignmentPivot.MiddleLeft:
+                    topLeft = new Vector2(-1, -0.5f);
+                    topRight = new Vector2(0, -0.5f);
+                    bottomLeft = new Vector2(-1, 0.5f);
+                    bottomRight = new Vector2(0, 0.5f);
+                    break;
+
+                case EAlignmentPivot.MiddleCenter:
+                    topLeft = new Vector2(-0.5f, -0.5f);
+                    topRight = new Vector2(0.5f, -0.5f);
+                    bottomLeft = new Vector2(-0.5f, 0.5f);
+                    bottomRight = new Vector2(0.5f, 0.5f);
+                    break;
+
+                case EAlignmentPivot.MiddleRight:
+                    topLeft = new Vector2(0, -0.5f);
+                    topRight = new Vector2(1, -0.5f);
+                    bottomLeft = new Vector2(0, 0.5f);
+                    bottomRight = new Vector2(1, 0.5f);
+                    break;
+
+                case EAlignmentPivot.BottomLeft:
+                    topLeft = new Vector2(-1, 0);
+                    topRight = new Vector2(0, 0);
+                    bottomLeft = new Vector2(-1, 1);
+                    bottomRight = new Vector2(0, 1);
+                    break;
+
+                case EAlignmentPivot.BottomCenter:
+                    topLeft = new Vector2(-0.5f, 0);
+                    topRight = new Vector2(0.5f, 0);
+                    bottomLeft = new Vector2(-0.5f, 1);
+                    bottomRight = new Vector2(0.5f, 1);
+                    break;
+
+                case EAlignmentPivot.BottomRight:
+                    topLeft = new Vector2(0, 0);
+                    topRight = new Vector2(1, 0);
+                    bottomLeft = new Vector2(0, 1);
+                    bottomRight = new Vector2(1, 1);
+                    break;
+            }
+            // Calculate the offset to move the center to the alignment position
+            in_Cast.TopLeft = topLeft * size;
+            in_Cast.TopRight = topRight * size;
+            in_Cast.BottomLeft = bottomLeft * size;
+            in_Cast.BottomRight = bottomRight * size;
+
+            Vector2 quadCenter2 = CalculateQuadCenter(in_Cast.TopLeft, in_Cast.TopRight, in_Cast.BottomLeft, in_Cast.BottomRight);
+            var diff2 = in_Cast.Position - quadCenter2;
+            var t = in_Cast.Info;
+            var diff = (((quadCenter2 - quadCenter)));
+            in_Cast.Info = t;
+        }
+        bool IsQuadAligned(Vector2 alignmentPosition, ref Cast in_Cast)
+        {
+            Vector2 quadCenter = CalculateQuadCenter(in_Cast.TopLeft, in_Cast.TopRight, in_Cast.BottomLeft, in_Cast.BottomRight);
+
+            // Check if the quad's center is within a threshold of the alignment
+            float tolerance = 0.01f;
+            return (Math.Abs(quadCenter.X - alignmentPosition.X) < tolerance) &&
+                   (Math.Abs(quadCenter.Y - alignmentPosition.Y) < tolerance);
+        }
+
     }
 }

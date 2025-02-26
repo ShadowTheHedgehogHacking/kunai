@@ -5,7 +5,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
-using static Kunai.Window.ImKunaiTreeNode;
+using static Kunai.Window.ImKunaiControls;
 
 namespace Kunai
 {

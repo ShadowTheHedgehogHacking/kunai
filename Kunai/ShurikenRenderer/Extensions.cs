@@ -20,6 +20,15 @@ public static class ExtensionKillMe
             v.X * MathF.Cos(in_Angle) + v.Y * MathF.Sin(in_Angle),
             v.Y * MathF.Cos(in_Angle) - v.X * MathF.Sin(in_Angle));
     }
+    public static Vector2 RotatePoint(this Vector2 point, float radians)
+    {
+        float cosTheta = (float)Math.Cos(radians);
+        float sinTheta = (float)Math.Sin(radians);
+        return new Vector2(
+            point.X * cosTheta - point.Y * sinTheta,
+            point.X * sinTheta + point.Y * cosTheta
+        );
+    }
     public static System.Numerics.Vector4 Invert(this System.Numerics.Vector4 in_Value)
     {
         /// TODO: SHARPNEEDLE FIX

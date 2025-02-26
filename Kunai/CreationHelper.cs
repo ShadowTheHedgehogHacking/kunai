@@ -54,7 +54,7 @@ namespace Kunai
         public static void CreateNewCast(SVisibilityData.SCast in_Cast, DrawType in_Type)
         {
             Cast newCast = CreateNewCastFromDefault($"Cast_{in_Cast.Parent.Casts.Count}", null, in_Type);
-            in_Cast.Cast.Children.Add(newCast);
+            in_Cast.Cast.Add(newCast);
             in_Cast.Parent.Casts.Add(new SVisibilityData.SCast(newCast, in_Cast.Parent));
         }
 

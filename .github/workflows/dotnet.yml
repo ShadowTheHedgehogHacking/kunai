@@ -23,7 +23,9 @@ jobs:
     - name: Checkout all submodules
       uses: actions/checkout@v2
       with:
-        submodules: recursive
+        submodules: recursive        
+        fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
+        
     - name: Restore dependencies
       run: dotnet restore
     - name: Build

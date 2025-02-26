@@ -243,12 +243,14 @@ namespace Kunai.ShurikenRenderer
         /// <exception cref="Exception"></exception>
         public void Render(CsdProject in_CsdProject, float in_DeltaTime)
         {
+            //If one or both of these are 0, it means the application is minimized.
+            if (ScreenSize.X == 0 || ScreenSize.Y == 0)
+                return;
             if (in_CsdProject != null)
             {
                 bool isSavingScreenshot = saveScreenshotWhenRendered;
                 // Get the size of the child (i.e. the whole draw size of the windows).
                 Vector2 wsize = ScreenSize;
-
                 // make sure the buffers are the currect size
                 OpenTK.Mathematics.Vector2i wsizei = new((int)wsize.X, (int)wsize.Y);
                 if (_viewportData.FramebufferSize != wsizei || isSavingScreenshot)
@@ -300,6 +302,8 @@ namespace Kunai.ShurikenRenderer
 
                     // make sure the frame buffer is complete
                     FramebufferErrorCode errorCode = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
+                    if (errorCode == FramebufferErrorCode.FramebufferIncompleteAttachment)
+                        return;
                     if (errorCode != FramebufferErrorCode.FramebufferComplete)
                         throw new Exception();
                 }

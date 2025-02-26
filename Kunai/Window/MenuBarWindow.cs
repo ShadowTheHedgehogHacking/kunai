@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,7 +16,8 @@ namespace Kunai.Window
     public class MenuBarWindow : WindowBase
     {
         public static float MenuBarHeight = 32;
-        private static readonly string Filters = "xncp,yncp,gncp,sncp;";
+        private static readonly string FiltersOpen = "xncp,yncp,gncp,sncp";
+        private static readonly string Filters = "xncp;yncp;gncp;sncp";
 
         public static string AddQuotesIfRequired(string in_Path)
         {
@@ -33,6 +35,34 @@ namespace Kunai.Window
             proc.StartInfo.Verb = "runas";
             proc.Start();
         }
+        //https://stackoverflow.com/questions/4580263/how-to-open-in-default-browser-in-c-sharp
+        private void OpenUrl(string url)
+        {
+            try
+            {
+                Process.Start(url);
+            }
+            catch
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    url = url.Replace("&", "^&");
+                    Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    Process.Start("xdg-open", url);
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    Process.Start("open", url);
+                }
+                else
+                {
+                    throw;
+                }
+            }
+        }
         public override void Update(KunaiProject in_Renderer)
         {
             if (ImGui.BeginMainMenuBar())
@@ -42,13 +72,13 @@ namespace Kunai.Window
                 {
                     if (ImGui.MenuItem("Open File..."))
                     {
-                        var dialog = NativeFileDialogSharp.Dialog.FileOpen(Filters);
+                        var dialog = NativeFileDialogSharp.Dialog.FileOpen(FiltersOpen);
                         if (dialog.IsOk)
                         {
                             in_Renderer.LoadFile(dialog.Path);
                         }
                     }
-                    if(ImGui.BeginMenu("Save"))
+                    if (ImGui.BeginMenu("Save"))
                     {
                         if (ImGui.MenuItem("Csd Project...", "Ctrl + S"))
                         {
@@ -60,7 +90,7 @@ namespace Kunai.Window
                             in_Renderer.ExportProjectChunk(null, false);
                         }
                         ImGui.EndDisabled();
-                        if(ImGui.MenuItem("Colors Ultimate XNCP"))
+                        if (ImGui.MenuItem("Colors Ultimate XNCP"))
                         {
                             in_Renderer.ExportProjectChunk(null, true);
 
@@ -103,26 +133,43 @@ namespace Kunai.Window
                         }
                         ImGui.EndMenu();
                     }
-                    if (ImGui.BeginMenu("Export"))
-                    {
-                        
-                        ImGui.EndMenu();
-                    }
-                    
+
                     ImGui.EndMenu();
                 }
-                if(ImGui.BeginMenu("Edit"))
+                if (ImGui.BeginMenu("Edit"))
                 {
-                    if(ImGui.MenuItem("Associate extensions"))
+                    if (ImGui.MenuItem("Associate extensions"))
                     {
                         ExecuteAsAdmin(@Path.Combine(Directory.GetParent(@Program.Path).FullName, "FileTypeRegisterService.exe"));
                     }
 
                     ImGui.EndMenu();
-
                 }
+                if (ImGui.BeginMenu("View"))
+                {
+                    if (ImGui.BeginMenu("Windows"))
+                    {
+                        if (ImGui.MenuItem("Sprite Crop Editor", CropEditor.Enabled))
+                        {
+                            CropEditor.Enabled = !CropEditor.Enabled;
+                        }
+                        ImGui.EndMenu();
+                    }
+                    ImGui.EndMenu();
+                }
+                if (ImGui.BeginMenu("Help"))
+                {
+                    if (ImGui.MenuItem("How to use Kunai"))
+                    {
+                        OpenUrl("https://wiki.hedgedocs.com/index.php/How_to_use_Kunai");
+                    }
+                    if (ImGui.MenuItem("Report a bug"))
+                    {
+                        OpenUrl("https://github.com/NextinMono/kunai/issues/new");
+                    }
 
-
+                    ImGui.EndMenu();
+                }
             }
             ImGui.EndMainMenuBar();
         }

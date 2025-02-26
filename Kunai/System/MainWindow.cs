@@ -42,6 +42,7 @@ namespace Kunai
             Renderer.Windows.Add(new HierarchyWindow());
             Renderer.Windows.Add(new InspectorWindow());
             Renderer.Windows.Add(new ViewportWindow());
+            Renderer.Windows.Add(new CropEditor());
             if (Program.Arguments.Length > 0)
             {
                 Renderer.LoadFile(Program.Arguments[0]);
@@ -80,27 +81,35 @@ namespace Kunai
         }
         protected override void OnRenderFrame(FrameEventArgs in_E)
         {
-            base.OnRenderFrame(in_E);
-            _controller.Update(this, (float)in_E.Time);
+            if (Renderer.ScreenSize.X != 0 && Renderer.ScreenSize.Y != 0)
+            {
+                if (IsFocused)
+                {
+                    base.OnRenderFrame(in_E);
+                
 
-            GL.ClearColor(new Color4(0, 0, 0, 255));
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
-            GL.Enable(EnableCap.Blend);
-            GL.Disable(EnableCap.CullFace);
-            GL.BlendEquation(BlendEquationMode.FuncAdd);
-            float deltaTime = (float)(in_E.Time);
-            Renderer.Render(Renderer.WorkProjectCsd, (float)deltaTime);
-            //ImGui.ShowMetricsWindow();
+                    _controller.Update(this, (float)in_E.Time);
 
-            ImGui.SetNextWindowSize(Renderer.ScreenSize);
-            ImGui.SetNextWindowPos(new System.Numerics.Vector2(0, 0));
-            
-        
-            _controller.Render();
-            if (Renderer.WorkProjectCsd != null)            
-                Title = ApplicationName + $" - [{Renderer.Config.WorkFilePath}]";
+                    GL.ClearColor(new Color4(0, 0, 0, 255));
+                    GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
+                    GL.Enable(EnableCap.Blend);
+                    GL.Disable(EnableCap.CullFace);
+                    GL.BlendEquation(BlendEquationMode.FuncAdd);
+                    float deltaTime = (float)(in_E.Time);
+                    Renderer.Render(Renderer.WorkProjectCsd, (float)deltaTime);
+                    //ImGui.ShowMetricsWindow();
 
-            ImGuiController.CheckGlError("End of frame");
+                    ImGui.SetNextWindowSize(Renderer.ScreenSize);
+                    ImGui.SetNextWindowPos(new System.Numerics.Vector2(0, 0));
+                
+                _controller.Render();
+                
+                if (Renderer.WorkProjectCsd != null)
+                    Title = ApplicationName + $" - [{Renderer.Config.WorkFilePath}]";
+
+                ImGuiController.CheckGlError("End of frame");
+                }
+            }
             SwapBuffers();
         }
         protected override void OnTextInput(TextInputEventArgs in_E)

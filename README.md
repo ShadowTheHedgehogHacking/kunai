@@ -2,7 +2,7 @@
 Kunai is a tool to edit CSD files (XNCP,YNCP,GNCP,SNCP) from Sonic the Hedgehog games from Shadow the Hedgehog to Sonic Colors Ultimate.
 
 ## Why "Kunai"?
-The project is called Kunai because it is heavily based on Shuriken, another editor for CSD files.
+The project is called Kunai because it is heavily based on [Shuriken](https://github.com/crash5band/Shuriken), another editor for CSD files.
 
 ## File Support
 Kunai can currently read these file formats:

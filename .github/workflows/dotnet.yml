@@ -25,10 +25,12 @@ jobs:
       with:
         submodules: recursive        
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
-        
+
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
       run: dotnet build --no-restore
     - name: Test
       run: dotnet test --no-build --verbosity normal
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v4.6.1

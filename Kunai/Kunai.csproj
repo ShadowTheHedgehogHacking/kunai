@@ -61,4 +61,7 @@
 <ItemGroup>
   <Folder Include="SplitFileManager\" />
 </ItemGroup>
+	<PropertyGroup>
+		<SourceRevisionId>build$([System.DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ss:fffZ"))</SourceRevisionId>
+	</PropertyGroup>
 </Project>

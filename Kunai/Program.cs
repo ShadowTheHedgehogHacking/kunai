@@ -1,4 +1,5 @@
-﻿
+﻿using System.Threading.Tasks;
+
 namespace Kunai
 {
     internal class Program
@@ -10,6 +11,9 @@ namespace Kunai
         {
             MainWindow mainWindow = new MainWindow();
             Arguments = in_Args;
+
+            Task.Run(UpdateChecker.CheckUpdate);
+
             mainWindow.Run();
         }
     }

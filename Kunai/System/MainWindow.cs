@@ -28,7 +28,7 @@ namespace Kunai
         private ImGuiController _controller;
         public static KunaiProject Renderer;
         public static ImGuiWindowFlags WindowFlags = ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse;
-        public MainWindow() : base(GameWindowSettings.Default, new NativeWindowSettings(){ Size = new Vector2i(1600, 900), APIVersion = new Version(3, 3) })
+        public MainWindow() : base(GameWindowSettings.Default, new NativeWindowSettings() { Size = new Vector2i(1600, 900), APIVersion = new Version(3, 3) })
         { }
         protected override void OnLoad()
         {
@@ -58,7 +58,7 @@ namespace Kunai
             // Tell ImGui of the new size
             _controller.WindowResized(ClientSize.X, ClientSize.Y);
         }
-        
+
         //For whatever fucking stupid reason, Imgui.Net has no "IsMouseDown" function
         protected override void OnMouseDown(MouseButtonEventArgs e)
         {
@@ -86,7 +86,7 @@ namespace Kunai
                 if (IsFocused)
                 {
                     base.OnRenderFrame(in_E);
-                
+
 
                     _controller.Update(this, (float)in_E.Time);
 
@@ -101,13 +101,13 @@ namespace Kunai
 
                     ImGui.SetNextWindowSize(Renderer.ScreenSize);
                     ImGui.SetNextWindowPos(new System.Numerics.Vector2(0, 0));
-                
-                _controller.Render();
-                
-                if (Renderer.WorkProjectCsd != null)
-                    Title = ApplicationName + $" - [{Renderer.Config.WorkFilePath}]";
 
-                ImGuiController.CheckGlError("End of frame");
+                    _controller.Render();
+
+                    if (Renderer.WorkProjectCsd != null)
+                        Title = ApplicationName + $" - [{Renderer.Config.WorkFilePath}]";
+
+                    ImGuiController.CheckGlError("End of frame");
                 }
             }
             SwapBuffers();
@@ -115,15 +115,15 @@ namespace Kunai
         protected override void OnTextInput(TextInputEventArgs in_E)
         {
             base.OnTextInput(in_E);
-            
-            
+
+
             _controller.PressChar((char)in_E.Unicode);
         }
 
         protected override void OnMouseWheel(MouseWheelEventArgs in_E)
         {
             base.OnMouseWheel(in_E);
-            
+
             _controller.MouseScroll(in_E.Offset);
         }
     }

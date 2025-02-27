@@ -138,7 +138,7 @@ namespace Shuriken.Rendering
             bmp.Dispose();
         }
 
-        public Texture(string in_Filename, bool in_GvrTex = false) : this()
+        public Texture(string in_Filename) : this()
         {
             FullName = in_Filename;
             if(string.IsNullOrEmpty(in_Filename))
@@ -146,7 +146,8 @@ namespace Shuriken.Rendering
                 return;
             }
             Name = Path.GetFileNameWithoutExtension(in_Filename);
-            if (in_GvrTex)
+            
+            if (Path.GetExtension(in_Filename) == ".gvr")
             {
                 GvrFile gVr = new GvrFile();
                 gVr.LoadFromGvrFile(in_Filename.ToLower());

@@ -5,6 +5,9 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
 using System.Numerics;
 using OpenTK.Input;
+using SharpNeedle.Framework.Ninja.Csd;
+using System.Collections.Generic;
+using System.Linq;
 namespace Kunai.Window
 {
     public class ViewportWindow : WindowBase
@@ -90,6 +93,7 @@ namespace Kunai.Window
             var cursorpos = ImGui.GetItemRectMin();
             Vector2 screenPos = in_CursorPos2 + in_ViewPos - new Vector2(3, 2);
 
+            List<Cast> possibleSelections = new List<Cast>();
             //ImGui.GetWindowDrawList().AddCircle(screenPos, 10, ImGui.ColorConvertFloat4ToU32(new Vector4(1, 1, 1, 1)));
             foreach (var quad in Renderer.Renderer.Quads)
             {
@@ -121,7 +125,7 @@ namespace Kunai.Window
                         //meaning I have to do this dumb stuff
                         if (MainWindow.IsMouseLeftDown)
                         {
-                            InspectorWindow.SelectCast(quad.OriginalData.OriginCast);
+                            possibleSelections.Add(quad.OriginalData.OriginCast);
                         }
                         //if (ImGui.IsMouseDragging(ImGuiMouseButton.Left))
                         //{
@@ -135,7 +139,10 @@ namespace Kunai.Window
                 }
                 if (Renderer.Config.ShowQuads)
                     ImGui.GetWindowDrawList().AddQuad(pTopLeft, pTopRight, pBotRight, pBotLeft, ImGui.ColorConvertFloat4ToU32(new Vector4(1, 0, 0, 1)));
+                
             }
+            if(possibleSelections.Count > 0)
+                InspectorWindow.SelectCast(possibleSelections.OrderByDescending(x => x.Priority).ToList()[0]);
         }
     }
 }

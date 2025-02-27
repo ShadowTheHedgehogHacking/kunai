@@ -341,6 +341,9 @@ namespace Kunai.Window
                             var result = ImKunaiControls.TextureSelector(Renderer);
                             if (result.IsCropSelected())
                             {
+                                //Avoid a crash if a user decides to not change this
+                                if (spriteIndex == -1)
+                                    spriteIndex = 0;
                                 selectedCast.SpriteIndices[spriteIndex] = result.GetSpriteIndex();
                             }
 

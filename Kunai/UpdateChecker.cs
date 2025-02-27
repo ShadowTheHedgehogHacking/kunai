@@ -36,9 +36,9 @@ namespace Kunai
             try
             {
                 GitHubClient client = new GitHubClient(new Octokit.ProductHeaderValue("kunai-update-checker"));
-                var latestRelease = client.Repository.Release.GetLatest("NextinMono", "HedgeHex");
+                var latestRelease = client.Repository.Release.GetLatest("NextinMono", "kunai");
                 latestRelease.Wait();
-                if (latestRelease.Result.CreatedAt < GetBuildDate())
+                if (latestRelease.Result.CreatedAt > GetBuildDate())
                 {
                     UpdateAvailable = true;
                 }

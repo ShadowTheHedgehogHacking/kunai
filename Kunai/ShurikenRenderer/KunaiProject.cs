@@ -3,13 +3,10 @@ using BCnEncoder.Encoder;
 using BCnEncoder.ImageSharp;
 using BCnEncoder.Shared;
 using ColoursXncpGen;
-using Hexa.NET.ImGui;
-using Hexa.NET.ImGuizmo;
 using Kunai.Window;
 using libWiiSharp;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.Desktop;
-using SharpNeedle;
 using SharpNeedle.Framework.Ninja;
 using SharpNeedle.Framework.Ninja.Csd;
 using SharpNeedle.Framework.Ninja.Csd.Motions;
@@ -23,13 +20,11 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
-using Font = SharpNeedle.Framework.Ninja.Csd.Font;
 using PixelFormat = OpenTK.Graphics.OpenGL.PixelFormat;
 
 namespace Kunai.ShurikenRenderer

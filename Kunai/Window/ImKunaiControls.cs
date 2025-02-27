@@ -1,5 +1,6 @@
 ﻿using Hexa.NET.ImGui;
 using Hexa.NET.Utilities.Text;
+using IconFonts;
 using Kunai.ShurikenRenderer;
 using System;
 using System.Collections.Generic;
@@ -44,6 +45,12 @@ namespace Kunai.Window
                 Color = color;
             }
             public bool IsNull() => string.IsNullOrEmpty(Icon);
+        }
+        public static void TextFontAwesome(string in_Text)
+        {
+            ImGui.PushFont(ImGuiController.FontAwesomeFont);
+            ImGui.Text(in_Text);
+            ImGui.PopFont();
         }
         public static STextureSelectorResult TextureSelector(KunaiProject in_Renderer)
         {

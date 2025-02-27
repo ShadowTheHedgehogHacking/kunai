@@ -78,6 +78,11 @@ namespace Kunai.Window
                             in_Renderer.LoadFile(dialog.Path);
                         }
                     }
+                    if (ImGui.MenuItem("Reload File"))
+                    {
+                        in_Renderer.WorkProjectCsd = null;
+                        in_Renderer.LoadFile(in_Renderer.Config.WorkFilePath);
+                    }
                     if (ImGui.BeginMenu("Save"))
                     {
                         if (ImGui.MenuItem("Csd Project...", "Ctrl + S"))
@@ -171,6 +176,19 @@ namespace Kunai.Window
                     ImGui.EndMenu();
                 }
             }
+
+            if (UpdateChecker.UpdateAvailable)
+            {
+                ImGui.PushStyleColor(ImGuiCol.Text, ImGui.ColorConvertFloat4ToU32(new System.Numerics.Vector4(0, 0.7f, 1, 1)));
+                var size = ImGui.CalcTextSize("Update Available!").X;
+                ImGui.SetCursorPosX(ImGui.GetWindowSize().X - size - ImGui.GetStyle().ItemSpacing.X * 2);
+                if (ImGui.Selectable("Update Available!"))
+                {
+                    OpenUrl("https://github.com/NextinMono/kunai/releases/latest");
+                }
+                ImGui.PopStyleColor();
+            }            
+            
             ImGui.EndMainMenuBar();
         }
     }

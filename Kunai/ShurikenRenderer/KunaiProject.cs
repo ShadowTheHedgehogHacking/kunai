@@ -94,147 +94,151 @@ namespace Kunai.ShurikenRenderer
         }
         public void LoadFile(string in_Path)
         {
-            WorkProjectCsd = null;
-            VisibilityData = null;
-            /// Colors and Colors Ultimate have a unique situation where
-            /// they have texture lists as files instead of being combined
-            /// as is the case literally everywhere else!
-            /// 
-            /// There's probably a better way to detect if a tls or dxl file exists, but 
-            /// this should work.
-            bool isTlsFilePresent = File.Exists(Path.ChangeExtension(in_Path, "tls"));
-            bool isDxlFilePresent = File.Exists(Path.ChangeExtension(in_Path, "dxl"));
-
-            SpriteHelper.TextureList = new TextureList("textures");
-            if (isTlsFilePresent || isDxlFilePresent)
+            try
             {
-                byte[] csdFile = File.ReadAllBytes(in_Path);
-                string path = isDxlFilePresent ? Path.ChangeExtension(in_Path, "dxl") : Path.ChangeExtension(in_Path, "tls");
-                byte[] textureList = File.ReadAllBytes(path);
+                //Reset what needs to be reset
+                string root = Path.GetDirectoryName(Path.GetFullPath(@in_Path));
+                Config.WorkFilePath = in_Path;
+                InspectorWindow.Reset();
+                SpriteHelper.ClearTextures();
+                WorkProjectCsd = null;
+                VisibilityData = null;
 
-                //File.WriteAllBytes(in_Path + "_Test", output);
+                // There's probably a better way to detect if a tls or dxl file exists, but 
+                // this should work.
+                bool isTlsFilePresent = File.Exists(Path.ChangeExtension(in_Path, "tls"));
+                bool isDxlFilePresent = File.Exists(Path.ChangeExtension(in_Path, "dxl"));
 
-                if (isTlsFilePresent)
+                SpriteHelper.TextureList = new TextureList("textures");
+                if (isTlsFilePresent || isDxlFilePresent)
                 {
-                    var tlsFile = TPL.Load(path);
-                    TextureListNN newTexList = new TextureListNN();
-                    string csdName = Path.GetFileNameWithoutExtension(in_Path);
-                    string parentDir = Directory.GetParent(in_Path).FullName;
+                    // Colors and Colors Ultimate have a unique situation where
+                    // they have texture lists as files instead of being combined
+                    // as is the case literally everywhere else!                    
+                    HandleSplitCsd(in_Path, isDxlFilePresent, isTlsFilePresent);
+                }
+                else
+                {
+                    WorkProjectCsd = ResourceUtility.Open<CsdProject>(@in_Path);
+                }
 
-                    bool showWarning = false;
-                    for (var i = 0; i < tlsFile.NumOfTextures; i++)
+
+                //Start loading textures
+                var csdTextureList = WorkProjectCsd.Textures;
+                var csdFontList = WorkProjectCsd.Project.Fonts;
+                List<string> missingTextures = new List<string>();
+
+                if (csdTextureList != null)
+                {
+                    foreach (ITexture texture in csdTextureList)
                     {
-                        string filePath = Path.Combine(parentDir, $"{csdName}_tex{i}.dds");
-                        if (!File.Exists(filePath))
+                        string texPath = Path.Combine(@root, texture.Name);
+
+                        if (File.Exists(texPath))
                         {
-                            if (!showWarning)
-                            {
-                                showWarning = true;
-                                ShowMessageBoxCross("Warning", "The textures in the tls file will be converted to dds.\nThis process might take some time.", true);
-                            }
-
-                            var image = tlsFile.ExtractTextureBytes(i);
-
-                            using Image<Bgra32> newDDS = Image.LoadPixelData<Bgra32>(image, tlsFile.GetTexture(i).TextureWidth, tlsFile.GetTexture(i).TextureHeight);
-
-                            BcEncoder encoder = new BcEncoder();
-
-                            encoder.OutputOptions.GenerateMipMaps = true;
-                            encoder.OutputOptions.Quality = CompressionQuality.BestQuality;
-                            encoder.OutputOptions.Format = CompressionFormat.Bc3;
-                            encoder.OutputOptions.FileFormat = OutputFileFormat.Dds; //Change to Dds for a dds file.
-
-                            using FileStream fs = File.OpenWrite(filePath);
-                            encoder.EncodeToStream(newDDS.CloneAs<Rgba32>(), fs);
+                            SpriteHelper.TextureList.Textures.Add(new Texture(texPath));
                         }
-
-                        newTexList.Add(new TextureNN($"{csdName}_tex{i}.dds"));
-                    }
-
-                    using var reader = new BinaryObjectReader(@in_Path, Endianness.Big, Encoding.ASCII);
-                    var test = reader.ReadObject<InfoChunk>();
-                    WorkProjectCsd = new CsdProject();
-                    foreach (IChunk chunk in test.Chunks)
-                    {
-                        switch (chunk)
+                        else
                         {
-                            case ProjectChunk project:
-                                WorkProjectCsd.Project = project;
-                                break;
+                            SpriteHelper.TextureList.Textures.Add(new Texture(""));
+                            missingTextures.Add(texture.Name);
                         }
                     }
-                    WorkProjectCsd.Textures = newTexList;
-                }
-                if (isDxlFilePresent)
-                {
-                    //Merge both files using the same method as ColoursXncpGen
-                    byte[] output = FileManager.Combine(csdFile, textureList);
-                    using (var memstr = new MemoryStream(output))
+                    if (missingTextures.Count > 0)
                     {
-                        VirtualFile file = new VirtualFile(Path.GetFileName(in_Path), new VirtualDirectory(Directory.GetParent(in_Path).FullName));
-                        file.BaseStream = memstr;
-                        WorkProjectCsd = ResourceManager.Instance.Open<CsdProject>(file, true);
+                        string textureNames = "";
+                        foreach (string textureName in missingTextures)
+                            textureNames += "-" + textureName + "\n";
+                        ShowMessageBoxCross("Warning", $"The file uses textures that could not be found, they will be replaced with squares.\n\nMissing Textures:\n{textureNames}", true);
                     }
                 }
+                SpriteHelper.LoadTextures(WorkProjectCsd);
+                VisibilityData = new SVisibilityData(WorkProjectCsd);
+
             }
-            else
+            catch (Exception ex)
             {
-                //try
-                //{
-                WorkProjectCsd = ResourceUtility.Open<CsdProject>(@in_Path);
-                //}
-                //catch (Exception ex)
-                //{
-                //    //Implement cross platform messagebox
-                //    ShowMessageBoxCross("Error", ex.Message, true);
-                //    return;
-                //}
+#if !DEBUG
+                ShowMessageBoxCross("Error", $"An error occured whilst trying to load a file.\n{ex.Message}", true);
+#else
+                throw;
+#endif
             }
 
-            //Reset what needs to be reset
-            string root = Path.GetDirectoryName(Path.GetFullPath(@in_Path));
-            Config.WorkFilePath = in_Path;
-            VisibilityData = null;
-            InspectorWindow.Reset();
-            SpriteHelper.ClearTextures();
-
-            //Start loading textures
-            ITextureList xTextures = WorkProjectCsd.Textures;
-            CsdDictionary<Font> xFontList = WorkProjectCsd.Project.Fonts;
-            List<string> missingTextures = new List<string>();
-            if (xTextures != null)
-            {
-                bool tempChangeExtension = false;
-                string t = Path.GetExtension(xTextures[0].Name).ToLower();
-                if (t != ".dds")
-                {
-                    //MessageBox.Show("This tool is not capable of loading non-dds images yet, convert them to dds manually to make them show up in the tool.", "", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    tempChangeExtension = true;
-                }
-                foreach (ITexture texture in xTextures)
-                {
-                    string texPath = System.IO.Path.Combine(@root, texture.Name);
-
-                    if (File.Exists(texPath))
-                        SpriteHelper.TextureList.Textures.Add(new Texture(texPath, tempChangeExtension));
-                    else
-                    {
-                        SpriteHelper.TextureList.Textures.Add(new Texture("", tempChangeExtension));
-                        missingTextures.Add(texture.Name);
-                    }
-                    //    MissingTextures.Add(texture.Name);
-                }
-                if (missingTextures.Count > 0)
-                {
-                    string textureNames = "";
-                    foreach (string textureName in missingTextures)
-                        textureNames += "-" + textureName + "\n";
-                    ShowMessageBoxCross("Warning", $"The file uses textures that could not be found, they will be replaced with squares.\n\nMissing Textures:\n{textureNames}", true);
-                }
-            }
-            SpriteHelper.LoadTextures(WorkProjectCsd);
-            VisibilityData = new SVisibilityData(WorkProjectCsd);
         }
+
+        private void HandleSplitCsd(string in_Path, bool isDxlFilePresent, bool isTlsFilePresent)
+        {
+            byte[] csdFile = File.ReadAllBytes(in_Path);
+            string path = isDxlFilePresent ? Path.ChangeExtension(in_Path, "dxl") : Path.ChangeExtension(in_Path, "tls");
+            byte[] textureList = File.ReadAllBytes(path);
+
+            //File.WriteAllBytes(in_Path + "_Test", output);
+
+            if (isTlsFilePresent)
+            {
+                var tlsFile = TPL.Load(path);
+                TextureListNN newTexList = new TextureListNN();
+                string csdName = Path.GetFileNameWithoutExtension(in_Path);
+                string parentDir = Directory.GetParent(in_Path).FullName;
+
+                bool showWarning = false;
+                for (var i = 0; i < tlsFile.NumOfTextures; i++)
+                {
+                    string filePath = Path.Combine(parentDir, $"{csdName}_tex{i}.dds");
+                    if (!File.Exists(filePath))
+                    {
+                        if (!showWarning)
+                        {
+                            showWarning = true;
+                            ShowMessageBoxCross("Warning", "The textures in the tls file will be converted to dds.\nThis process might take some time.", true);
+                        }
+
+                        var image = tlsFile.ExtractTextureBytes(i);
+
+                        using Image<Bgra32> newDDS = Image.LoadPixelData<Bgra32>(image, tlsFile.GetTexture(i).TextureWidth, tlsFile.GetTexture(i).TextureHeight);
+
+                        BcEncoder encoder = new BcEncoder();
+
+                        encoder.OutputOptions.GenerateMipMaps = true;
+                        encoder.OutputOptions.Quality = CompressionQuality.BestQuality;
+                        encoder.OutputOptions.Format = CompressionFormat.Bc3;
+                        encoder.OutputOptions.FileFormat = OutputFileFormat.Dds; //Change to Dds for a dds file.
+
+                        using FileStream fs = File.OpenWrite(filePath);
+                        encoder.EncodeToStream(newDDS.CloneAs<Rgba32>(), fs);
+                    }
+
+                    newTexList.Add(new TextureNN($"{csdName}_tex{i}.dds"));
+                }
+
+                using var reader = new BinaryObjectReader(@in_Path, Endianness.Big, Encoding.ASCII);
+                var test = reader.ReadObject<InfoChunk>();
+                WorkProjectCsd = new CsdProject();
+                foreach (IChunk chunk in test.Chunks)
+                {
+                    switch (chunk)
+                    {
+                        case ProjectChunk project:
+                            WorkProjectCsd.Project = project;
+                            break;
+                    }
+                }
+                WorkProjectCsd.Textures = newTexList;
+            }
+            if (isDxlFilePresent)
+            {
+                //Merge both files using the same method as ColoursXncpGen
+                byte[] output = FileManager.Combine(csdFile, textureList);
+                using (var memstr = new MemoryStream(output))
+                {
+                    VirtualFile file = new VirtualFile(Path.GetFileName(in_Path), new VirtualDirectory(Directory.GetParent(in_Path).FullName));
+                    file.BaseStream = memstr;
+                    WorkProjectCsd = ResourceManager.Instance.Open<CsdProject>(file, true);
+                }
+            }
+        }
+
         /// <summary>
         /// Renders contents of a CsdProject to a GL texture for use in ImGui
         /// </summary>
@@ -550,7 +554,7 @@ namespace Kunai.ShurikenRenderer
                     int spriteIdx2 = Math.Min(in_UiElement.SpriteIndices.Length - 1, (int)sprId + 1);
                     Shuriken.Rendering.Sprite spr = sprId >= 0 ? SpriteHelper.TryGetSprite(in_UiElement.SpriteIndices[spriteIdx1]) : null;
                     Shuriken.Rendering.Sprite nextSpr = sprId >= 0 ? SpriteHelper.TryGetSprite(in_UiElement.SpriteIndices[spriteIdx2]) : null;
-                    
+
                     spr ??= nextSpr;
                     nextSpr ??= spr;
                     sSpriteDrawData.NextSprite = nextSpr;

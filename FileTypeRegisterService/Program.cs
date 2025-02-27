@@ -17,7 +17,7 @@ namespace FileTypeRegisterService
             string parentPath = Directory.GetParent(in_Ext).FullName;
             string kunaiExecPath = Path.Combine(parentPath, "Kunai.exe");
             FileAssociationInfo fai = new FileAssociationInfo($".{in_Ext}");
-            if(fai.Exists)
+            if (fai.Exists)
                 fai.Delete();
             if (!fai.Exists)
             {
@@ -34,7 +34,8 @@ namespace FileTypeRegisterService
                 pai.Delete();
             if (!pai.Exists)
             {
-                pai.Create(in_TypeDesc,new ProgramVerb("Open",@$"{kunaiExecPath} %1"), new ProgramIcon(Path.Combine(parentPath, "Resources", "Icons", $"{in_Ext}.ico")));
+                string arg = "\"%1\"";
+                pai.Create(in_TypeDesc, new ProgramVerb("Open", @$"{kunaiExecPath} {arg}"), new ProgramIcon(Path.Combine(parentPath, "Resources", "Icons", $"{in_Ext}.ico")));
 
                 //optional
             }

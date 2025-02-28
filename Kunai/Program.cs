@@ -1,11 +1,12 @@
-﻿using System.Threading.Tasks;
+﻿using System.IO;
+using System.Threading.Tasks;
 
 namespace Kunai
 {
     internal class Program
     {
         public static string[] Arguments;
-        public static string Path = System.Environment.ProcessPath;
+        public static string Path = Directory.GetParent(System.Environment.ProcessPath).FullName;
 
         private static void Main(string[] in_Args)
         {

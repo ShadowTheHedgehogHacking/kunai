@@ -25,6 +25,7 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
+using TeamSpettro.SettingsSystem;
 using PixelFormat = OpenTK.Graphics.OpenGL.PixelFormat;
 
 namespace Kunai.ShurikenRenderer
@@ -66,6 +67,23 @@ namespace Kunai.ShurikenRenderer
         private int _currentDrawPriority;
         public List<WindowBase> Windows = new List<WindowBase>();
         bool saveScreenshotWhenRendered = false;
+        public Vector3 ViewportColor
+        {
+            get
+            {
+                var x = SettingsManager.GetFloat("ViewColor_X", 0.6627450980f);
+                var y = SettingsManager.GetFloat("ViewColor_Y", 0.6627450980f);
+                var z = SettingsManager.GetFloat("ViewColor_Z", 0.66274509803f);
+                return new Vector3(x, y, z);
+            }
+            set
+            {
+
+                SettingsManager.SetFloat("ViewColor_X", value.X);
+                SettingsManager.SetFloat("ViewColor_Y", value.Y);
+                SettingsManager.SetFloat("ViewColor_Z", value.Z);
+            }
+        }
         public KunaiProject(GameWindow in_Window2, Vector2 in_ViewportSize, Vector2 in_ClientSize)
         {
             if (Instance != null)
@@ -360,7 +378,8 @@ namespace Kunai.ShurikenRenderer
         }
         private void RenderToViewport(CsdProject in_CsdProject, float in_DeltaTime, bool in_ScreenshotMode)
         {
-            GL.ClearColor(in_ScreenshotMode ? OpenTK.Mathematics.Color4.Transparent : OpenTK.Mathematics.Color4.DarkGray);
+            //eventually set to transparent in case its a screenshot
+            GL.ClearColor(ViewportColor.X, ViewportColor.Y, ViewportColor.Z, 1);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             Renderer.Width = (int)ViewportSize.X;

@@ -138,6 +138,10 @@ namespace Kunai.Window
                         }
                         ImGui.EndMenu();
                     }
+                    if (ImGui.MenuItem("Exit"))
+                    {
+                        Environment.Exit(0);
+                    }
 
                     ImGui.EndMenu();
                 }
@@ -145,7 +149,11 @@ namespace Kunai.Window
                 {
                     if (ImGui.MenuItem("Associate extensions"))
                     {
-                        ExecuteAsAdmin(@Path.Combine(Directory.GetParent(@Program.Path).FullName, "FileTypeRegisterService.exe"));
+                        ExecuteAsAdmin(@Path.Combine(@Program.Path, "FileTypeRegisterService.exe"));
+                    }
+                    if (ImGui.MenuItem("Preferences", SettingsWindow.Enabled))
+                    {
+                        SettingsWindow.Enabled = !SettingsWindow.Enabled;
                     }
 
                     ImGui.EndMenu();

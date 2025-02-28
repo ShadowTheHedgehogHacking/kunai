@@ -31,6 +31,7 @@
 		<PackageReference Include="Hexa.NET.ImPlot" Version="2.2.3" />
 		<PackageReference Include="Hexa.NET.Utilities" Version="2.2.0" />
 		<PackageReference Include="NativeFileDialogSharp" Version="0.5.0" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="Octokit" Version="14.0.0" />
 		<PackageReference Include="OpenTK" Version="4.9.3" />
 		<PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" />
@@ -39,6 +40,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\FileTypeRegisterService\FileTypeRegisterService.csproj" />
 		<ProjectReference Include="..\libWiiSharp\libWiiSharp.csproj" />
+		<ProjectReference Include="..\settings-system\SpettroSettings.csproj" />
 		<ProjectReference Include="..\SharpNeedle\Source\SharpNeedle\SharpNeedle.csproj" />
 	</ItemGroup>
 	<ItemGroup>

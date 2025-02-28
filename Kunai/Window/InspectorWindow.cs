@@ -64,10 +64,12 @@ namespace Kunai.Window
         public void DrawSceneInspector()
         {
             KeyValuePair<string, Scene> selectedScene = KunaiProject.Instance.SelectionData.SelectedScene;
+
+            var vis = KunaiProject.Instance.VisibilityData.GetScene(selectedScene.Value);
             if (selectedScene.Value == null)
                 return;
             ImGui.SeparatorText("Scene");
-            string name = selectedScene.Key;
+            string name = vis.Scene.Key;
             int vers = selectedScene.Value.Version;
             int priority = (int)selectedScene.Value.Priority;
             float aspectRatio = selectedScene.Value.AspectRatio;
@@ -81,7 +83,10 @@ namespace Kunai.Window
             int simplifiedWidth = width / gcdValue;
             int simplifiedHeight = height / gcdValue;
 
-            ImGui.InputText("Name", ref name, 256);
+            if(ImGui.InputText("Name", ref name, 256))
+            {
+                vis.Rename(name);
+            }
             ImGui.InputFloat("Framerate", ref fps);
             ImGui.InputFloat("Aspect Ratio", ref aspectRatio);
             ImGui.InputInt("Version", ref vers);
@@ -124,6 +129,7 @@ namespace Kunai.Window
             selectedScene.Value.AspectRatio = aspectRatio;
             selectedScene.Value.FrameRate = fps;
         }
+        
         public void DrawCastInspector()
         {
             /// Before you ask
@@ -162,7 +168,6 @@ namespace Kunai.Window
             Vector4 colorTr = info.GradientTopRight.ToVec4().Invert();
             Vector4 colorBl = info.GradientBottomLeft.ToVec4().Invert();
             Vector4 colorBr = info.GradientBottomRight.ToVec4().Invert();
-
             bool inheritPosX = inheritanceFlags.HasFlag(ElementInheritanceFlags.InheritXPosition);
             bool inheritPosY = inheritanceFlags.HasFlag(ElementInheritanceFlags.InheritYPosition);
             bool inheritRot = inheritanceFlags.HasFlag(ElementInheritanceFlags.InheritRotation);
@@ -184,7 +189,7 @@ namespace Kunai.Window
             ImGui.SameLine();
             ImGui.Checkbox("Hidden", ref hideflag);
 
-            if (ImGui.CollapsingHeader("Dimensions"))
+            if (ImGui.CollapsingHeader("Dimensions", ImGuiTreeNodeFlags.DefaultOpen))
             {
                 var cursorPosAlign = ImGui.GetCursorPosY();
                 if (DrawAlignmentGridRadio(ref selectedCast))
@@ -223,7 +228,7 @@ namespace Kunai.Window
                 ImGui.DragFloat2("Bottom Right", ref bottomRightVert);
 
             }
-            if (ImGui.CollapsingHeader("Transform"))
+            if (ImGui.CollapsingHeader("Transform", ImGuiTreeNodeFlags.DefaultOpen))
             {
                 ImGui.DragFloat("Rotation", ref rotation);
                 ImGui.SetItemTooltip("Rotation in degrees.");
@@ -233,7 +238,7 @@ namespace Kunai.Window
                 ImGui.SetItemTooltip("Position of the cast.");
                 ImGui.InputFloat2("Scale", ref scale);
             }
-            if (ImGui.CollapsingHeader("Color"))
+            if (ImGui.CollapsingHeader("Color", ImGuiTreeNodeFlags.DefaultOpen))
             {
                 ImGui.ColorEdit4("Color", ref color);
                 ImGui.ColorEdit4("Top Left", ref colorTl);
@@ -241,7 +246,7 @@ namespace Kunai.Window
                 ImGui.ColorEdit4("Bottom Left", ref colorBl);
                 ImGui.ColorEdit4("Bottom Right", ref colorBr);
             }
-            if (ImGui.CollapsingHeader("Inheritance"))
+            if (ImGui.CollapsingHeader("Inheritance", ImGuiTreeNodeFlags.DefaultOpen))
             {
                 ImGui.Checkbox("Inherit Horizontal Position", ref inheritPosX);
                 ImGui.Checkbox("Inherit Vertical Position", ref inheritPosY);
@@ -253,7 +258,7 @@ namespace Kunai.Window
 
             if (type == 2)
             {
-                if (ImGui.CollapsingHeader("Text"))
+                if (ImGui.CollapsingHeader("Text", ImGuiTreeNodeFlags.DefaultOpen))
                 {
                     //make combo box eventually
                     if (ImGui.Combo("Font", ref indexFont, _fontNames.ToArray(), _fontNames.Count))
@@ -268,7 +273,8 @@ namespace Kunai.Window
             }
             if (type != 0)
             {
-                if (ImGui.CollapsingHeader("Material"))
+                                                                                                                    
+                if (ImGui.CollapsingHeader("Material", ImGuiTreeNodeFlags.DefaultOpen))
                 {
                     int blendingType = materialFlags.HasFlag(ElementMaterialFlags.AdditiveBlending) ? 1 : 0;
                     int filterType = materialFlags.HasFlag(ElementMaterialFlags.LinearFiltering) ? 1 : 0;
@@ -287,19 +293,21 @@ namespace Kunai.Window
                     ImGui.BeginDisabled(type != (int)DrawType.Sprite);
                     ImGui.InputInt("Selected Sprite", ref spriteIndex);
                     spriteIndex = Math.Clamp(spriteIndex, -1, 32); //can go over 32 for scu
-                    if (ImGui.BeginListBox("##listpatterns", new System.Numerics.Vector2(-1, 160)))
+
+                    if (ImKunai.BeginListBoxCustom("##listpatterns", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, 160)))
                     {
                         //Draw Pattern selector
                         for (int i = 0; i < selectedCast.SpriteIndices.Length; i++)
                         {
                             int patternIdx = Math.Min(selectedCast.SpriteIndices.Length - 1, (int)selectedCast.SpriteIndices[i]);
-
+                            //Avoid stylecolor issue if the index gets changed
+                            int sprIndexCopy = spriteIndex;
                             //Draw button with a different color if its the currently active pattern
-                            if (i == spriteIndex) ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(200, 200, 200, 255));
+                            if (i == sprIndexCopy) ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.7f, 0.7f, 0.7f, 0.7f));
                             // Draw sprite preview if it isnt set to the default square
                             if (patternIdx == -1)
                             {
-                                ImKunaiControls.EmptyTextureButton(i);
+                                ImKunai.EmptyTextureButton(i);
                             }
                             else
                             {
@@ -309,23 +317,27 @@ namespace Kunai.Window
 
                                     var uvCoords = spriteReference.GetImGuiUV();
 
+                                    bool isPressed;
                                     if (spriteReference.Texture.GlTex == null)
                                     {
-                                        ImKunaiControls.EmptyTextureButton(i);
+                                        isPressed = ImKunai.EmptyTextureButton(i);
                                     }
                                     else
                                     {
-                                        ImKunaiControls.SpriteImageButton($"##pattern{i}", spriteReference);
+                                        isPressed = ImKunai.SpriteImageButton($"##pattern{i}", spriteReference);
                                     }
+                                    if(isPressed)
+                                        spriteIndex = i;
+
                                 }
                                 if (i != selectedCast.SpriteIndices.Length - 1)
                                     ImGui.SameLine();
                             }
-                            if (i == spriteIndex)
+                            if (i == sprIndexCopy)
                                 ImGui.PopStyleColor();
                         }
-                        ImGui.EndListBox();
                     }
+                    ImKunai.EndListBoxCustom();
                     if (!isEditingCrop)
                     {
                         ImGui.SetNextItemWidth(-1);
@@ -338,7 +350,7 @@ namespace Kunai.Window
                     {
                         if (ImGui.BeginListBox("##listpatternsselection", new Vector2(-1, 250)))
                         {
-                            var result = ImKunaiControls.TextureSelector(Renderer);
+                            var result = ImKunai.TextureSelector(Renderer);
                             if (result.IsCropSelected())
                             {
                                 //Avoid a crash if a user decides to not change this

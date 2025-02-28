@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Amicitia.IO", "SharpNeedle\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "libWiiSharp", "libWiiSharp\libWiiSharp.csproj", "{39DE8587-A96C-4798-A0CA-B99575E57F13}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpettroSettings", "settings-system\SpettroSettings.csproj", "{3EE46DA1-91ED-4A37-A385-103390154423}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -83,6 +85,18 @@ Global
 		{39DE8587-A96C-4798-A0CA-B99575E57F13}.Release|x64.Build.0 = Release|Any CPU
 		{39DE8587-A96C-4798-A0CA-B99575E57F13}.Release|x86.ActiveCfg = Release|Any CPU
 		{39DE8587-A96C-4798-A0CA-B99575E57F13}.Release|x86.Build.0 = Release|Any CPU
+		{3EE46DA1-91ED-4A37-A385-103390154423}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3EE46DA1-91ED-4A37-A385-103390154423}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3EE46DA1-91ED-4A37-A385-103390154423}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3EE46DA1-91ED-4A37-A385-103390154423}.Debug|x64.Build.0 = Debug|Any CPU
+		{3EE46DA1-91ED-4A37-A385-103390154423}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3EE46DA1-91ED-4A37-A385-103390154423}.Debug|x86.Build.0 = Debug|Any CPU
+		{3EE46DA1-91ED-4A37-A385-103390154423}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3EE46DA1-91ED-4A37-A385-103390154423}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3EE46DA1-91ED-4A37-A385-103390154423}.Release|x64.ActiveCfg = Release|Any CPU
+		{3EE46DA1-91ED-4A37-A385-103390154423}.Release|x64.Build.0 = Release|Any CPU
+		{3EE46DA1-91ED-4A37-A385-103390154423}.Release|x86.ActiveCfg = Release|Any CPU
+		{3EE46DA1-91ED-4A37-A385-103390154423}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

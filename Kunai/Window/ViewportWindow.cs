@@ -28,13 +28,13 @@ namespace Kunai.Window
                 ZoomFactor = Math.Clamp(ZoomFactor, 0.5f, 5);
                 float windowHeight = ImGui.GetWindowWidth() * (in_Renderer.ViewportSize.Y / in_Renderer.ViewportSize.X);
 
-                ImKunaiControls.TextFontAwesome(FontAwesome6.MagnifyingGlass);
+                ImKunai.TextFontAwesome(FontAwesome6.MagnifyingGlass);
                 ImGui.SameLine();
 
                 ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - 200);                
                 ImGui.SliderFloat("##zoom", ref ZoomFactor, 0.5f, 5);
                 ImGui.SameLine();
-                ImKunaiControls.TextFontAwesome(FontAwesome6.Display);
+                ImKunai.TextFontAwesome(FontAwesome6.Display);
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(-1);
                 if (ImGui.Combo("##aspectratio", ref currentAspectRatio, ["16:9", "4:3"], 2))
@@ -51,7 +51,7 @@ namespace Kunai.Window
 
                 bool open = true;
 
-                if (ImGui.BeginListBox("##list", new Vector2(-1, -1)))
+                if (ImKunai.BeginListBoxCustom("##list", new Vector2(-1, -1)))
                 {
                     var cursorpos2 = ImGui.GetCursorScreenPos();
                     var wndSize = ImGui.GetWindowSize();
@@ -62,7 +62,7 @@ namespace Kunai.Window
                         new Vector2(0, 1), new Vector2(1, 0));
 
                     DrawQuadList(cursorpos2, windowPos, vwSize, vwPos);
-                    ImGui.EndListBox();
+                    ImKunai.EndListBoxCustom();
                 }
                 ImGui.End();
 

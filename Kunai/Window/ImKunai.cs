@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -29,7 +30,7 @@ namespace Kunai.Window
             return SpriteHelper.TextureList.Textures[TextureIndex].Sprites[SpriteIndex] - 1;
         }
     }
-    public static class ImKunaiControls
+    public static class ImKunai
     {
         public struct SIconData
         {
@@ -70,11 +71,11 @@ namespace Kunai.Window
                         {
                             if(spr.Texture.GlTex == null)
                             {
-                                ImKunaiControls.EmptyTextureButton(idx2);
+                                ImKunai.EmptyTextureButton(idx2);
                             }
                             else
                             {
-                                if (ImKunaiControls.SpriteImageButton($"##crop{idx2}", spr))
+                                if (ImKunai.SpriteImageButton($"##crop{idx2}", spr))
                                 {
                                     selectedIndex = idx;
                                     selectedSpriteIndex = idx2;
@@ -83,7 +84,7 @@ namespace Kunai.Window
                         }
                         else
                         {
-                            ImKunaiControls.EmptyTextureButton(idx2);
+                            ImKunai.EmptyTextureButton(idx2);
                         }
                         ImGui.SameLine();
                         ImGui.Text($"Crop ({idx2})");
@@ -101,15 +102,11 @@ namespace Kunai.Window
             //This is so stupid, this is how youre supposed to do it according to the HexaNET issues
             unsafe
             {
-                const int bufferSize = 256;
-                byte* buffer = stackalloc byte[bufferSize];
-                StrBuilder sb = new(buffer, bufferSize);
-                sb.Append($"##{in_ID}");
-                sb.End();
+
+                var name = Marshal.StringToHGlobalAnsi($"##{in_ID}");
                 var uvCoords = in_Spr.GetImGuiUV();
                 //Draw sprite
-                return ImGui.ImageButton(sb, new ImTextureID(in_Spr.Texture.GlTex.Id), new System.Numerics.Vector2(50, 50), uvCoords[0], uvCoords[1]);
-
+                return ImGui.ImageButton((byte*)name, new ImTextureID(in_Spr.Texture.GlTex.Id), new System.Numerics.Vector2(50, 50), uvCoords[0], uvCoords[1]);
             }
         }
         public static bool EmptyTextureButton(int in_Id)
@@ -237,6 +234,30 @@ namespace Kunai.Window
                     drawList.AddRectFilled(new Vector2(xMin, y - style.ItemSpacing.Y), new Vector2(xMax, y + lineHeight), ImGui.ColorConvertFloat4ToU32(color));
                 }
             }
+        }
+        /// <summary>
+        /// Fake list box that allows horizontal scrolling
+        /// </summary>
+        /// <param name="in_Label"></param>
+        /// <param name="in_Size"></param>
+        /// <returns></returns>
+        public static bool BeginListBoxCustom(string in_Label, Vector2 in_Size)
+        {
+            bool returnVal = ImGui.BeginChild(in_Label, in_Size, ImGuiChildFlags.FrameStyle, ImGuiWindowFlags.HorizontalScrollbar);
+            unsafe
+            {
+                //Ass Inc.
+                //This is so that the child window has the same color as normal list boxes would
+                ImGui.PushStyleColor(ImGuiCol.ChildBg, ImGui.ColorConvertFloat4ToU32(*ImGui.GetStyleColorVec4(ImGuiCol.FrameBg)));
+            }
+            ImGui.BeginGroup();
+            ImGui.PopStyleColor();
+            return returnVal;
+        }
+        public static void EndListBoxCustom()
+        {
+            ImGui.EndGroup();
+            ImGui.EndChild();
         }
     }
 }

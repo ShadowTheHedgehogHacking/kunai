@@ -78,6 +78,15 @@ namespace Kunai
             {
                 return Casts.FirstOrDefault(in_Node => in_Node.Cast == in_Cast);
             }
+
+            public void Rename(string in_NewName)
+            {
+                var node = Parent.Node.Value;
+                var oldIndex = node.Scenes.Find(Scene.Key);
+                node.Scenes.RemoveAt(oldIndex);
+                Scene = new KeyValuePair<string, Scene>(in_NewName, Scene.Value);
+                node.Scenes.Insert(Scene.Key, Scene.Value, oldIndex);
+            }
             public void Remove(SCast in_Cast)
             {
                 Family familyOfCast = null;
@@ -103,7 +112,6 @@ namespace Kunai
             public List<SNode> Nodes = new List<SNode>();
             public KeyValuePair<string, SceneNode> Node;
             public bool Active = true;
-
 
             public SNode(KeyValuePair<string, SceneNode> in_Node)
             {

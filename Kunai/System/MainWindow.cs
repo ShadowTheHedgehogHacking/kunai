@@ -3,18 +3,14 @@ using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
-using SharpNeedle.Framework.Ninja.Csd;
 using Kunai.ShurikenRenderer;
 using Kunai.Window;
-using System.Windows;
-using Hexa.NET.ImPlot;
-using OpenTK.Windowing.Common.Input;
-using System.Configuration;
-using System.Drawing;
 using System.IO;
-using System.Reflection;
 using System;
 using OpenTK.Windowing.GraphicsLibraryFramework;
+using System.Runtime.InteropServices;
+using TeamSpettro.SettingsSystem;
+using Kunai.Settings;
 
 
 namespace Kunai
@@ -23,26 +19,41 @@ namespace Kunai
     {
         public static bool IsMouseLeftDown;
         public static readonly string ApplicationName = "Kunai";
-        private static MemoryStream _iconData;
-        private float _test = 1;
         private ImGuiController _controller;
+        private IntPtr iniName;
         public static KunaiProject Renderer;
         public static ImGuiWindowFlags WindowFlags = ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse;
         public MainWindow() : base(GameWindowSettings.Default, new NativeWindowSettings() { Size = new Vector2i(1600, 900), APIVersion = new Version(3, 3) })
-        { }
+        {
+            Title = ApplicationName;
+        }
         protected override void OnLoad()
         {
-            base.OnLoad();
-            Title = ApplicationName;
+            base.OnLoad();            
+            TeamSpettro.Resources.Initialize(Path.Combine(Program.Path, "config.json"));
             Renderer = new KunaiProject(this, new System.Numerics.Vector2(1280, 720), new System.Numerics.Vector2(ClientSize.X, ClientSize.Y));
             _controller = new ImGuiController(ClientSize.X, ClientSize.Y);
 
+            ImGuiThemeManager.SetTheme(SettingsManager.GetBool("IsDarkThemeEnabled", false));
+            // Example #10000 for why ImGui.NET is kinda bad
+            // This is to avoid having imgui.ini files in every folder that the program accesses
+            unsafe
+            {
+                iniName = Marshal.StringToHGlobalAnsi(Path.Combine(Program.Path, "imgui.ini"));
+                ImGuiIOPtr io = ImGui.GetIO();
+                io.IniFilename = (byte*)iniName;
+            }
+            unsafe
+            {
+            }
             Renderer.Windows.Add(new MenuBarWindow());
             Renderer.Windows.Add(new AnimationsWindow());
             Renderer.Windows.Add(new HierarchyWindow());
             Renderer.Windows.Add(new InspectorWindow());
             Renderer.Windows.Add(new ViewportWindow());
             Renderer.Windows.Add(new CropEditor());
+            Renderer.Windows.Add(new SettingsWindow());
+
             if (Program.Arguments.Length > 0)
             {
                 Renderer.LoadFile(Program.Arguments[0]);

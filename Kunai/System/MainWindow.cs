@@ -11,6 +11,10 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 using System.Runtime.InteropServices;
 using TeamSpettro.SettingsSystem;
 using Kunai.Settings;
+using System.Drawing.Imaging;
+using System.Drawing;
+using SixLabors.ImageSharp.PixelFormats;
+using System.Runtime.CompilerServices;
 
 
 namespace Kunai
@@ -22,14 +26,28 @@ namespace Kunai
         private ImGuiController _controller;
         private IntPtr iniName;
         public static KunaiProject Renderer;
+        public byte[] _iconData;
         public static ImGuiWindowFlags WindowFlags = ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse;
         public MainWindow() : base(GameWindowSettings.Default, new NativeWindowSettings() { Size = new Vector2i(1600, 900), APIVersion = new Version(3, 3) })
         {
+            MemoryStream ms = new MemoryStream();
             Title = ApplicationName;
+            GetIcon();
+        }
+
+        void GetIcon()
+        {
+            // TODO: eventually replace with program's own embedded icon?
+            using SixLabors.ImageSharp.Image<Rgba32> newDDS = SixLabors.ImageSharp.Image.Load<Rgba32>(Path.Combine(Program.Path, "Resources", "Icons", "ico.png"));
+            _iconData = new byte[newDDS.Width * newDDS.Height * Unsafe.SizeOf<Rgba32>()];
+            newDDS.CopyPixelDataTo(_iconData);
+
+            OpenTK.Windowing.Common.Input.Image windowIcon = new OpenTK.Windowing.Common.Input.Image(newDDS.Width, newDDS.Height, _iconData);
+            Icon = new OpenTK.Windowing.Common.Input.WindowIcon(windowIcon);
         }
         protected override void OnLoad()
         {
-            base.OnLoad();            
+            base.OnLoad();
             TeamSpettro.Resources.Initialize(Path.Combine(Program.Path, "config.json"));
             Renderer = new KunaiProject(this, new System.Numerics.Vector2(1280, 720), new System.Numerics.Vector2(ClientSize.X, ClientSize.Y));
             _controller = new ImGuiController(ClientSize.X, ClientSize.Y);

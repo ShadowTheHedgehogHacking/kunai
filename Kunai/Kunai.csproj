@@ -4,7 +4,7 @@
 		<OutputType>Exe</OutputType>
 		<TargetFramework>net8.0</TargetFramework>
 		<StartupObject>Kunai.Program</StartupObject>
-		<ApplicationIcon>Resources\Icons\kunai-01.ico</ApplicationIcon>
+		<ApplicationIcon>kunai-01.ico</ApplicationIcon>
 		<Platforms>AnyCPU;x86</Platforms>
 	</PropertyGroup>
 
@@ -22,6 +22,9 @@
 	</ItemGroup>
 	<ItemGroup>
 		<Compile Remove="ShurikenRenderer\TPL.cs" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Content Include="kunai-01.ico" />
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="BCnEncoder.Net.ImageSharp" Version="1.1.1" />

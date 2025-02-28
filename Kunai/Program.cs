@@ -7,6 +7,7 @@ namespace Kunai
     {
         public static string[] Arguments;
         public static string Path = Directory.GetParent(System.Environment.ProcessPath).FullName;
+        public static string PathToExec = System.Environment.ProcessPath;
 
         private static void Main(string[] in_Args)
         {

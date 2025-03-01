@@ -1,4 +1,5 @@
-﻿using IconFonts;
+﻿using Hexa.NET.ImGui;
+using IconFonts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +14,7 @@ namespace Kunai
     {
         public static Vector4 SceneNode { get { return new System.Numerics.Vector4(0.992156f, 0.76078f, 0, 1); } }
         public static Vector4 Scene { get { return new System.Numerics.Vector4(0, 0.75f, 0.48039f, 1); } }
-        public static Vector4 CastNull { get { return new Vector4(1, 1, 1, 1); } }
+        public static Vector4 CastNull { get { unsafe { return *ImGui.GetStyleColorVec4(ImGuiCol.Text); } } }
         public static Vector4 CastSprite { get { return new Vector4(0.26666f, 0.69411f, 1, 1);} }
         public static Vector4 CastFont { get { return new Vector4(1, 0.509803f, 0.15686274f, 1); } }
     }

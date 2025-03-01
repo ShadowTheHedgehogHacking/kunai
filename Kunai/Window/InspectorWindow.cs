@@ -430,7 +430,7 @@ namespace Kunai.Window
         {
             EAlignmentPivot currentPivot = GetPivot(in_Cast);
             Vector2 quadCenter = CalculatePivot([in_Cast.TopLeft, in_Cast.TopRight, in_Cast.BottomRight, in_Cast.BottomLeft]);
-            Console.WriteLine(quadCenter);
+            //Console.WriteLine(quadCenter);
             bool changed = false;
             if (ImGui.RadioButton("##tl", currentPivot == EAlignmentPivot.TopLeft))
             {

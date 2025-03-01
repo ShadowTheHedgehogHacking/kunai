@@ -11,7 +11,7 @@ namespace Kunai.Window
 {
     public class HierarchyWindow : WindowBase
     {
-        private static TempSearchBox _searchBox = new TempSearchBox();
+        private static TempSearchBox ms_SearchBox = new TempSearchBox();
         private static void RecursiveCastWidget(SVisibilityData.SScene in_Scene, Cast in_Cast)
         {
             bool selectedcast = false;
@@ -38,7 +38,7 @@ namespace Kunai.Window
                     }
             }
             //Casts
-            if (ImKunai.VisibilityNode(in_Cast.Name, ref vis.Active, ref selectedcast, CastRightClickAction(vis),in_ShowArrow: in_Cast.Children.Count > 0, in_Icon: icon, in_ID: $"##{in_Cast.Name}_{vis.ID}"))
+            if (ImKunai.VisibilityNode(in_Cast.Name, ref vis.Active, ref selectedcast, CastRightClickAction(vis),in_ShowArrow: in_Cast.Children.Count > 0, in_Icon: icon, in_Id: $"##{in_Cast.Name}_{vis.Id}"))
             {
                 for (int x = 0; x < in_Cast.Children.Count; x++)
                 {
@@ -168,7 +168,7 @@ namespace Kunai.Window
             if (ImGui.Begin("Hierarchy", MainWindow.WindowFlags))
             {
                 ImGui.BeginDisabled(true);
-                _searchBox.Render();
+                ms_SearchBox.Render();
                 ImGui.EndDisabled();
                 ImKunai.ItemRowsBackground(new System.Numerics.Vector4(20, 20, 20, 64));
                 //if (ImGui.BeginListBox("##hierarchylist", new System.Numerics.Vector2(-1, -1)))

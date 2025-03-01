@@ -16,10 +16,10 @@ namespace Kunai.Window
     {
         public int TextureIndex; 
         public int SpriteIndex;
-        public STextureSelectorResult(int textureIndex, int spriteIndex)
+        public STextureSelectorResult(int in_TextureIndex, int in_SpriteIndex)
         {
-            TextureIndex = textureIndex;
-            SpriteIndex = spriteIndex;
+            TextureIndex = in_TextureIndex;
+            SpriteIndex = in_SpriteIndex;
         }
         public bool IsCropSelected()
         {
@@ -36,14 +36,14 @@ namespace Kunai.Window
         {
             public string Icon;
             public Vector4 Color = Vector4.One;
-            public SIconData(string icon)
+            public SIconData(string in_Icon)
             {
-                Icon = icon;
+                Icon = in_Icon;
             }
-            public SIconData(string icon, Vector4 color)
+            public SIconData(string in_Icon, Vector4 in_Color)
             {
-                Icon = icon;
-                Color = color;
+                Icon = in_Icon;
+                Color = in_Color;
             }
             public bool IsNull() => string.IsNullOrEmpty(Icon);
         }
@@ -97,14 +97,14 @@ namespace Kunai.Window
             }
             return new STextureSelectorResult(selectedIndex, selectedSpriteIndex);
         }
-        public static unsafe bool SpriteImageButton(string in_ID, Shuriken.Rendering.Sprite in_Spr)
+        public static unsafe bool SpriteImageButton(string in_Id, Shuriken.Rendering.Sprite in_Spr)
         {
             //This is so stupid, this is how youre supposed to do it according to the HexaNET issues
             unsafe
             {
 
-                var name = Marshal.StringToHGlobalAnsi($"##{in_ID}");
-                var uvCoords = in_Spr.GetImGuiUV();
+                var name = Marshal.StringToHGlobalAnsi($"##{in_Id}");
+                var uvCoords = in_Spr.GetImGuiUv();
                 //Draw sprite
                 return ImGui.ImageButton((byte*)name, new ImTextureID(in_Spr.Texture.GlTex.Id), new System.Numerics.Vector2(50, 50), uvCoords[0], uvCoords[1]);
             }
@@ -115,26 +115,26 @@ namespace Kunai.Window
             ImGui.SameLine();
             return val;
         }
-        public static unsafe void SpriteImage(string in_ID, Shuriken.Rendering.Sprite in_Spr)
+        public static unsafe void SpriteImage(string in_Id, Shuriken.Rendering.Sprite in_Spr)
         {
             unsafe
             {
                 const int bufferSize = 256;
                 byte* buffer = stackalloc byte[bufferSize];
                 StrBuilder sb = new(buffer, bufferSize);
-                sb.Append($"##{in_ID}");
+                sb.Append($"##{in_Id}");
                 sb.End();
-                var uvCoords = in_Spr.GetImGuiUV();
+                var uvCoords = in_Spr.GetImGuiUv();
                 //Draw sprite
                 ImGui.Image(new ImTextureID(in_Spr.Texture.GlTex.Id), new System.Numerics.Vector2(50, 50), uvCoords[0], uvCoords[1]);
 
             }
         }
-        public static bool VisibilityNode(string in_Name, ref bool in_Visibile, ref bool in_IsSelected, Action in_RightClickAction = null, bool in_ShowArrow = true, SIconData in_Icon = new(), string in_ID = "")
+        public static bool VisibilityNode(string in_Name, ref bool in_Visibile, ref bool in_IsSelected, Action in_RightClickAction = null, bool in_ShowArrow = true, SIconData in_Icon = new(), string in_Id = "")
         {
             bool returnVal = true;
-            bool idPresent = !string.IsNullOrEmpty(in_ID);
-            string idName = idPresent ? in_ID : in_Name;
+            bool idPresent = !string.IsNullOrEmpty(in_Id);
+            string idName = idPresent ? in_Id : in_Name;
             //Make header fit the content
             ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new System.Numerics.Vector2(0, 3));
             var isLeaf = !in_ShowArrow ? ImGuiTreeNodeFlags.Leaf : ImGuiTreeNodeFlags.None;
@@ -194,21 +194,21 @@ namespace Kunai.Window
             ImGui.PopID();
             return returnVal;
         }
-        public static void ItemRowsBackground(Vector4 color, float lineHeight = -1.0f)
+        public static void ItemRowsBackground(Vector4 in_Color, float in_LineHeight = -1.0f)
         {
             var drawList = ImGui.GetWindowDrawList();
             var style = ImGui.GetStyle();
 
-            if (lineHeight < 0)
+            if (in_LineHeight < 0)
             {
-                lineHeight = ImGui.GetTextLineHeight();
+                in_LineHeight = ImGui.GetTextLineHeight();
             }
-            lineHeight += style.ItemSpacing.Y;
+            in_LineHeight += style.ItemSpacing.Y;
 
             float scrollOffsetH = ImGui.GetScrollX();
             float scrollOffsetV = ImGui.GetScrollY();
-            float scrolledOutLines = (float)Math.Floor(scrollOffsetV / lineHeight);
-            scrollOffsetV -= lineHeight * scrolledOutLines;
+            float scrolledOutLines = (float)Math.Floor(scrollOffsetV / in_LineHeight);
+            scrollOffsetV -= in_LineHeight * scrolledOutLines;
 
             Vector2 clipRectMin = new Vector2(ImGui.GetWindowPos().X, ImGui.GetWindowPos().Y);
             Vector2 clipRectMax = new Vector2(clipRectMin.X + ImGui.GetWindowWidth(), clipRectMin.Y + ImGui.GetWindowHeight());
@@ -223,15 +223,15 @@ namespace Kunai.Window
             bool isOdd = ((int)(scrolledOutLines) % 2) == 0;
 
             float yMin = clipRectMin.Y - scrollOffsetV + ImGui.GetCursorPosY();
-            float yMax = clipRectMax.Y - scrollOffsetV + lineHeight;
+            float yMax = clipRectMax.Y - scrollOffsetV + in_LineHeight;
             float xMin = clipRectMin.X + scrollOffsetH + ImGui.GetContentRegionAvail().X;
             float xMax = clipRectMin.X + scrollOffsetH + ImGui.GetContentRegionAvail().X;
 
-            for (float y = yMin; y < yMax; y += lineHeight, isOdd = !isOdd)
+            for (float y = yMin; y < yMax; y += in_LineHeight, isOdd = !isOdd)
             {
                 if (isOdd)
                 {
-                    drawList.AddRectFilled(new Vector2(xMin, y - style.ItemSpacing.Y), new Vector2(xMax, y + lineHeight), ImGui.ColorConvertFloat4ToU32(color));
+                    drawList.AddRectFilled(new Vector2(xMin, y - style.ItemSpacing.Y), new Vector2(xMax, y + in_LineHeight), ImGui.ColorConvertFloat4ToU32(in_Color));
                 }
             }
         }

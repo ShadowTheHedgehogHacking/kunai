@@ -36,26 +36,26 @@ namespace Kunai.Window
             proc.Start();
         }
         //https://stackoverflow.com/questions/4580263/how-to-open-in-default-browser-in-c-sharp
-        private void OpenUrl(string url)
+        private void OpenUrl(string in_Url)
         {
             try
             {
-                Process.Start(url);
+                Process.Start(in_Url);
             }
             catch
             {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    url = url.Replace("&", "^&");
-                    Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+                    in_Url = in_Url.Replace("&", "^&");
+                    Process.Start(new ProcessStartInfo(in_Url) { UseShellExecute = true });
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
-                    Process.Start("xdg-open", url);
+                    Process.Start("xdg-open", in_Url);
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
-                    Process.Start("open", url);
+                    Process.Start("open", in_Url);
                 }
                 else
                 {

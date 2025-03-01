@@ -17,13 +17,13 @@ namespace Kunai
         {
             public Cast Cast;
             public bool Active = true;
-            public int ID;
+            public int Id;
             public SScene Parent;
-            public SCast(Cast in_Scene, SScene parent)
+            public SCast(Cast in_Scene, SScene in_Parent)
             {
-                ID = new Random().Next(0, 1000);
+                Id = new Random().Next(0, 1000);
                 Cast = in_Scene;
-                Parent = parent;
+                Parent = in_Parent;
             }
         }
         public class SAnimation

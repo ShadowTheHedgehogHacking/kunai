@@ -66,7 +66,7 @@ namespace Kunai.ShurikenRenderer
         private GameWindow _window;
         private int _currentDrawPriority;
         public List<WindowBase> Windows = new List<WindowBase>();
-        bool saveScreenshotWhenRendered = false;
+        bool m_SaveScreenshotWhenRendered = false;
         public Vector3 ViewportColor
         {
             get
@@ -180,15 +180,15 @@ namespace Kunai.ShurikenRenderer
 
         }
 
-        private void HandleSplitCsd(string in_Path, bool isDxlFilePresent, bool isTlsFilePresent)
+        private void HandleSplitCsd(string in_Path, bool in_IsDxlFilePresent, bool in_IsTlsFilePresent)
         {
             byte[] csdFile = File.ReadAllBytes(in_Path);
-            string path = isDxlFilePresent ? Path.ChangeExtension(in_Path, "dxl") : Path.ChangeExtension(in_Path, "tls");
+            string path = in_IsDxlFilePresent ? Path.ChangeExtension(in_Path, "dxl") : Path.ChangeExtension(in_Path, "tls");
             byte[] textureList = File.ReadAllBytes(path);
 
             //File.WriteAllBytes(in_Path + "_Test", output);
 
-            if (isTlsFilePresent)
+            if (in_IsTlsFilePresent)
             {
                 var tlsFile = TPL.Load(path);
                 TextureListNN newTexList = new TextureListNN();
@@ -209,7 +209,7 @@ namespace Kunai.ShurikenRenderer
 
                         var image = tlsFile.ExtractTextureBytes(i);
 
-                        using Image<Bgra32> newDDS = Image.LoadPixelData<Bgra32>(image, tlsFile.GetTexture(i).TextureWidth, tlsFile.GetTexture(i).TextureHeight);
+                        using Image<Bgra32> newDds = Image.LoadPixelData<Bgra32>(image, tlsFile.GetTexture(i).TextureWidth, tlsFile.GetTexture(i).TextureHeight);
 
                         BcEncoder encoder = new BcEncoder();
 
@@ -219,7 +219,7 @@ namespace Kunai.ShurikenRenderer
                         encoder.OutputOptions.FileFormat = OutputFileFormat.Dds; //Change to Dds for a dds file.
 
                         using FileStream fs = File.OpenWrite(filePath);
-                        encoder.EncodeToStream(newDDS.CloneAs<Rgba32>(), fs);
+                        encoder.EncodeToStream(newDds.CloneAs<Rgba32>(), fs);
                     }
 
                     newTexList.Add(new TextureNN($"{csdName}_tex{i}.dds"));
@@ -239,7 +239,7 @@ namespace Kunai.ShurikenRenderer
                 }
                 WorkProjectCsd.Textures = newTexList;
             }
-            if (isDxlFilePresent)
+            if (in_IsDxlFilePresent)
             {
                 //Merge both files using the same method as ColoursXncpGen
                 byte[] output = FileManager.Combine(csdFile, textureList);
@@ -265,7 +265,7 @@ namespace Kunai.ShurikenRenderer
                 return;
             if (in_CsdProject != null)
             {
-                bool isSavingScreenshot = saveScreenshotWhenRendered;
+                bool isSavingScreenshot = m_SaveScreenshotWhenRendered;
                 // Get the size of the child (i.e. the whole draw size of the windows).
                 Vector2 wsize = ScreenSize;
                 // make sure the buffers are the currect size
@@ -347,7 +347,7 @@ namespace Kunai.ShurikenRenderer
                         Image.LoadPixelData<SixLabors.ImageSharp.PixelFormats.Rgba32>(buffer, wsizei.X, wsizei.Y);
 
                     //Flip vertically to fix orientation
-                    screenshot.Mutate(x => x.Flip(FlipMode.Vertical));
+                    screenshot.Mutate(in_X => in_X.Flip(FlipMode.Vertical));
 
                     //screenshot.Mutate(ctx =>
                     //{
@@ -368,7 +368,7 @@ namespace Kunai.ShurikenRenderer
                         screenshot.SaveAsPng(path);
                     }
 
-                    saveScreenshotWhenRendered = false;
+                    m_SaveScreenshotWhenRendered = false;
                 }
                 // unbind our bo so nothing else uses it
                 GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
@@ -446,7 +446,7 @@ namespace Kunai.ShurikenRenderer
                 Flags = (ElementMaterialFlags)in_UiElement.Field38
             };
             //Redo this at some point
-            foreach (var animation in in_Vis.Animation.Where(a => a.Active))
+            foreach (var animation in in_Vis.Animation.Where(in_A => in_A.Active))
             {
                 for (int i = 0; i < 12; i++)
                 {
@@ -607,7 +607,7 @@ namespace Kunai.ShurikenRenderer
                         var begin = (Vector2)in_UiElement.TopLeft;
                         var end = begin + new Vector2(width, height);
 
-                        sSpriteDrawData.OverrideUVCoords = true;
+                        sSpriteDrawData.OverrideUvCoords = true;
                         sSpriteDrawData.TopLeft = new Vector2(begin.X + xOffset, begin.Y);
                         sSpriteDrawData.BottomLeft = new Vector2(begin.X + xOffset, end.Y);
                         sSpriteDrawData.TopRight = new Vector2(end.X + xOffset, begin.Y);
@@ -664,16 +664,16 @@ namespace Kunai.ShurikenRenderer
 
         internal void SaveScreenshot()
         {
-            saveScreenshotWhenRendered = true;
+            m_SaveScreenshotWhenRendered = true;
         }
-        void CreatePackageFile(IChunk chunk, string in_Path, Endianness endianness)
+        void CreatePackageFile(IChunk in_Chunk, string in_Path, Endianness in_Endianness)
         {
             using BinaryObjectWriter infoWriter = new BinaryObjectWriter(in_Path, Endianness.Little, Encoding.UTF8);
             InfoChunk info = new()
             {
-                Signature = BinaryHelper.MakeSignature<uint>(endianness == Endianness.Little ? "NXIF" : "NYIF"),
+                Signature = BinaryHelper.MakeSignature<uint>(in_Endianness == Endianness.Little ? "NXIF" : "NYIF"),
             };
-            info.Chunks.Add(chunk);
+            info.Chunks.Add(in_Chunk);
             infoWriter.WriteObject(info);
         }
         internal void ExportProjectChunk(string in_Path, bool in_Ultimate)

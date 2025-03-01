@@ -14,7 +14,7 @@ namespace Kunai.Window
     
     public class AnimationsWindow : WindowBase
     {
-        private static List<ImPlotPoint> _points = new List<ImPlotPoint>();
+        private static List<ImPlotPoint> ms_Points = new List<ImPlotPoint>();
 
         public override void Update(KunaiProject in_Renderer)
         {
@@ -128,7 +128,7 @@ namespace Kunai.Window
                         if (Renderer.SelectionData.TrackAnimation != null)
                         {
                             double time = in_Renderer.Config.Time * selectedScene.Value.FrameRate;
-                            _points.Clear();
+                            ms_Points.Clear();
                             //Line for the anim time
                             if(ImPlot.DragLineX(0, &time, new Vector4(1, 1, 1, 1), 1))
                             {
@@ -144,7 +144,7 @@ namespace Kunai.Window
                             for (int i = 0; i < Renderer.SelectionData.TrackAnimation.Frames.Count; i++)
                             {
                                 ImPlotPoint point = new ImPlotPoint(Renderer.SelectionData.TrackAnimation.Frames[i].Frame, isFloatValue ? Renderer.SelectionData.TrackAnimation.Frames[i].Value.Float : 0);
-                                _points.Add(point);
+                                ms_Points.Add(point);
                                 bool isClicked = false;
                                 if (ImPlot.DragPoint(i, &point.X, &point.Y, Renderer.SelectionData.KeyframeSelected == Renderer.SelectionData.TrackAnimation.Frames[i] ? new System.Numerics.Vector4(1, 0.9f, 1, 1) : new System.Numerics.Vector4(0, 0.9f, 0, 1), 8, ImPlotDragToolFlags.None, &isClicked))
                                 {

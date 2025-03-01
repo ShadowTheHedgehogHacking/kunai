@@ -175,7 +175,7 @@ namespace Shuriken.Rendering
                     Crop = new CroppedBitmap(Texture.ImageSource, new Int32Rect(X, Y, Width, Height));
             }
         }
-        public Vector2[] GetImGuiUV()
+        public Vector2[] GetImGuiUv()
         {
             Vector2 uvTl = new Vector2(
                 Start.X / Texture.Width,

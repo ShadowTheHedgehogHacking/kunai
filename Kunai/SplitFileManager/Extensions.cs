@@ -9,8 +9,8 @@ namespace ColoursXncpGen
 {
     public static class Extensions
     {
-        public static byte[] Range(this byte[] array, int start, int finish) {
-            return array.Skip(start).Take(finish - start).ToArray();
+        public static byte[] Range(this byte[] in_Array, int in_Start, int in_Finish) {
+            return in_Array.Skip(in_Start).Take(in_Finish - in_Start).ToArray();
         }
     }
 }

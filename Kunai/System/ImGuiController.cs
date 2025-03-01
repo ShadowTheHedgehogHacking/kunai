@@ -40,7 +40,7 @@ namespace Kunai
 
         private System.Numerics.Vector2 _scaleFactor = System.Numerics.Vector2.One;
 
-        private static bool _khrDebugAvailable = false;
+        private static bool ms_KhrDebugAvailable = false;
 
         private int _glVersion;
         private bool _compatibilityProfile;
@@ -84,14 +84,14 @@ namespace Kunai
 
             return 1;
         }
-        uint[] icons_ranges = new uint[3] { FontAwesome6.IconMin, FontAwesome6.IconMax, 0 };
+        uint[] m_IconsRanges = new uint[3] { FontAwesome6.IconMin, FontAwesome6.IconMax, 0 };
         public static ImFontPtr DefaultFont;
         public static ImFontPtr FontAwesomeFont;
-        unsafe uint* range
+        unsafe uint* Range
         {
             get
             {
-                fixed (uint* range = &icons_ranges[0])
+                fixed (uint* range = &m_IconsRanges[0])
                     return range;
             }
         }
@@ -105,7 +105,7 @@ namespace Kunai
 
             _glVersion = major * 100 + minor * 10;
 
-            _khrDebugAvailable = (major == 4 && minor >= 3) || IsExtensionSupported("KHR_debug");
+            ms_KhrDebugAvailable = (major == 4 && minor >= 3) || IsExtensionSupported("KHR_debug");
 
             _compatibilityProfile = (GL.GetInteger((GetPName)All.ContextProfileMask) & (int)All.ContextCompatibilityProfileBit) != 0;
 
@@ -129,11 +129,11 @@ namespace Kunai
                 PixelSnapH = 1,
                 GlyphMaxAdvanceX = 16,
                 RasterizerMultiply = 2.0f,
-                GlyphRanges = range,
+                GlyphRanges = Range,
             };
             //io.Fonts.AddFontFromFileTTF(IconFonts.FontA\wesome6.FontIconFileNameFAR, 16, icons_config, new uint[64]{ Icon });
             DefaultFont = io.Fonts.AddFontFromFileTTF(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "RobotoVariable.ttf"), 16 * GetDpiScaling());
-            FontAwesomeFont = io.Fonts.AddFontFromFileTTF(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", FontAwesome6.FontIconFileNameFAS), 16 * GetDpiScaling(), null, range);
+            FontAwesomeFont = io.Fonts.AddFontFromFileTTF(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", FontAwesome6.FontIconFileNameFAS), 16 * GetDpiScaling(), null, Range);
             io.Fonts.Build();
 
             //unsafe
@@ -575,7 +575,7 @@ void main()
 
         public static void LabelObject(ObjectLabelIdentifier in_ObjLabelIdent, int in_GlObject, string in_Name)
         {
-            if (_khrDebugAvailable)
+            if (ms_KhrDebugAvailable)
                 GL.ObjectLabel(in_ObjLabelIdent, in_GlObject, in_Name.Length, in_Name);
         }
 

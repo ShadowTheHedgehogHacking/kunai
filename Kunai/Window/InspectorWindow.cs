@@ -34,13 +34,13 @@ namespace Kunai.Window
             Cast
         }
         public static ESelectionType SelectionType;
-        static bool isEditingCrop;
+        static bool ms_IsEditingCrop;
 
-        private static List<string> _fontNames = new List<string>();
+        private static List<string> ms_FontNames = new List<string>();
         public static void SelectCast(Cast in_Cast)
         {
 
-            isEditingCrop = false;
+            ms_IsEditingCrop = false;
             KunaiProject.Instance.SelectionData.SelectedCast = in_Cast;
             SelectionType = ESelectionType.Cast;
         }
@@ -179,7 +179,7 @@ namespace Kunai.Window
             float kerning = BitConverter.ToSingle(BitConverter.GetBytes(selectedCast.Field4C)) * 100;
             string fontname = selectedCast.FontName;
 
-            int indexFont = _fontNames.IndexOf(fontname);
+            int indexFont = ms_FontNames.IndexOf(fontname);
 
             ImGui.InputText("Room Name", ref name, 100, ImGuiInputTextFlags.AutoSelectAll);
             ImGui.InputInt("Field00", ref field00);
@@ -261,9 +261,9 @@ namespace Kunai.Window
                 if (ImGui.CollapsingHeader("Text", ImGuiTreeNodeFlags.DefaultOpen))
                 {
                     //make combo box eventually
-                    if (ImGui.Combo("Font", ref indexFont, _fontNames.ToArray(), _fontNames.Count))
+                    if (ImGui.Combo("Font", ref indexFont, ms_FontNames.ToArray(), ms_FontNames.Count))
                     {
-                        fontname = _fontNames[indexFont];
+                        fontname = ms_FontNames[indexFont];
                     }
                     ImGui.PushID("textInput");
                     ImGui.InputText("Text", ref text, 512);
@@ -315,7 +315,7 @@ namespace Kunai.Window
                                 if (spriteReference != null)
                                 {
 
-                                    var uvCoords = spriteReference.GetImGuiUV();
+                                    var uvCoords = spriteReference.GetImGuiUv();
 
                                     bool isPressed;
                                     if (spriteReference.Texture.GlTex == null)
@@ -338,12 +338,12 @@ namespace Kunai.Window
                         }
                     }
                     ImKunai.EndListBoxCustom();
-                    if (!isEditingCrop)
+                    if (!ms_IsEditingCrop)
                     {
                         ImGui.SetNextItemWidth(-1);
                         if (ImGui.Button("Edit current pattern", new Vector2(-1, 32)))
                         {
-                            isEditingCrop = true;
+                            ms_IsEditingCrop = true;
                         }
                     }
                     else
@@ -363,7 +363,7 @@ namespace Kunai.Window
                         }
                         if (ImGui.Button("Stop editing pattern", new Vector2(-1, 32)))
                         {
-                            isEditingCrop = false;
+                            ms_IsEditingCrop = false;
                         }
 
                     }
@@ -408,17 +408,17 @@ namespace Kunai.Window
             selectedCast.Text = text;
             selectedCast.Field4C = (uint)BitConverter.ToInt32(BitConverter.GetBytes(kerning / 100), 0);
         }
-        static Vector2 CalculatePivot(Vector2[] quad)
+        static Vector2 CalculatePivot(Vector2[] in_Quad)
         {
             // Find the min and max X and Y values from the 4 corners
-            float minX = Math.Min(Math.Min(quad[0].X, quad[1].X), Math.Min(quad[2].X, quad[3].X));
-            float maxX = Math.Max(Math.Max(quad[0].X, quad[1].X), Math.Max(quad[2].X, quad[3].X));
+            float minX = Math.Min(Math.Min(in_Quad[0].X, in_Quad[1].X), Math.Min(in_Quad[2].X, in_Quad[3].X));
+            float maxX = Math.Max(Math.Max(in_Quad[0].X, in_Quad[1].X), Math.Max(in_Quad[2].X, in_Quad[3].X));
 
-            float minY = Math.Min(Math.Min(quad[0].Y, quad[1].Y), Math.Min(quad[2].Y, quad[3].Y));
-            float maxY = Math.Max(Math.Max(quad[0].Y, quad[1].Y), Math.Max(quad[2].Y, quad[3].Y));
+            float minY = Math.Min(Math.Min(in_Quad[0].Y, in_Quad[1].Y), Math.Min(in_Quad[2].Y, in_Quad[3].Y));
+            float maxY = Math.Max(Math.Max(in_Quad[0].Y, in_Quad[1].Y), Math.Max(in_Quad[2].Y, in_Quad[3].Y));
 
             // Calculate the center of the quad (for simplicity as pivot example)
-            Vector2 center = (quad[0] + quad[1] + quad[2] + quad[3]) / 4.0f;
+            Vector2 center = (in_Quad[0] + in_Quad[1] + in_Quad[2] + in_Quad[3]) / 4.0f;
 
             // Normalize the center based on the bounding box
             float normalizedX = (center.X - minX) / (maxX - minX);
@@ -496,10 +496,10 @@ namespace Kunai.Window
             {
                 if (in_Proj.WorkProjectCsd != null)
                 {
-                    _fontNames.Clear();
+                    ms_FontNames.Clear();
                     foreach (KeyValuePair<string, Font> font in in_Proj.WorkProjectCsd.Project.Fonts)
                     {
-                        _fontNames.Add(font.Key);
+                        ms_FontNames.Add(font.Key);
                     }
                     switch (SelectionType)
                     {
@@ -524,18 +524,18 @@ namespace Kunai.Window
             KunaiProject.Instance.SelectionData.SelectedScene = new();
         }
 
-        public static Vector2 CalculateQuadCenter(Vector2 topLeft, Vector2 topRight, Vector2 bottomLeft, Vector2 bottomRight)
+        public static Vector2 CalculateQuadCenter(Vector2 in_TopLeft, Vector2 in_TopRight, Vector2 in_BottomLeft, Vector2 in_BottomRight)
         {
             return new Vector2(
-                (topLeft.X + topRight.X + bottomLeft.X + bottomRight.X) / 4,
-                (topLeft.Y + topRight.Y + bottomLeft.Y + bottomRight.Y) / 4
+                (in_TopLeft.X + in_TopRight.X + in_BottomLeft.X + in_BottomRight.X) / 4,
+                (in_TopLeft.Y + in_TopRight.Y + in_BottomLeft.Y + in_BottomRight.Y) / 4
             );
         }
 
-        EAlignmentPivot InvertPivot(EAlignmentPivot pivot)
+        EAlignmentPivot InvertPivot(EAlignmentPivot in_Pivot)
         {
             EAlignmentPivot newPivot = EAlignmentPivot.None;
-            switch (pivot)
+            switch (in_Pivot)
             {
                 case EAlignmentPivot.TopLeft:
                     newPivot = EAlignmentPivot.BottomRight;
@@ -603,14 +603,14 @@ namespace Kunai.Window
                 returnValue =  EAlignmentPivot.BottomRight;
             return InvertPivot(returnValue);
         }
-        private void AlignQuadTo(EAlignmentPivot alignmentPosition, ref Cast in_Cast)
+        private void AlignQuadTo(EAlignmentPivot in_AlignmentPosition, ref Cast in_Cast)
         {
             Vector2 quadCenter = CalculateQuadCenter(in_Cast.TopLeft, in_Cast.TopRight, in_Cast.BottomLeft, in_Cast.BottomRight);
 
             var diff1 = in_Cast.Position - quadCenter;
             Vector2 topLeft = new Vector2(0, 0), topRight = new Vector2(0, 0), bottomLeft = new Vector2(0, 0), bottomRight = new Vector2(0, 0);
             Vector2 size = (new Vector2(in_Cast.Width, in_Cast.Height) * 2) / Renderer.ViewportSize;
-            switch (InvertPivot(alignmentPosition))
+            switch (InvertPivot(in_AlignmentPosition))
             {
                 case EAlignmentPivot.TopLeft:
                     topLeft = new Vector2(-1, -1);
@@ -687,14 +687,14 @@ namespace Kunai.Window
             var diff = (((quadCenter2 - quadCenter)));
             in_Cast.Info = t;
         }
-        bool IsQuadAligned(Vector2 alignmentPosition, ref Cast in_Cast)
+        bool IsQuadAligned(Vector2 in_AlignmentPosition, ref Cast in_Cast)
         {
             Vector2 quadCenter = CalculateQuadCenter(in_Cast.TopLeft, in_Cast.TopRight, in_Cast.BottomLeft, in_Cast.BottomRight);
 
             // Check if the quad's center is within a threshold of the alignment
             float tolerance = 0.01f;
-            return (Math.Abs(quadCenter.X - alignmentPosition.X) < tolerance) &&
-                   (Math.Abs(quadCenter.Y - alignmentPosition.Y) < tolerance);
+            return (Math.Abs(quadCenter.X - in_AlignmentPosition.X) < tolerance) &&
+                   (Math.Abs(quadCenter.Y - in_AlignmentPosition.Y) < tolerance);
         }
 
     }

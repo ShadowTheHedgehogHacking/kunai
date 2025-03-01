@@ -24,9 +24,9 @@ namespace Kunai
         public static bool IsMouseLeftDown;
         public static readonly string ApplicationName = "Kunai";
         private ImGuiController _controller;
-        private IntPtr iniName;
+        private IntPtr m_IniName;
         public static KunaiProject Renderer;
-        public byte[] _iconData;
+        public byte[] IconData;
         public static ImGuiWindowFlags WindowFlags = ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse;
         public MainWindow() : base(GameWindowSettings.Default, new NativeWindowSettings() { Size = new Vector2i(1600, 900), APIVersion = new Version(3, 3) })
         {
@@ -38,11 +38,11 @@ namespace Kunai
         void GetIcon()
         {
             // TODO: eventually replace with program's own embedded icon?
-            using SixLabors.ImageSharp.Image<Rgba32> newDDS = SixLabors.ImageSharp.Image.Load<Rgba32>(Path.Combine(Program.Path, "Resources", "Icons", "ico.png"));
-            _iconData = new byte[newDDS.Width * newDDS.Height * Unsafe.SizeOf<Rgba32>()];
-            newDDS.CopyPixelDataTo(_iconData);
+            using SixLabors.ImageSharp.Image<Rgba32> newDds = SixLabors.ImageSharp.Image.Load<Rgba32>(Path.Combine(Program.Path, "Resources", "Icons", "ico.png"));
+            IconData = new byte[newDds.Width * newDds.Height * Unsafe.SizeOf<Rgba32>()];
+            newDds.CopyPixelDataTo(IconData);
 
-            OpenTK.Windowing.Common.Input.Image windowIcon = new OpenTK.Windowing.Common.Input.Image(newDDS.Width, newDDS.Height, _iconData);
+            OpenTK.Windowing.Common.Input.Image windowIcon = new OpenTK.Windowing.Common.Input.Image(newDds.Width, newDds.Height, IconData);
             Icon = new OpenTK.Windowing.Common.Input.WindowIcon(windowIcon);
         }
         protected override void OnLoad()
@@ -57,9 +57,9 @@ namespace Kunai
             // This is to avoid having imgui.ini files in every folder that the program accesses
             unsafe
             {
-                iniName = Marshal.StringToHGlobalAnsi(Path.Combine(Program.Path, "imgui.ini"));
+                m_IniName = Marshal.StringToHGlobalAnsi(Path.Combine(Program.Path, "imgui.ini"));
                 ImGuiIOPtr io = ImGui.GetIO();
-                io.IniFilename = (byte*)iniName;
+                io.IniFilename = (byte*)m_IniName;
             }
             unsafe
             {
@@ -89,21 +89,21 @@ namespace Kunai
         }
 
         //For whatever fucking stupid reason, Imgui.Net has no "IsMouseDown" function
-        protected override void OnMouseDown(MouseButtonEventArgs e)
+        protected override void OnMouseDown(MouseButtonEventArgs in_E)
         {
-            base.OnMouseDown(e);
+            base.OnMouseDown(in_E);
 
-            if (e.Button == MouseButton.Left)
+            if (in_E.Button == MouseButton.Left)
             {
                 IsMouseLeftDown = true; // Left mouse button pressed
             }
         }
 
-        protected override void OnMouseUp(MouseButtonEventArgs e)
+        protected override void OnMouseUp(MouseButtonEventArgs in_E)
         {
-            base.OnMouseUp(e);
+            base.OnMouseUp(in_E);
 
-            if (e.Button == MouseButton.Left)
+            if (in_E.Button == MouseButton.Left)
             {
                 IsMouseLeftDown = false; // Left mouse button released
             }

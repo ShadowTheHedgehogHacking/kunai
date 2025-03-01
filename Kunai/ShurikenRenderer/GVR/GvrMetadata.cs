@@ -22,7 +22,7 @@ namespace Shuriken.Rendering.Gvr
         public ushort ExternalPaletteUnknown2 { get; set; }
         public ushort ExternalPaletteUnknown3 { get; set; }
 
-        private const uint METADATA_VERSION = 2;
+        private const uint metadataVersion = 2;
 
     }
 }

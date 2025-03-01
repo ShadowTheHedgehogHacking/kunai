@@ -16,7 +16,7 @@ namespace Shuriken.Rendering
     public struct SSpriteDrawData
     {
         public int ZIndex;
-        public bool OverrideUVCoords;
+        public bool OverrideUvCoords;
         public Vector2 TopLeft, BottomLeft, TopRight, BottomRight;
         public Vector2 Position;
         public float Rotation;
@@ -233,10 +233,10 @@ namespace Shuriken.Rendering
             var quad = new Quad();
             var aspect = new Vector2(in_DrawData.AspectRatio, 1.0f);
 
-            var topLeft = in_DrawData.OverrideUVCoords ? in_DrawData.TopLeft : in_DrawData.OriginCast.TopLeft;
-            var bottomLeft = in_DrawData.OverrideUVCoords ? in_DrawData.BottomLeft : in_DrawData.OriginCast.BottomLeft;
-            var topRight = in_DrawData.OverrideUVCoords ? in_DrawData.TopRight : in_DrawData.OriginCast.TopRight;
-            var bottomRight = in_DrawData.OverrideUVCoords ? in_DrawData.BottomRight :  in_DrawData.OriginCast.BottomRight;
+            var topLeft = in_DrawData.OverrideUvCoords ? in_DrawData.TopLeft : in_DrawData.OriginCast.TopLeft;
+            var bottomLeft = in_DrawData.OverrideUvCoords ? in_DrawData.BottomLeft : in_DrawData.OriginCast.BottomLeft;
+            var topRight = in_DrawData.OverrideUvCoords ? in_DrawData.TopRight : in_DrawData.OriginCast.TopRight;
+            var bottomRight = in_DrawData.OverrideUvCoords ? in_DrawData.BottomRight :  in_DrawData.OriginCast.BottomRight;
 
             quad.TopLeft.Position = in_DrawData.Position + ((topLeft * in_DrawData.Scale * aspect).Rotate(in_DrawData.Rotation) / aspect);
             quad.BottomLeft.Position = in_DrawData.Position + ((bottomLeft * in_DrawData.Scale * aspect).Rotate(in_DrawData.Rotation) / aspect);

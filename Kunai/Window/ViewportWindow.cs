@@ -13,7 +13,7 @@ namespace Kunai.Window
     public class ViewportWindow : WindowBase
     {
         public static float ZoomFactor = 1;
-        int currentAspectRatio = 0;
+        int m_CurrentAspectRatio = 0;
         public override void Update(KunaiProject in_Renderer)
         {
             var size1 = ImGui.GetWindowViewport().Size.X / 4.5f;
@@ -37,9 +37,9 @@ namespace Kunai.Window
                 ImKunai.TextFontAwesome(FontAwesome6.Display);
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(-1);
-                if (ImGui.Combo("##aspectratio", ref currentAspectRatio, ["16:9", "4:3"], 2))
+                if (ImGui.Combo("##aspectratio", ref m_CurrentAspectRatio, ["16:9", "4:3"], 2))
                 {
-                    if (currentAspectRatio == 0)
+                    if (m_CurrentAspectRatio == 0)
                         in_Renderer.ViewportSize = new Vector2(1280, 720);
                     else
                         in_Renderer.ViewportSize = new Vector2(640, 480);
@@ -73,13 +73,13 @@ namespace Kunai.Window
 
         private void DrawQuadList(Vector2 in_CursorPos2, Vector2 in_WindowPos, Vector2 in_ViewSize, Vector2 in_ViewPos)
         {
-            bool PointInQuad(Vector2 p, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4)
+            bool PointInQuad(Vector2 in_P, Vector2 in_P1, Vector2 in_P2, Vector2 in_P3, Vector2 in_P4)
             {
-                bool SameSide(Vector2 a, Vector2 b, Vector2 c, Vector2 p)
+                bool SameSide(Vector2 in_A, Vector2 in_B, Vector2 in_C, Vector2 in_P)
                 {
-                    Vector2 ab = b - a;
-                    Vector2 ac = c - a;
-                    Vector2 ap = p - a;
+                    Vector2 ab = in_B - in_A;
+                    Vector2 ac = in_C - in_A;
+                    Vector2 ap = in_P - in_A;
 
                     float cross1 = ab.X * ac.Y - ab.Y * ac.X;
                     float cross2 = ab.X * ap.Y - ab.Y * ap.X;
@@ -87,8 +87,8 @@ namespace Kunai.Window
                     return Math.Sign(cross1) == Math.Sign(cross2);
                 }
 
-                return SameSide(p1, p2, p3, p) && SameSide(p2, p3, p4, p) &&
-                       SameSide(p3, p4, p1, p) && SameSide(p4, p1, p2, p);
+                return SameSide(in_P1, in_P2, in_P3, in_P) && SameSide(in_P2, in_P3, in_P4, in_P) &&
+                       SameSide(in_P3, in_P4, in_P1, in_P) && SameSide(in_P4, in_P1, in_P2, in_P);
             }
             var cursorpos = ImGui.GetItemRectMin();
             Vector2 screenPos = in_CursorPos2 + in_ViewPos - new Vector2(3, 2);
@@ -142,7 +142,7 @@ namespace Kunai.Window
                 
             }
             if(possibleSelections.Count > 0)
-                InspectorWindow.SelectCast(possibleSelections.OrderByDescending(x => x.Priority).ToList()[0]);
+                InspectorWindow.SelectCast(possibleSelections.OrderByDescending(in_X => in_X.Priority).ToList()[0]);
         }
     }
 }

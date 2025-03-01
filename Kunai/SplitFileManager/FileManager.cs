@@ -9,33 +9,33 @@ namespace ColoursXncpGen
 {
     class FileManager
     {
-        private static byte[] signature = { 0x46, 0x41, 0x50, 0x43 };
-        private static byte[] signature2 = { 0x43, 0x50, 0x41, 0x46};
+        private static byte[] ms_Signature = { 0x46, 0x41, 0x50, 0x43 };
+        private static byte[] ms_Signature2 = { 0x43, 0x50, 0x41, 0x46};
 
-        public static byte[] Combine(byte[] file, byte[] dxlFile)
+        public static byte[] Combine(byte[] in_File, byte[] in_DxlFile)
         {
-            byte[] output = new byte[signature.Length * 4 + file.Length + dxlFile.Length];
+            byte[] output = new byte[ms_Signature.Length * 4 + in_File.Length + in_DxlFile.Length];
             int lastIndex = 0;
-            Array.Copy(signature, 0, output, lastIndex += 0, signature.Length);
-            Array.Copy(BitConverter.GetBytes((uint)file.Length), 0, output, lastIndex += signature.Length, 4);
-            Array.Copy(file, 0, output, lastIndex += 4, file.Length);
+            Array.Copy(ms_Signature, 0, output, lastIndex += 0, ms_Signature.Length);
+            Array.Copy(BitConverter.GetBytes((uint)in_File.Length), 0, output, lastIndex += ms_Signature.Length, 4);
+            Array.Copy(in_File, 0, output, lastIndex += 4, in_File.Length);
 
-            Array.Copy(BitConverter.GetBytes((uint)dxlFile.Length), 0, output, lastIndex += file.Length, 4);
-            Array.Copy(dxlFile, 0, output, lastIndex += 4, dxlFile.Length);
+            Array.Copy(BitConverter.GetBytes((uint)in_DxlFile.Length), 0, output, lastIndex += in_File.Length, 4);
+            Array.Copy(in_DxlFile, 0, output, lastIndex += 4, in_DxlFile.Length);
 
             return output;
         }
 
-        public static byte[][] Split(byte[] file)
+        public static byte[][] Split(byte[] in_File)
         {
-            uint xncpLength = BitConverter.ToUInt32(file.Range(4, 8), 0);
+            uint xncpLength = BitConverter.ToUInt32(in_File.Range(4, 8), 0);
             byte[] xncp = new byte[xncpLength];
-            Array.Copy(file, 8, xncp, 0, xncpLength);
+            Array.Copy(in_File, 8, xncp, 0, xncpLength);
 
-            byte[] dxlLengthBytes = file.Range(8 + (int)xncpLength, 8 + (int)xncpLength + 4);
+            byte[] dxlLengthBytes = in_File.Range(8 + (int)xncpLength, 8 + (int)xncpLength + 4);
             uint dxlLength = BitConverter.ToUInt32(dxlLengthBytes, 0);
             byte[] dxl = new byte[dxlLength];
-            Array.Copy(file, 8 + 4 + xncpLength, dxl, 0, dxlLength);
+            Array.Copy(in_File, 8 + 4 + xncpLength, dxl, 0, dxlLength);
             
             return new byte[][] { xncp, dxl };
         }

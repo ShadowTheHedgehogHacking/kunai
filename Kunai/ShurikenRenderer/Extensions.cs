@@ -14,19 +14,19 @@ public static class ExtensionKillMe
     {
         return new System.Numerics.Vector4(in_Value.R / 255.0f, in_Value.G / 255.0f, in_Value.B / 255.0f, in_Value.A / 255.0f);
     }
-    public static Vector2 Rotate(this Vector2 v, float in_Angle)
+    public static Vector2 Rotate(this Vector2 in_V, float in_Angle)
     {
         return new Vector2(
-            v.X * MathF.Cos(in_Angle) + v.Y * MathF.Sin(in_Angle),
-            v.Y * MathF.Cos(in_Angle) - v.X * MathF.Sin(in_Angle));
+            in_V.X * MathF.Cos(in_Angle) + in_V.Y * MathF.Sin(in_Angle),
+            in_V.Y * MathF.Cos(in_Angle) - in_V.X * MathF.Sin(in_Angle));
     }
-    public static Vector2 RotatePoint(this Vector2 point, float radians)
+    public static Vector2 RotatePoint(this Vector2 in_Point, float in_Radians)
     {
-        float cosTheta = (float)Math.Cos(radians);
-        float sinTheta = (float)Math.Sin(radians);
+        float cosTheta = (float)Math.Cos(in_Radians);
+        float sinTheta = (float)Math.Sin(in_Radians);
         return new Vector2(
-            point.X * cosTheta - point.Y * sinTheta,
-            point.X * sinTheta + point.Y * cosTheta
+            in_Point.X * cosTheta - in_Point.Y * sinTheta,
+            in_Point.X * sinTheta + in_Point.Y * cosTheta
         );
     }
     public static System.Numerics.Vector4 Invert(this System.Numerics.Vector4 in_Value)
@@ -126,9 +126,9 @@ public static class AnimationTypeMethods
                 return keyframe.Value.Float;
         }
     }
-    public static DrawType GetDrawType(this Cast cast)
+    public static DrawType GetDrawType(this Cast in_Cast)
     {
-        return (DrawType)cast.Field04;
+        return (DrawType)in_Cast.Field04;
     }
     public static Vector4 GetColor(this SharpNeedle.Framework.Ninja.Csd.Motions.KeyFrameList in_List, float in_Frame)
     {

@@ -8,14 +8,23 @@ using OpenTK.Input;
 using SharpNeedle.Framework.Ninja.Csd;
 using System.Collections.Generic;
 using System.Linq;
+using HekonrayBase.Base;
+using HekonrayBase;
 namespace Kunai.Window
 {
-    public class ViewportWindow : WindowBase
+    public class ViewportWindow : Singleton<ViewportWindow>, IWindow
     {
         public static float ZoomFactor = 1;
         int m_CurrentAspectRatio = 0;
-        public override void Update(KunaiProject in_Renderer)
+
+        public void OnReset(IProgramProject in_Renderer)
         {
+            throw new NotImplementedException();
+        }
+
+        public void Render(IProgramProject in_Renderer)
+        {
+            var renderer = (KunaiProject)in_Renderer;
             var size1 = ImGui.GetWindowViewport().Size.X / 4.5f;
             var windowPos = new Vector2(size1, MenuBarWindow.MenuBarHeight);
             ImGui.SetNextWindowPos(windowPos, ImGuiCond.Always);
@@ -26,12 +35,12 @@ namespace Kunai.Window
                 if (windowHovered)
                     ZoomFactor += ImGui.GetIO().MouseWheel / 5;
                 ZoomFactor = Math.Clamp(ZoomFactor, 0.5f, 5);
-                float windowHeight = ImGui.GetWindowWidth() * (in_Renderer.ViewportSize.Y / in_Renderer.ViewportSize.X);
+                float windowHeight = ImGui.GetWindowWidth() * (renderer.ViewportSize.Y / renderer.ViewportSize.X);
 
                 ImKunai.TextFontAwesome(FontAwesome6.MagnifyingGlass);
                 ImGui.SameLine();
 
-                ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - 200);                
+                ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - 200);
                 ImGui.SliderFloat("##zoom", ref ZoomFactor, 0.5f, 5);
                 ImGui.SameLine();
                 ImKunai.TextFontAwesome(FontAwesome6.Display);
@@ -40,13 +49,13 @@ namespace Kunai.Window
                 if (ImGui.Combo("##aspectratio", ref m_CurrentAspectRatio, ["16:9", "4:3"], 2))
                 {
                     if (m_CurrentAspectRatio == 0)
-                        in_Renderer.ViewportSize = new Vector2(1280, 720);
+                        renderer.ViewportSize = new Vector2(1280, 720);
                     else
-                        in_Renderer.ViewportSize = new Vector2(640, 480);
+                        renderer.ViewportSize = new Vector2(640, 480);
                 }
                 var vwSize = new Vector2(ImGui.GetWindowWidth(), windowHeight) * ZoomFactor;
 
-                if (in_Renderer.WorkProjectCsd == null)
+                if (renderer.WorkProjectCsd == null)
                     ImGui.Text("Open a XNCP, YNCP, GNCP or SNCP file to edit it.");
 
                 bool open = true;
@@ -58,17 +67,14 @@ namespace Kunai.Window
                     var vwPos = (wndSize - vwSize) * 0.5f;
                     ImGui.SetCursorPos(vwPos);
                     ImGui.Image(
-                        new ImTextureID(in_Renderer.GetViewportImageHandle()), vwSize,
+                        new ImTextureID(renderer.GetViewportImageHandle()), vwSize,
                         new Vector2(0, 1), new Vector2(1, 0));
 
                     DrawQuadList(cursorpos2, windowPos, vwSize, vwPos);
                     ImKunai.EndListBoxCustom();
                 }
                 ImGui.End();
-
-
             }
-
         }
 
         private void DrawQuadList(Vector2 in_CursorPos2, Vector2 in_WindowPos, Vector2 in_ViewSize, Vector2 in_ViewPos)
@@ -90,12 +96,13 @@ namespace Kunai.Window
                 return SameSide(in_P1, in_P2, in_P3, in_P) && SameSide(in_P2, in_P3, in_P4, in_P) &&
                        SameSide(in_P3, in_P4, in_P1, in_P) && SameSide(in_P4, in_P1, in_P2, in_P);
             }
+            var renderer = KunaiProject.Instance;
             var cursorpos = ImGui.GetItemRectMin();
             Vector2 screenPos = in_CursorPos2 + in_ViewPos - new Vector2(3, 2);
 
             List<Cast> possibleSelections = new List<Cast>();
             //ImGui.GetWindowDrawList().AddCircle(screenPos, 10, ImGui.ColorConvertFloat4ToU32(new Vector4(1, 1, 1, 1)));
-            foreach (var quad in Renderer.Renderer.Quads)
+            foreach (var quad in renderer.Renderer.Quads)
             {
                 var qTopLeft = quad.TopLeft.Position;
                 var qBotRight = quad.BottomRight.Position;
@@ -137,7 +144,7 @@ namespace Kunai.Window
                     }
 
                 }
-                if (Renderer.Config.ShowQuads)
+                if (renderer.Config.ShowQuads)
                     ImGui.GetWindowDrawList().AddQuad(pTopLeft, pTopRight, pBotRight, pBotLeft, ImGui.ColorConvertFloat4ToU32(new Vector4(1, 0, 0, 1)));
                 
             }

@@ -1,4 +1,6 @@
-﻿using Hexa.NET.ImGui;
+﻿using HekonrayBase;
+using HekonrayBase.Base;
+using Hexa.NET.ImGui;
 using IconFonts;
 using Kunai.ShurikenRenderer;
 using SharpNeedle.Framework.Ninja.Csd;
@@ -9,7 +11,7 @@ using static Kunai.Window.ImKunai;
 
 namespace Kunai.Window
 {
-    public class HierarchyWindow : WindowBase
+    public class HierarchyWindow : Singleton<HierarchyWindow>, IWindow
     {
         private static TempSearchBox ms_SearchBox = new TempSearchBox();
         private static void RecursiveCastWidget(SVisibilityData.SScene in_Scene, Cast in_Cast)
@@ -161,8 +163,15 @@ namespace Kunai.Window
             //}
 
         }
-        public override void Update(KunaiProject in_Proj)
+
+        public void OnReset(IProgramProject in_Renderer)
         {
+            throw new NotImplementedException();
+        }
+
+        public void Render(IProgramProject in_Renderer)
+        {
+            var renderer = (KunaiProject)in_Renderer;
             ImGui.SetNextWindowPos(new System.Numerics.Vector2(0, MenuBarWindow.MenuBarHeight), ImGuiCond.Always);
             ImGui.SetNextWindowSize(new System.Numerics.Vector2(ImGui.GetWindowViewport().Size.X / 4.5f, ImGui.GetWindowViewport().Size.Y), ImGuiCond.Always);
             if (ImGui.Begin("Hierarchy", MainWindow.WindowFlags))
@@ -174,15 +183,15 @@ namespace Kunai.Window
                 //if (ImGui.BeginListBox("##hierarchylist", new System.Numerics.Vector2(-1, -1)))
                 //{
 
-                    if (in_Proj.WorkProjectCsd != null)
+                if (renderer.WorkProjectCsd != null)
+                {
+                    foreach (var f in renderer.VisibilityData.Nodes)
                     {
-                        foreach (var f in MainWindow.Renderer.VisibilityData.Nodes)
-                        {
-                            DrawSceneNode(f);
-                        }
-
+                        DrawSceneNode(f);
                     }
-                    //ImGui.EndListBox();
+
+                }
+                //ImGui.EndListBox();
                 //}
             }
             ImGui.End();

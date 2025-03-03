@@ -1,4 +1,6 @@
-﻿using Hexa.NET.ImGui;
+﻿using HekonrayBase;
+using HekonrayBase.Base;
+using Hexa.NET.ImGui;
 using IconFonts;
 using Kunai.ShurikenRenderer;
 using Shuriken.Rendering;
@@ -7,7 +9,7 @@ using System.Numerics;
 
 namespace Kunai.Window
 {
-    public class CropEditor : WindowBase
+    public class CropEditor : Singleton<CropEditor>, IWindow
     {
         public static float ZoomFactor = 1;
         public static bool Enabled = false;
@@ -28,11 +30,18 @@ namespace Kunai.Window
                           in_ViewportPos + (new Vector2(spr.OriginalRight, spr.OriginalBottom) * in_ImageSize),
                           colorConv);
         }
-        public override void Update(KunaiProject in_Renderer)
+
+        public void OnReset(IProgramProject in_Renderer)
         {
-            if (in_Renderer.WorkProjectCsd == null)
+            throw new NotImplementedException();
+        }
+
+        public void Render(IProgramProject in_Renderer)
+        {
+            var renderer = (KunaiProject)in_Renderer;
+            if (renderer.WorkProjectCsd == null)
                 return;
-            if(Enabled)
+            if (Enabled)
             {
                 if (ImGui.Begin("Crop", ImGuiWindowFlags.MenuBar))
                 {
@@ -51,7 +60,7 @@ namespace Kunai.Window
                     if (ImGui.BeginListBox("##texturelist", new System.Numerics.Vector2(size1, -1)))
                     {
                         int idx = 0;
-                        var result = ImKunai.TextureSelector(in_Renderer, true);
+                        var result = ImKunai.TextureSelector(renderer, true);
                         if (result.TextureIndex != -2)
                             m_SelectedIndex = result.TextureIndex;
                         if (result.SpriteIndex != -2)

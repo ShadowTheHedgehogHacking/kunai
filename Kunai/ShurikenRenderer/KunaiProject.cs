@@ -3,6 +3,8 @@ using BCnEncoder.Encoder;
 using BCnEncoder.ImageSharp;
 using BCnEncoder.Shared;
 using ColoursXncpGen;
+using HekonrayBase;
+using HekonrayBase.Base;
 using Kunai.Window;
 using libWiiSharp;
 using OpenTK.Graphics.OpenGL;
@@ -31,9 +33,8 @@ using PixelFormat = OpenTK.Graphics.OpenGL.PixelFormat;
 namespace Kunai.ShurikenRenderer
 {
 
-    public class KunaiProject
+    public class KunaiProject : Singleton<KunaiProject>, IProgramProject
     {
-        public static KunaiProject Instance;
         public struct SViewportData
         {
             public int CsdRenderTextureHandle;
@@ -84,18 +85,20 @@ namespace Kunai.ShurikenRenderer
                 SettingsManager.SetFloat("ViewColor_Z", value.Z);
             }
         }
-        public KunaiProject(GameWindow in_Window2, Vector2 in_ViewportSize, Vector2 in_ClientSize)
+
+        public KunaiProject()
         {
-            if (Instance != null)
-                return;
-            ViewportSize = in_ViewportSize;
+            ViewportSize = new Vector2(1280, 720);
             Renderer = new Renderer((int)ViewportSize.X, (int)ViewportSize.Y);
             Renderer.SetShader(Renderer.ShaderDictionary["basic"]);
-            _window = in_Window2;
             _viewportData = new SViewportData();
             Config = new SProjectConfig();
+        }
+        public void SetWindowParameters(GameWindow in_Window2, Vector2 in_ClientSize)
+        {
             ScreenSize = in_ClientSize;
-            Instance = this;
+            _window = in_Window2;
+
         }
 
         public void ShowMessageBoxCross(string in_Title, string in_Message, bool in_IsWarning)

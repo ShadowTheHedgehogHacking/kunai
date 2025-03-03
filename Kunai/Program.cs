@@ -1,4 +1,7 @@
-﻿using System.IO;
+﻿using HekonrayBase;
+using OpenTK.Mathematics;
+using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace Kunai
@@ -11,7 +14,9 @@ namespace Kunai
 
         private static void Main(string[] in_Args)
         {
-            MainWindow mainWindow = new MainWindow();
+            Application app = new Application();
+            app.Start(in_Args);
+            MainWindow mainWindow = new MainWindow(new Version(3,3), new Vector2(1600, 900));
             Arguments = in_Args;
 
             Task.Run(UpdateChecker.CheckUpdate);

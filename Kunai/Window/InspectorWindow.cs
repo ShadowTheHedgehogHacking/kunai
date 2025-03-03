@@ -350,7 +350,7 @@ namespace Kunai.Window
                     {
                         if (ImGui.BeginListBox("##listpatternsselection", new Vector2(-1, 250)))
                         {
-                            var result = ImKunai.TextureSelector(Renderer);
+                            var result = ImKunai.TextureSelector(Renderer, false);
                             if (result.IsCropSelected())
                             {
                                 //Avoid a crash if a user decides to not change this

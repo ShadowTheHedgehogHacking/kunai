@@ -1,8 +1,8 @@
 ﻿using HekonrayBase;
 using HekonrayBase.Base;
+using HekonrayBase.Settings;
 using Hexa.NET.ImGui;
 using IconFonts;
-using Kunai.Settings;
 using Kunai.ShurikenRenderer;
 using Shuriken.Rendering;
 using System;

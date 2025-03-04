@@ -43,14 +43,21 @@ namespace Kunai.Window
                 return;
             if (Enabled)
             {
-                if (ImGui.Begin("Crop", ImGuiWindowFlags.MenuBar))
+                if (ImGui.Begin("Crop"))
                 {
                     if (ImGui.Button("Add Texture"))
                     {
                         var res = NativeFileDialogSharp.Dialog.FileOpen("dds");
                         if (res.IsOk)
                         {
-                            SpriteHelper.AddTexture(new Shuriken.Rendering.Texture(res.Path));
+                            if (!SpriteHelper.DoesTextureExist(res.Path))
+                            {
+                                SpriteHelper.AddTexture(new Texture(res.Path));
+                            }
+                            else
+                            {
+                                Application.ShowMessageBoxCross("Error", "A texture with this exact name already exists!\nPlease rename the target texture and try again.");
+                            }
                         }
                     }
                     var size1 = ImGui.GetWindowSize().X / 4;
@@ -70,7 +77,7 @@ namespace Kunai.Window
                     ImGui.SameLine();
                     Vector2 availableSize = new Vector2(ImGui.GetWindowSize().X / 2, ImGui.GetContentRegionAvail().Y);
                     Vector2 viewportPos = ImGui.GetWindowPos() + ImGui.GetCursorPos();
-                    var textureSize = SpriteHelper.TextureList.Textures[m_SelectedIndex].Size;
+                    var textureSize = SpriteHelper.Textures[m_SelectedIndex].Size;
 
                     Vector2 imageSize;
                     if (textureSize.X > textureSize.Y)
@@ -83,27 +90,27 @@ namespace Kunai.Window
                     ImGui.AddRectFilled(drawlist, viewportPos, viewportPos + imageSize, ImGui.ColorConvertFloat4ToU32(new Vector4(70 / 255.0f, 70 / 255.0f, 70 / 255.0f, 255)));
 
                     //Actual texture image
-                    if (SpriteHelper.TextureList.Textures[m_SelectedIndex].GlTex != null)
-                        ImGui.Image(new ImTextureID(SpriteHelper.TextureList.Textures[m_SelectedIndex].GlTex.Id), imageSize, new System.Numerics.Vector2(0, 1), new System.Numerics.Vector2(1, 0));
+                    if (SpriteHelper.Textures[m_SelectedIndex].GlTex != null)
+                        ImGui.Image(new ImTextureID(SpriteHelper.Textures[m_SelectedIndex].GlTex.Id), imageSize, new System.Numerics.Vector2(0, 1), new System.Numerics.Vector2(1, 0));
 
                     //Show selection boxes for all crops
                     if (m_ShowAllCoords)
                     {
-                        foreach (var t in SpriteHelper.TextureList.Textures[m_SelectedIndex].Sprites)
+                        foreach (var t in SpriteHelper.Textures[m_SelectedIndex].Sprites)
                             DrawCropBox(drawlist, viewportPos, imageSize, SpriteHelper.Sprites[t], new Vector4(150, 0, 0, 150), t - 1);
 
-                        var spr = SpriteHelper.Sprites[SpriteHelper.TextureList.Textures[m_SelectedIndex].Sprites[m_SelectedSpriteIndex]];
+                        var spr = SpriteHelper.Sprites[SpriteHelper.Textures[m_SelectedIndex].Sprites[m_SelectedSpriteIndex]];
                         DrawCropBox(drawlist, viewportPos, imageSize, spr, new Vector4(200, 200, 200, 200), m_SelectedSpriteIndex);
                     }
                     else
                     {
-                        var spr = SpriteHelper.Sprites[SpriteHelper.TextureList.Textures[m_SelectedIndex].Sprites[m_SelectedSpriteIndex]];
+                        var spr = SpriteHelper.Sprites[SpriteHelper.Textures[m_SelectedIndex].Sprites[m_SelectedSpriteIndex]];
                         DrawCropBox(drawlist, viewportPos, imageSize, spr, new Vector4(200, 200, 200, 200), m_SelectedSpriteIndex);
                     }
                     ImGui.SameLine();
                     if (ImGui.BeginListBox("##texturelist2", new System.Numerics.Vector2(size1, -1)))
                     {
-                        var texture = SpriteHelper.TextureList.Textures[m_SelectedIndex];
+                        var texture = SpriteHelper.Textures[m_SelectedIndex];
                         var sprite = SpriteHelper.Sprites[texture.Sprites[m_SelectedSpriteIndex]];
                         Vector2 spriteStart = sprite.Start;
                         Vector2 spriteSize = sprite.Dimensions;

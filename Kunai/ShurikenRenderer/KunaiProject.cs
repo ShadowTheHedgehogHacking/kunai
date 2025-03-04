@@ -125,7 +125,6 @@ namespace Kunai.ShurikenRenderer
                 bool isTlsFilePresent = File.Exists(Path.ChangeExtension(in_Path, "tls"));
                 bool isDxlFilePresent = File.Exists(Path.ChangeExtension(in_Path, "dxl"));
 
-                SpriteHelper.TextureList = new TextureList("textures");
                 if (isTlsFilePresent || isDxlFilePresent)
                 {
                     // Colors and Colors Ultimate have a unique situation where
@@ -150,13 +149,9 @@ namespace Kunai.ShurikenRenderer
                     {
                         string texPath = Path.Combine(@root, texture.Name);
 
-                        if (File.Exists(texPath))
+                        SpriteHelper.Textures.Add(new Texture(texPath));
+                        if (!File.Exists(texPath))
                         {
-                            SpriteHelper.TextureList.Textures.Add(new Texture(texPath));
-                        }
-                        else
-                        {
-                            SpriteHelper.TextureList.Textures.Add(new Texture(""));
                             missingTextures.Add(texture.Name);
                         }
                     }

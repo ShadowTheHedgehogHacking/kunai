@@ -91,7 +91,6 @@ namespace Shuriken.Rendering
     }
     public class Sprite
     {
-        public readonly int Id;
         public Vector2 Start { get; set; }
         public Vector2 Dimensions { get; set; }
         public Texture Texture { get; set; }
@@ -194,9 +193,8 @@ namespace Shuriken.Rendering
             Start = new Vector2(Math.Clamp(Start.X, 0, in_TextureSize.X), Math.Clamp(Start.Y, 0, in_TextureSize.Y));
             Dimensions = new Vector2(MathF.Round((OriginalRight - OriginalLeft) * in_TextureSize.X), MathF.Round((OriginalBottom - OriginalTop) * in_TextureSize.Y));
         }
-        public Sprite(int in_Id, Texture in_Tex, float in_Top = 0.0f, float in_Left = 0.0f, float in_Bottom = 1.0f, float in_Right = 1.0f)
+        public Sprite(Texture in_Tex, float in_Top = 0.0f, float in_Left = 0.0f, float in_Bottom = 1.0f, float in_Right = 1.0f)
         {
-            Id = in_Id;
             Texture = in_Tex;
 
             CreateCrop();

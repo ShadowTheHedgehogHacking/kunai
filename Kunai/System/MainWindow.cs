@@ -16,7 +16,6 @@ namespace Kunai
     public class MainWindow : HekonrayWindow
     {
         private IntPtr m_IniName;
-
         private KunaiProject KunaiProject => (KunaiProject)Project;
         public static ImGuiWindowFlags WindowFlags = ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse;
 
@@ -44,6 +43,7 @@ namespace Kunai
                 ImGuiIOPtr io = ImGui.GetIO();
                 io.IniFilename = (byte*)m_IniName;
             }
+            Windows.Add(ModalHandler.Instance);
             Windows.Add(new Window.MenuBarWindow());
             Windows.Add(new AnimationsWindow());
             Windows.Add(new HierarchyWindow());

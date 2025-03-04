@@ -28,7 +28,7 @@ namespace Kunai.Window
         }
         public int GetSpriteIndex()
         {
-            return SpriteHelper.TextureList.Textures[TextureIndex].Sprites[SpriteIndex] - 1;
+            return SpriteHelper.Textures[TextureIndex].Sprites[SpriteIndex] - 1;
         }
     }
     public static class ImKunai
@@ -67,11 +67,11 @@ namespace Kunai.Window
                     {
                         if (ImGui.Button("+"))
                         {
-                            SpriteHelper.TextureList.Textures[idx].Sprites.Add(SpriteHelper.CreateSprite(SpriteHelper.TextureList.Textures[idx]));
+                            SpriteHelper.Textures[idx].Sprites.Add(SpriteHelper.CreateSprite(SpriteHelper.Textures[idx]));
                         }
                     }
                     int idx2 = 0;
-                    foreach (var s in SpriteHelper.TextureList.Textures[idx].Sprites)
+                    foreach (var s in SpriteHelper.Textures[idx].Sprites)
                     {
                         Shuriken.Rendering.Sprite spr = SpriteHelper.Sprites[s];
 

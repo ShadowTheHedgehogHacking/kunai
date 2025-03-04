@@ -1,10 +1,8 @@
 ﻿using Hexa.NET.ImGui;
 using IconFonts;
 using Kunai.ShurikenRenderer;
-using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
 using System.Numerics;
-using OpenTK.Input;
 using SharpNeedle.Framework.Ninja.Csd;
 using System.Collections.Generic;
 using System.Linq;
@@ -58,8 +56,6 @@ namespace Kunai.Window
                 if (renderer.WorkProjectCsd == null)
                     ImGui.Text("Open a XNCP, YNCP, GNCP or SNCP file to edit it.");
 
-                bool open = true;
-
                 if (ImKunai.BeginListBoxCustom("##list", new Vector2(-1, -1)))
                 {
                     var cursorpos2 = ImGui.GetCursorScreenPos();
@@ -101,9 +97,10 @@ namespace Kunai.Window
             Vector2 screenPos = in_CursorPos2 + in_ViewPos - new Vector2(3, 2);
 
             List<Cast> possibleSelections = new List<Cast>();
+
             //ImGui.GetWindowDrawList().AddCircle(screenPos, 10, ImGui.ColorConvertFloat4ToU32(new Vector4(1, 1, 1, 1)));
             foreach (var quad in renderer.Renderer.Quads)
-            {
+            {                
                 var qTopLeft = quad.TopLeft.Position;
                 var qBotRight = quad.BottomRight.Position;
                 var qTopRight = quad.TopRight.Position;
@@ -118,7 +115,7 @@ namespace Kunai.Window
                 var cast = quad.OriginalData.OriginCast;
                 //Vector2 pcenter = screenPos + new Vector2(quadCenter.X * vwSize.X, quadCenter.Y * vwSize.Y);
                 //ImGui.GetWindowDrawList().AddCircle(pcenter, 10, ImGui.ColorConvertFloat4ToU32(new Vector4(1, 1, 1, 1)));
-
+                
                 //Check if the mouse is inside the quad
                 if (ImGui.IsWindowHovered(ImGuiHoveredFlags.ChildWindows))
                 {

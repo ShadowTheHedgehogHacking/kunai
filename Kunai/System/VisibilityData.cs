@@ -142,8 +142,7 @@ namespace Kunai
 
         public SVisibilityData(CsdProject in_Proj)
         {
-            Nodes.Add(new SNode(new KeyValuePair<string, SceneNode>("Root", in_Proj.Project.Root)));
-
+            Nodes.Add(new SNode(new KeyValuePair<string, SceneNode>(in_Proj.Name, in_Proj.Project.Root)));
         }
         private SNode RecursiveGetNode(SNode in_Node, SceneNode in_SceneNode)
         {

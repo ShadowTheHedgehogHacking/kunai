@@ -1,6 +1,8 @@
 ﻿using SharpNeedle.Framework.Ninja.Csd;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Numerics;
 using Sprite = Shuriken.Rendering.Sprite;
 using Texture = Shuriken.Rendering.Texture;
@@ -11,27 +13,6 @@ namespace Kunai.ShurikenRenderer
         public uint TextureIndex;
         public Vector2 TopLeft;
         public Vector2 BottomRight;
-    }
-    public class TextureList
-    {
-        private string _name;
-        public string Name
-        {
-            get { return _name; }
-            set
-            {
-                if (!string.IsNullOrEmpty(value))
-                    _name = value;
-            }
-        }
-
-        public List<Texture> Textures { get; set; } = new List<Texture>();
-
-        public TextureList(string in_ListName)
-        {
-            _name = in_ListName;
-            Textures = new List<Texture>();
-        }
     }
     public class UiFont
     {
@@ -92,7 +73,7 @@ namespace Kunai.ShurikenRenderer
         public static Dictionary<int, Shuriken.Rendering.Sprite> Sprites { get; set; } = new Dictionary<int, Sprite>();
         private static int ms_NextSpriteId = 1;
         private static List<Crop> ms_NcpSubimages = new List<Crop>();
-        public static TextureList TextureList;
+        public static List<Texture> Textures { get; set; } = new List<Texture>();
         public static List<Vector2> TextureSizesOriginal;
 
         public static void AddTexture(Texture in_Texture)
@@ -100,25 +81,25 @@ namespace Kunai.ShurikenRenderer
             var texture2 = new TextureMirage(in_Texture.Name + ".dds");
             KunaiProject.Instance.WorkProjectCsd.Textures.Add(texture2);
             in_Texture.Sprites.Add(CreateSprite(in_Texture));
-            TextureList.Textures.Add(in_Texture);
-            TextureSizesOriginal.Add(in_Texture.Size);
+            Textures.Add(in_Texture);
+            TextureSizesOriginal.Add(in_Texture.Size / new Vector2(1280, 720));
         }
         public static void BuildCropList(ref List<SharpNeedle.Framework.Ninja.Csd.Sprite> in_SubImages, ref List<Vector2> in_TextureSizes)
         {
             in_SubImages = new();
             in_TextureSizes = TextureSizesOriginal;
-            if(in_TextureSizes.Count < TextureList.Textures.Count)
+            if(in_TextureSizes.Count < Textures.Count)
             {
-                for (int i = 0; i < TextureList.Textures.Count - in_TextureSizes.Count; i++)
+                for (int i = 0; i < Textures.Count - in_TextureSizes.Count; i++)
                 {
-                    in_TextureSizes.Add(TextureList.Textures[i].Size);
+                    in_TextureSizes.Add(Textures[i].Size);
                 }
             }
-            TextureList texList = TextureList;
             foreach (var entry in Sprites)
             {
+                //TODO MAKE MISSING TEXTURES NOT SAVE INVALID STUFF
                 Shuriken.Rendering.Sprite sprite = entry.Value;
-                int textureIndex = texList.Textures.IndexOf(sprite.Texture);
+                int textureIndex = Textures.IndexOf(sprite.Texture);
                 if(sprite.Crop != null)
                 {
                     SharpNeedle.Framework.Ninja.Csd.Sprite subImage = new();
@@ -129,7 +110,7 @@ namespace Kunai.ShurikenRenderer
                 }
                 else
                 {
-                    var size = in_TextureSizes[textureIndex] * new Vector2(1280, 720);
+                    var size = in_TextureSizes[textureIndex];
                     sprite.GenerateCoordinates(size);
                     SharpNeedle.Framework.Ninja.Csd.Sprite subImage = new();
                     subImage.TextureIndex = textureIndex;
@@ -151,7 +132,7 @@ namespace Kunai.ShurikenRenderer
         }
         public static int CreateSprite(Texture in_Tex, float in_Top = 0.0f, float in_Left = 0.0f, float in_Bottom = 1.0f, float in_Right = 1.0f)
         {
-            Sprite spr = new Sprite(ms_NextSpriteId, in_Tex, in_Top, in_Left, in_Bottom, in_Right);
+            Sprite spr = new Sprite(in_Tex, in_Top, in_Left, in_Bottom, in_Right);
             return AppendSprite(spr);
         }
 
@@ -173,10 +154,8 @@ namespace Kunai.ShurikenRenderer
         public static void LoadTextures(CsdProject in_CsdProject)
         {
             RecurFindFirstTextureListFromFile(in_CsdProject.Project.Root);
-            ms_NcpSubimages.Clear();
-            Sprites.Clear();
             GetSubImages(in_CsdProject.Project.Root);
-            LoadSubimages(TextureList, ms_NcpSubimages);
+            LoadSubimages(ms_NcpSubimages);
         }
         public static void GetSubImages(SharpNeedle.Framework.Ninja.Csd.SceneNode in_Node)
         {
@@ -204,33 +183,46 @@ namespace Kunai.ShurikenRenderer
                 GetSubImages(child.Value);
             }
         }
-        private static void LoadSubimages(Kunai.ShurikenRenderer.TextureList in_TexList, List<Crop> in_Subimages)
+        private static void LoadSubimages(List<Crop> in_Subimages)
         {
             foreach (var image in in_Subimages)
             {
                 int textureIndex = (int)image.TextureIndex;
-                if (textureIndex >= 0 && textureIndex < in_TexList.Textures.Count)
+                if (textureIndex >= 0 && textureIndex < Textures.Count)
                 {
-                    int id = CreateSprite(in_TexList.Textures[textureIndex], image.TopLeft.Y, image.TopLeft.X,
+                    int id = CreateSprite(Textures[textureIndex], image.TopLeft.Y, image.TopLeft.X,
                         image.BottomRight.Y, image.BottomRight.X);
 
-                    in_TexList.Textures[textureIndex].Sprites.Add(id);
+                    Textures[textureIndex].Sprites.Add(id);
                 }
             }
         }
 
         internal static void ClearTextures()
         {
-            if (TextureList == null)
-                return;
-            foreach(var f in TextureList.Textures)
+            if (Textures == null)
             {
-                f.Destroy();
+                Textures = new List<Texture>();
             }
-            TextureList.Textures.Clear();
+            foreach(var tex in Textures)
+            {
+                tex.Destroy();
+            }
+            Textures.Clear();
             ms_NcpSubimages.Clear();
             Sprites.Clear();
             ms_NextSpriteId = 1;
+        }
+
+        internal static bool DoesTextureExist(string in_Path)
+        {
+            string filename = Path.GetFileNameWithoutExtension(in_Path);
+            foreach (var t in Textures)
+            {
+                if (t.Name == filename)
+                    return true;
+            }
+            return false;
         }
     }
 }

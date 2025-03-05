@@ -1,4 +1,5 @@
-﻿using Hexa.NET.ImGui;
+﻿using HekonrayBase;
+using Hexa.NET.ImGui;
 using Hexa.NET.Utilities.Text;
 using IconFonts;
 using Kunai.ShurikenRenderer;
@@ -14,7 +15,7 @@ namespace Kunai.Window
 {
     public struct STextureSelectorResult
     {
-        public int TextureIndex; 
+        public int TextureIndex;
         public int SpriteIndex;
         public STextureSelectorResult(int in_TextureIndex, int in_SpriteIndex)
         {
@@ -27,7 +28,7 @@ namespace Kunai.Window
         }
         public int GetSpriteIndex()
         {
-            return SpriteHelper.TextureList.Textures[TextureIndex].Sprites[SpriteIndex] - 1;
+            return SpriteHelper.Textures[TextureIndex].Sprites[SpriteIndex] - 1;
         }
     }
     public static class ImKunai
@@ -53,7 +54,7 @@ namespace Kunai.Window
             ImGui.Text(in_Text);
             ImGui.PopFont();
         }
-        public static STextureSelectorResult TextureSelector(KunaiProject in_Renderer)
+        public static STextureSelectorResult TextureSelector(KunaiProject in_Renderer, bool in_EditMode)
         {
             int selectedIndex = -2;
             int selectedSpriteIndex = -2;
@@ -62,14 +63,21 @@ namespace Kunai.Window
             {
                 if (ImGui.TreeNode(t.Name))
                 {
+                    if(in_EditMode)
+                    {
+                        if (ImGui.Button("+"))
+                        {
+                            SpriteHelper.Textures[idx].Sprites.Add(SpriteHelper.CreateSprite(SpriteHelper.Textures[idx]));
+                        }
+                    }
                     int idx2 = 0;
-                    foreach (var s in SpriteHelper.TextureList.Textures[idx].Sprites)
+                    foreach (var s in SpriteHelper.Textures[idx].Sprites)
                     {
                         Shuriken.Rendering.Sprite spr = SpriteHelper.Sprites[s];
 
                         if (spr != null)
                         {
-                            if(spr.Texture.GlTex == null)
+                            if (spr.Texture.GlTex == null)
                             {
                                 ImKunai.EmptyTextureButton(idx2);
                             }
@@ -148,7 +156,7 @@ namespace Kunai.Window
                     in_RightClickAction.Invoke();
                     ImGui.EndPopup();
                 }
-            }                
+            }
             //Visibility checkbox
             ImGui.SameLine(0, 1 * ImGui.GetStyle().ItemSpacing.X);
             ImGui.Checkbox($"##{idName}togg", ref in_Visibile);
@@ -258,6 +266,22 @@ namespace Kunai.Window
         {
             ImGui.EndGroup();
             ImGui.EndChild();
+        }
+
+        public static void CenteredZoomableImage(string in_Label, Vector2 in_Size, float in_WindowHeight, float in_ZoomFactor, ImTextureID in_Texture)
+        {
+            if (ImKunai.BeginListBoxCustom(in_Label, new Vector2(-1, -1)))
+            {
+                var vwSize = new Vector2(ImGui.GetWindowWidth(), in_WindowHeight) * in_ZoomFactor;
+                var cursorpos2 = ImGui.GetCursorScreenPos();
+                var wndSize = ImGui.GetWindowSize();
+                var vwPos = (wndSize - vwSize) * 0.5f;
+                ImGui.SetCursorPos(vwPos);
+                ImGui.Image(in_Texture
+                    , vwSize,
+                    new Vector2(0, 1), new Vector2(1, 0));
+                ImKunai.EndListBoxCustom();
+            }
         }
     }
 }

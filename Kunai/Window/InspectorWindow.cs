@@ -8,6 +8,8 @@ using Vector2 = System.Numerics.Vector2;
 using System.Collections.Generic;
 using System.Numerics;
 using System;
+using HekonrayBase.Base;
+using HekonrayBase;
 
 namespace Kunai.Window
 {
@@ -24,7 +26,7 @@ namespace Kunai.Window
         BottomCenter,
         BottomRight
     }
-    public class InspectorWindow : WindowBase
+    public class InspectorWindow : Singleton<InspectorWindow>, IWindow
     {
         public enum ESelectionType
         {
@@ -350,7 +352,7 @@ namespace Kunai.Window
                     {
                         if (ImGui.BeginListBox("##listpatternsselection", new Vector2(-1, 250)))
                         {
-                            var result = ImKunai.TextureSelector(Renderer);
+                            var result = ImKunai.TextureSelector(KunaiProject.Instance, false);
                             if (result.IsCropSelected())
                             {
                                 //Avoid a crash if a user decides to not change this
@@ -488,36 +490,6 @@ namespace Kunai.Window
             return changed;
         }
 
-        public override void Update(KunaiProject in_Proj)
-        {
-            ImGui.SetNextWindowPos(new System.Numerics.Vector2((ImGui.GetWindowViewport().Size.X / 4.5f) * 3.5f, MenuBarWindow.MenuBarHeight), ImGuiCond.Always);
-            ImGui.SetNextWindowSize(new System.Numerics.Vector2(ImGui.GetWindowViewport().Size.X / 4.5f, ImGui.GetWindowViewport().Size.Y - MenuBarWindow.MenuBarHeight), ImGuiCond.Always);
-            if (ImGui.Begin("Inspector", MainWindow.WindowFlags))
-            {
-                if (in_Proj.WorkProjectCsd != null)
-                {
-                    ms_FontNames.Clear();
-                    foreach (KeyValuePair<string, Font> font in in_Proj.WorkProjectCsd.Project.Fonts)
-                    {
-                        ms_FontNames.Add(font.Key);
-                    }
-                    switch (SelectionType)
-                    {
-                        case ESelectionType.Scene:
-                            {
-                                DrawSceneInspector();
-                                break;
-                            }
-                        case ESelectionType.Cast:
-                            {
-                                DrawCastInspector();
-                                break;
-                            }
-                    }
-                }
-                ImGui.End();
-            }
-        }
         internal static void Reset()
         {
             KunaiProject.Instance.SelectionData.SelectedCast = null;
@@ -569,11 +541,13 @@ namespace Kunai.Window
         }
         EAlignmentPivot GetPivot(Cast in_Cast)
         {
+            var renderer = KunaiProject.Instance;
+
             var size = new Vector2(in_Cast.Width, in_Cast.Height) * 2;
-            var topLeft = in_Cast.TopLeft / (size / Renderer.ViewportSize);
-            var bottomRight = in_Cast.BottomRight / (size / Renderer.ViewportSize);
-            var topRight = in_Cast.TopRight / (size / Renderer.ViewportSize);
-            var bottomLeft = in_Cast.BottomLeft / (size / Renderer.ViewportSize);
+            var topLeft = in_Cast.TopLeft / (size / renderer.ViewportSize);
+            var bottomRight = in_Cast.BottomRight / (size / renderer.ViewportSize);
+            var topRight = in_Cast.TopRight / (size / renderer.ViewportSize);
+            var bottomLeft = in_Cast.BottomLeft / (size / renderer.ViewportSize);
             EAlignmentPivot returnValue = EAlignmentPivot.None;
             if (topLeft == new Vector2(-1, -1) && topRight == new Vector2(0, -1) && bottomLeft == new Vector2(-1, 0) && bottomRight == new Vector2(0, 0))
                 returnValue = EAlignmentPivot.TopLeft;
@@ -609,7 +583,7 @@ namespace Kunai.Window
 
             var diff1 = in_Cast.Position - quadCenter;
             Vector2 topLeft = new Vector2(0, 0), topRight = new Vector2(0, 0), bottomLeft = new Vector2(0, 0), bottomRight = new Vector2(0, 0);
-            Vector2 size = (new Vector2(in_Cast.Width, in_Cast.Height) * 2) / Renderer.ViewportSize;
+            Vector2 size = (new Vector2(in_Cast.Width, in_Cast.Height) * 2) / KunaiProject.Instance.ViewportSize;
             switch (InvertPivot(in_AlignmentPosition))
             {
                 case EAlignmentPivot.TopLeft:
@@ -697,5 +671,41 @@ namespace Kunai.Window
                    (Math.Abs(quadCenter.Y - in_AlignmentPosition.Y) < tolerance);
         }
 
+        public void OnReset(IProgramProject in_Renderer)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Render(IProgramProject in_Renderer)
+        {
+            var renderer = (KunaiProject)in_Renderer;
+            ImGui.SetNextWindowPos(new System.Numerics.Vector2((ImGui.GetWindowViewport().Size.X / 4.5f) * 3.5f, MenuBarWindow.MenuBarHeight), ImGuiCond.Always);
+            ImGui.SetNextWindowSize(new System.Numerics.Vector2(ImGui.GetWindowViewport().Size.X / 4.5f, ImGui.GetWindowViewport().Size.Y - MenuBarWindow.MenuBarHeight), ImGuiCond.Always);
+            if (ImGui.Begin("Inspector", MainWindow.WindowFlags))
+            {
+                if (renderer.WorkProjectCsd != null)
+                {
+                    ms_FontNames.Clear();
+                    foreach (KeyValuePair<string, Font> font in renderer.WorkProjectCsd.Project.Fonts)
+                    {
+                        ms_FontNames.Add(font.Key);
+                    }
+                    switch (SelectionType)
+                    {
+                        case ESelectionType.Scene:
+                            {
+                                DrawSceneInspector();
+                                break;
+                            }
+                        case ESelectionType.Cast:
+                            {
+                                DrawCastInspector();
+                                break;
+                            }
+                    }
+                }
+                ImGui.End();
+            }
+        }
     }
 }

@@ -22,6 +22,7 @@ namespace Shuriken.Rendering
         public int Height { get; private set; }
         public Vector2 Size { get { return new Vector2(Width, Height); } set { Width = (int)value.X; Height = (int)value.Y; } }
 
+        public bool IsLoaded => GlTex != null;
         public BitmapSource ImageSource { get; private set; }
         internal GlTexture GlTex { get; private set; }
         public List<int> Sprites { get; set; }
@@ -147,14 +148,17 @@ namespace Shuriken.Rendering
             }
             Name = Path.GetFileNameWithoutExtension(in_Filename);
             
-            if (Path.GetExtension(in_Filename) == ".gvr")
+            if(File.Exists(in_Filename))
             {
-                GvrFile gVr = new GvrFile();
-                gVr.LoadFromGvrFile(in_Filename.ToLower());
-                CreateTextureGvr(gVr);
+                if (Path.GetExtension(in_Filename) == ".gvr")
+                {
+                    GvrFile gVr = new GvrFile();
+                    gVr.LoadFromGvrFile(in_Filename.ToLower());
+                    CreateTextureGvr(gVr);
+                }
+                else
+                    CreateTexture(in_Filename);
             }
-            else
-                CreateTexture(in_Filename);
         }
 
         public Texture(string in_Name, byte[] in_Bytes) : this()

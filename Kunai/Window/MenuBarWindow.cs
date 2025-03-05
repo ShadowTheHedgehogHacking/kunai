@@ -1,4 +1,6 @@
-﻿using Hexa.NET.ImGui;
+﻿using HekonrayBase;
+using HekonrayBase.Base;
+using Hexa.NET.ImGui;
 using Kunai.ShurikenRenderer;
 using System;
 using System.Diagnostics;
@@ -7,7 +9,7 @@ using System.Runtime.InteropServices;
 
 namespace Kunai.Window
 {
-    public class MenuBarWindow : WindowBase
+    public class MenuBarWindow : Singleton<MenuBarWindow>, IWindow
     {
         public static float MenuBarHeight = 32;
         private static readonly string FiltersOpen = "xncp,yncp,gncp,sncp";
@@ -57,8 +59,14 @@ namespace Kunai.Window
                 }
             }
         }
-        public override void Update(KunaiProject in_Renderer)
+        public void OnReset(IProgramProject in_Renderer)
         {
+            throw new NotImplementedException();
+        }
+
+        public void Render(IProgramProject in_Renderer)
+        {
+            var renderer = (KunaiProject)in_Renderer;
             if (ImGui.BeginMainMenuBar())
             {
                 MenuBarWindow.MenuBarHeight = ImGui.GetWindowSize().Y;
@@ -69,29 +77,29 @@ namespace Kunai.Window
                         var dialog = NativeFileDialogSharp.Dialog.FileOpen(FiltersOpen);
                         if (dialog.IsOk)
                         {
-                            in_Renderer.LoadFile(dialog.Path);
+                            renderer.LoadFile(dialog.Path);
                         }
                     }
                     if (ImGui.MenuItem("Reload File"))
                     {
-                        in_Renderer.WorkProjectCsd = null;
-                        in_Renderer.LoadFile(in_Renderer.Config.WorkFilePath);
+                        renderer.WorkProjectCsd = null;
+                        renderer.LoadFile(renderer.Config.WorkFilePath);
                     }
                     if (ImGui.BeginMenu("Save"))
                     {
                         if (ImGui.MenuItem("Csd Project...", "Ctrl + S"))
                         {
-                            in_Renderer.SaveCurrentFile(null);
+                            renderer.SaveCurrentFile(null);
                         }
                         ImGui.BeginDisabled();
                         if (ImGui.MenuItem("Colors GNCP"))
                         {
-                            in_Renderer.ExportProjectChunk(null, false);
+                            renderer.ExportProjectChunk(null, false);
                         }
                         ImGui.EndDisabled();
                         if (ImGui.MenuItem("Colors Ultimate XNCP"))
                         {
-                            in_Renderer.ExportProjectChunk(null, true);
+                            renderer.ExportProjectChunk(null, true);
 
                         }
                         ImGui.EndMenu();
@@ -105,7 +113,7 @@ namespace Kunai.Window
                             {
                                 string path = dialog.Path;
                                 if (!Path.HasExtension(path)) path += ".xncp";
-                                in_Renderer.SaveCurrentFile(path);
+                                renderer.SaveCurrentFile(path);
                             }
                         }
                         ImGui.BeginDisabled();
@@ -116,7 +124,7 @@ namespace Kunai.Window
                             {
                                 string path = dialog.Path;
                                 if (!Path.HasExtension(path)) path += ".gncp";
-                                in_Renderer.ExportProjectChunk(path, false);
+                                renderer.ExportProjectChunk(path, false);
                             }
                         }
                         ImGui.EndDisabled();
@@ -127,7 +135,7 @@ namespace Kunai.Window
                             {
                                 string path = dialog.Path;
                                 if (!Path.HasExtension(path)) path += ".xncp";
-                                in_Renderer.ExportProjectChunk(path, true);
+                                renderer.ExportProjectChunk(path, true);
                             }
                         }
                         ImGui.EndMenu();
@@ -189,8 +197,8 @@ namespace Kunai.Window
                     OpenUrl("https://github.com/NextinMono/kunai/releases/latest");
                 }
                 ImGui.PopStyleColor();
-            }            
-            
+            }
+
             ImGui.EndMainMenuBar();
         }
     }

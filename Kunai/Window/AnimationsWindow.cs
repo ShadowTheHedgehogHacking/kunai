@@ -8,77 +8,16 @@ using System.Collections.Generic;
 using System.Numerics;
 using IconFonts;
 using OpenTK.Graphics.OpenGL;
+using HekonrayBase.Base;
+using HekonrayBase;
 
 namespace Kunai.Window
 {
     
-    public class AnimationsWindow : WindowBase
+    public class AnimationsWindow : Singleton<AnimationsWindow>, IWindow
     {
         private static List<ImPlotPoint> ms_Points = new List<ImPlotPoint>();
 
-        public override void Update(KunaiProject in_Renderer)
-        {
-            var size1 = ImGui.GetWindowViewport().Size.X / 4.5f;
-            ImGui.SetNextWindowPos(new System.Numerics.Vector2(size1, ImGui.GetWindowViewport().Size.Y / 1.5f), ImGuiCond.Always);
-            ImGui.SetNextWindowSize(new System.Numerics.Vector2(size1 * 2.5f, ImGui.GetWindowViewport().Size.Y / 3), ImGuiCond.Always);
-            if (ImGui.Begin("Animations", MainWindow.WindowFlags | ImGuiWindowFlags.NoTitleBar))
-            {
-                
-                ImGui.Checkbox("Show Quads", ref in_Renderer.Config.ShowQuads);
-                ImGui.SetNextItemWidth(60);
-                ImGui.SameLine();
-                ImGui.InputDouble("Time", ref in_Renderer.Config.Time, "%.2f");
-                ImGui.SameLine();
-                ImGui.BeginGroup();
-                ImGui.PushFont(ImGuiController.FontAwesomeFont);
-                if (ImGui.Button(FontAwesome6.Camera))
-                {
-                    in_Renderer.SaveScreenshot();
-                }
-                ImGui.SameLine();
-                if (ImGui.Button(FontAwesome6.Stop))
-                {
-                    in_Renderer.Config.PlayingAnimations = false;
-                    in_Renderer.Config.Time = 0;
-                }
-                ImGui.SameLine();
-                if (ImGui.Button(in_Renderer.Config.PlayingAnimations ? FontAwesome6.Pause : FontAwesome6.Play))
-                    in_Renderer.Config.PlayingAnimations = !in_Renderer.Config.PlayingAnimations;
-
-                ImGui.SameLine();
-                if (ImGui.Button(FontAwesome6.RotateRight))
-                {
-                    in_Renderer.Config.Time = 0;
-                }
-                ImGui.PopFont();
-                ImGui.EndGroup();
-
-
-                //The list of anims, anim tracks and cast animations
-                if (ImGui.BeginListBox("##animlist", new System.Numerics.Vector2(ImGui.GetWindowSize().X / 5, -1)))
-                {
-                    var selectedScene = KunaiProject.Instance.SelectionData.SelectedScene;
-                    if (selectedScene.Value != null)
-                    {
-                        SVisibilityData.SScene sceneVisData = in_Renderer.VisibilityData.GetScene(selectedScene.Value);
-                        if(sceneVisData != null)
-                        {
-                            foreach (SVisibilityData.SAnimation sceneMotion in sceneVisData.Animation)
-                            {
-                                DrawMotionElement(sceneMotion);
-                            }
-                        }                          
-                    }
-                    ImGui.EndListBox();
-                }
-                ImGui.SameLine();
-                DrawPlot(in_Renderer);
-                ImGui.SameLine();
-                DrawKeyframeInspector();
-
-                ImGui.End();
-            }
-        }
         private void DrawMotionElement(SVisibilityData.SAnimation in_SceneMotion)
         {
             bool selected = false;
@@ -102,7 +41,7 @@ namespace Kunai.Window
                     {
                         if (ImGui.Selectable(track.Property.ToString()))
                         {
-                            Renderer.SelectionData.TrackAnimation = track;
+                            KunaiProject.Instance.SelectionData.TrackAnimation = track;
                         }
                     }
                     ImGui.TreePop();
@@ -125,7 +64,7 @@ namespace Kunai.Window
                     ImPlot.SetupAxisLimits(ImAxis.Y1, 0, 10);
                     if (selectedScene.Value != null)
                     {
-                        if (Renderer.SelectionData.TrackAnimation != null)
+                        if (in_Renderer.SelectionData.TrackAnimation != null)
                         {
                             double time = in_Renderer.Config.Time * selectedScene.Value.FrameRate;
                             ms_Points.Clear();
@@ -135,25 +74,25 @@ namespace Kunai.Window
                                 in_Renderer.Config.Time = time / selectedScene.Value.FrameRate;
                             }
 
-                            bool isFloatValue = Renderer.SelectionData.TrackAnimation.Property != KeyProperty.Color
-                                && Renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientBottomRight
-                                && Renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientBottomLeft
-                                && Renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientTopLeft
-                                && Renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientTopRight;
+                            bool isFloatValue = in_Renderer.SelectionData.TrackAnimation.Property != KeyProperty.Color
+                                && in_Renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientBottomRight
+                                && in_Renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientBottomLeft
+                                && in_Renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientTopLeft
+                                && in_Renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientTopRight;
                             //Animation keyframe points
-                            for (int i = 0; i < Renderer.SelectionData.TrackAnimation.Frames.Count; i++)
+                            for (int i = 0; i < in_Renderer.SelectionData.TrackAnimation.Frames.Count; i++)
                             {
-                                ImPlotPoint point = new ImPlotPoint(Renderer.SelectionData.TrackAnimation.Frames[i].Frame, isFloatValue ? Renderer.SelectionData.TrackAnimation.Frames[i].Value.Float : 0);
+                                ImPlotPoint point = new ImPlotPoint(in_Renderer.SelectionData.TrackAnimation.Frames[i].Frame, isFloatValue ? in_Renderer.SelectionData.TrackAnimation.Frames[i].Value.Float : 0);
                                 ms_Points.Add(point);
                                 bool isClicked = false;
-                                if (ImPlot.DragPoint(i, &point.X, &point.Y, Renderer.SelectionData.KeyframeSelected == Renderer.SelectionData.TrackAnimation.Frames[i] ? new System.Numerics.Vector4(1, 0.9f, 1, 1) : new System.Numerics.Vector4(0, 0.9f, 0, 1), 8, ImPlotDragToolFlags.None, &isClicked))
+                                if (ImPlot.DragPoint(i, &point.X, &point.Y, in_Renderer.SelectionData.KeyframeSelected == in_Renderer.SelectionData.TrackAnimation.Frames[i] ? new System.Numerics.Vector4(1, 0.9f, 1, 1) : new System.Numerics.Vector4(0, 0.9f, 0, 1), 8, ImPlotDragToolFlags.None, &isClicked))
                                 {
                                     if (isFloatValue)
-                                        Renderer.SelectionData.TrackAnimation.Frames[i].Value = new SharpNeedle.Framework.Ninja.Csd.Motions.KeyFrame.Union((float)point.Y);
-                                    Renderer.SelectionData.TrackAnimation.Frames[i].Frame = (uint)point.X;
+                                        in_Renderer.SelectionData.TrackAnimation.Frames[i].Value = new SharpNeedle.Framework.Ninja.Csd.Motions.KeyFrame.Union((float)point.Y);
+                                    in_Renderer.SelectionData.TrackAnimation.Frames[i].Frame = (uint)point.X;
                                 }
                                 if (isClicked)
-                                    Renderer.SelectionData.KeyframeSelected = Renderer.SelectionData.TrackAnimation.Frames[i];
+                                    in_Renderer.SelectionData.KeyframeSelected = in_Renderer.SelectionData.TrackAnimation.Frames[i];
                             }
                             //var p1 = points.ToArray()[0];
                             //ImPlot.PlotLine("##bez", &p1.X, &p1.Y, points.Count, ImPlotLineFlags.Loop, 0, sizeof(ImPlotPoint));
@@ -177,35 +116,106 @@ namespace Kunai.Window
         {
             if (ImGui.BeginListBox("##animlist2", new System.Numerics.Vector2(-1, -1)))
             {
+                var renderer = KunaiProject.Instance;
                 ImGui.SeparatorText("Keyframe");
-                if (Renderer.SelectionData.KeyframeSelected == null)
+                if (renderer.SelectionData.KeyframeSelected == null)
                     ImGui.TextWrapped("Select a keyframe in the timeline to edit its values.");
                 else
                 {
-                    int frame = (int)Renderer.SelectionData.KeyframeSelected.Frame;
-                    var val = Renderer.SelectionData.KeyframeSelected.Value;
-                    var valColor = Renderer.SelectionData.KeyframeSelected.Value.Color.ToVec4();
+                    int frame = (int)renderer.SelectionData.KeyframeSelected.Frame;
+                    var val = renderer.SelectionData.KeyframeSelected.Value;
+                    var valColor = renderer.SelectionData.KeyframeSelected.Value.Color.ToVec4();
                     ImGui.InputInt("Frame", ref frame);
-                    bool isFloatValue = Renderer.SelectionData.TrackAnimation.Property != KeyProperty.Color
-                       && Renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientBottomRight
-                       && Renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientBottomLeft
-                       && Renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientTopLeft
-                       && Renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientTopRight;
+                    bool isFloatValue = renderer.SelectionData.TrackAnimation.Property != KeyProperty.Color
+                       && renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientBottomRight
+                       && renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientBottomLeft
+                       && renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientTopLeft
+                       && renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientTopRight;
                     if (isFloatValue)
                     {
                         ImGui.InputFloat("Value", ref val.Float);
-                        Renderer.SelectionData.KeyframeSelected.Value = val.Float;
+                        renderer.SelectionData.KeyframeSelected.Value = val.Float;
                     }
                     else
                     {
                         if(ImGui.ColorEdit4("Value", ref valColor))
-                        Renderer.SelectionData.KeyframeSelected.Value = valColor.ToSharpNeedleColor();
+                        renderer.SelectionData.KeyframeSelected.Value = valColor.ToSharpNeedleColor();
                     }
 
 
-                    Renderer.SelectionData.KeyframeSelected.Frame = (uint)frame;
+                    renderer.SelectionData.KeyframeSelected.Frame = (uint)frame;
                 }
                 ImGui.EndListBox();
+            }
+        }
+
+        public void OnReset(IProgramProject in_Renderer)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void Render(IProgramProject in_Renderer)
+        {
+            var renderer = (KunaiProject)in_Renderer;
+            var size1 = ImGui.GetWindowViewport().Size.X / 4.5f;
+            ImGui.SetNextWindowPos(new System.Numerics.Vector2(size1, ImGui.GetWindowViewport().Size.Y / 1.5f), ImGuiCond.Always);
+            ImGui.SetNextWindowSize(new System.Numerics.Vector2(size1 * 2.5f, ImGui.GetWindowViewport().Size.Y / 3), ImGuiCond.Always);
+            if (ImGui.Begin("Animations", MainWindow.WindowFlags | ImGuiWindowFlags.NoTitleBar))
+            {
+
+                ImGui.Checkbox("Show Quads", ref renderer.Config.ShowQuads);
+                ImGui.SetNextItemWidth(60);
+                ImGui.SameLine();
+                ImGui.InputDouble("Time", ref renderer.Config.Time, "%.2f");
+                ImGui.SameLine();
+                ImGui.BeginGroup();
+                ImGui.PushFont(ImGuiController.FontAwesomeFont);
+                if (ImGui.Button(FontAwesome6.Camera))
+                {
+                    renderer.SaveScreenshot();
+                }
+                ImGui.SameLine();
+                if (ImGui.Button(FontAwesome6.Stop))
+                {
+                    renderer.Config.PlayingAnimations = false;
+                    renderer.Config.Time = 0;
+                }
+                ImGui.SameLine();
+                if (ImGui.Button(renderer.Config.PlayingAnimations ? FontAwesome6.Pause : FontAwesome6.Play))
+                    renderer.Config.PlayingAnimations = !renderer.Config.PlayingAnimations;
+
+                ImGui.SameLine();
+                if (ImGui.Button(FontAwesome6.RotateRight))
+                {
+                    renderer.Config.Time = 0;
+                }
+                ImGui.PopFont();
+                ImGui.EndGroup();
+
+
+                //The list of anims, anim tracks and cast animations
+                if (ImGui.BeginListBox("##animlist", new System.Numerics.Vector2(ImGui.GetWindowSize().X / 5, -1)))
+                {
+                    var selectedScene = KunaiProject.Instance.SelectionData.SelectedScene;
+                    if (selectedScene.Value != null)
+                    {
+                        SVisibilityData.SScene sceneVisData = renderer.VisibilityData.GetScene(selectedScene.Value);
+                        if (sceneVisData != null)
+                        {
+                            foreach (SVisibilityData.SAnimation sceneMotion in sceneVisData.Animation)
+                            {
+                                DrawMotionElement(sceneMotion);
+                            }
+                        }
+                    }
+                    ImGui.EndListBox();
+                }
+                ImGui.SameLine();
+                DrawPlot(renderer);
+                ImGui.SameLine();
+                DrawKeyframeInspector();
+
+                ImGui.End();
             }
         }
     }

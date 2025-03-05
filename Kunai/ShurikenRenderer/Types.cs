@@ -187,9 +187,19 @@ namespace Shuriken.Rendering
             return [uvTl, uvBr];
         }
 
+        public void Recalculate()
+        {
+            var textureSize = Texture.Size;
+            OriginalLeft = Start.X / textureSize.X;
+            OriginalTop = Start.Y / textureSize.Y;
+            OriginalRight = (Start.X + Dimensions.X) / textureSize.X;
+            OriginalBottom = (Start.Y + Dimensions.Y) / textureSize.Y;
+        }
         public void GenerateCoordinates(Vector2 in_TextureSize)
         {
-            Start = new Vector2(MathF.Round(OriginalLeft * in_TextureSize.X), MathF.Round(OriginalTop * in_TextureSize.Y));
+            var start1X = MathF.Round(OriginalLeft * in_TextureSize.X);
+            var start1Y = MathF.Round(OriginalTop * in_TextureSize.Y);
+            Start = new Vector2(start1X, start1Y);
             Start = new Vector2(Math.Clamp(Start.X, 0, in_TextureSize.X), Math.Clamp(Start.Y, 0, in_TextureSize.Y));
             Dimensions = new Vector2(MathF.Round((OriginalRight - OriginalLeft) * in_TextureSize.X), MathF.Round((OriginalBottom - OriginalTop) * in_TextureSize.Y));
         }

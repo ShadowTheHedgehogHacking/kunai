@@ -92,15 +92,15 @@ namespace Kunai.ShurikenRenderer
             {
                 for (int i = 0; i < Textures.Count - in_TextureSizes.Count; i++)
                 {
-                    in_TextureSizes.Add(Textures[i].Size);
+                    in_TextureSizes.Add(Textures[i].Size / KunaiProject.Instance.ViewportSize);
                 }
+                
             }
             foreach (var entry in Sprites)
             {
-                //TODO MAKE MISSING TEXTURES NOT SAVE INVALID STUFF
                 Shuriken.Rendering.Sprite sprite = entry.Value;
                 int textureIndex = Textures.IndexOf(sprite.Texture);
-                if(sprite.Crop != null)
+                if (sprite.Crop != null)
                 {
                     SharpNeedle.Framework.Ninja.Csd.Sprite subImage = new();
                     subImage.TextureIndex = textureIndex;
@@ -110,7 +110,7 @@ namespace Kunai.ShurikenRenderer
                 }
                 else
                 {
-                    var size = in_TextureSizes[textureIndex];
+                    var size = in_TextureSizes[textureIndex] * KunaiProject.Instance.ViewportSize;
                     sprite.GenerateCoordinates(size);
                     SharpNeedle.Framework.Ninja.Csd.Sprite subImage = new();
                     subImage.TextureIndex = textureIndex;
@@ -119,6 +119,7 @@ namespace Kunai.ShurikenRenderer
                     in_SubImages.Add(subImage);
                 }
             }
+
         }
         public static Sprite TryGetSprite(int in_Id)
         {

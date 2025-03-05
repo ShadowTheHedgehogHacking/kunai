@@ -10,6 +10,7 @@ using IconFonts;
 using OpenTK.Graphics.OpenGL;
 using HekonrayBase.Base;
 using HekonrayBase;
+using System;
 
 namespace Kunai.Window
 {
@@ -32,9 +33,11 @@ namespace Kunai.Window
         }
         private void DrawFamilyMotionElement(FamilyMotion in_FamilyMotion)
         {
-            foreach (CastMotion castMotion in in_FamilyMotion.CastMotions)
+            for (int i = 0; i < in_FamilyMotion.CastMotions.Count; i++)
             {
+                CastMotion castMotion = in_FamilyMotion.CastMotions[i];
                 if (castMotion.Count == 0) continue;
+                ImGui.PushID($"##{castMotion.Cast.Name}anim_{i}");
                 if (ImGui.TreeNode(castMotion.Cast.Name))
                 {
                     foreach (KeyFrameList track in castMotion)
@@ -46,8 +49,20 @@ namespace Kunai.Window
                     }
                     ImGui.TreePop();
                 }
+                ImGui.PopID();
+                if (ImGui.BeginPopupContextItem())
+                {
+                    CastMotionContext(in_FamilyMotion, castMotion);
+                    ImGui.EndPopup();
+                }
             }
         }
+
+        private void CastMotionContext(FamilyMotion in_FamilyMotion, CastMotion castMotion)
+        {
+
+        }
+
         private void DrawPlot(KunaiProject in_Renderer)
         {
             unsafe

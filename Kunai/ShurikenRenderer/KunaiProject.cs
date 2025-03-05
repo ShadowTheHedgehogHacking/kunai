@@ -21,6 +21,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -112,26 +113,42 @@ namespace Kunai.ShurikenRenderer
         {
             try
             {
+                bool isSplitFile = IsPathSplitFile(in_Path);
                 //Reset what needs to be reset
                 string root = Path.GetDirectoryName(Path.GetFullPath(@in_Path));
-                Config.WorkFilePath = in_Path;
-                InspectorWindow.Reset();
                 SpriteHelper.ClearTextures();
+                Config.WorkFilePath = in_Path;
+                SelectionData.SelectedCast = null;
+                SelectionData.SelectedScene = new();
                 WorkProjectCsd = null;
                 VisibilityData = null;
+                Renderer.Quads.Clear();
 
-                // There's probably a better way to detect if a tls or dxl file exists, but 
-                // this should work.
-                bool isTlsFilePresent = File.Exists(Path.ChangeExtension(in_Path, "tls"));
-                bool isDxlFilePresent = File.Exists(Path.ChangeExtension(in_Path, "dxl"));
-
-                if (isTlsFilePresent || isDxlFilePresent)
+                if(isSplitFile)
                 {
-                    // Colors and Colors Ultimate have a unique situation where
-                    // they have texture lists as files instead of being combined
-                    // as is the case literally everywhere else!                    
-                    HandleSplitCsd(in_Path, isDxlFilePresent, isTlsFilePresent);
-                }
+                    // There's probably a better way to detect if a tls or dxl file exists, but 
+                    // this should work.
+                    bool isTlsFilePresent = File.Exists(Path.ChangeExtension(in_Path, "tls"));
+                    bool isDxlFilePresent = File.Exists(Path.ChangeExtension(in_Path, "dxl"));
+
+                    if (isTlsFilePresent || isDxlFilePresent)
+                    {
+                        // Colors and Colors Ultimate have a unique situation where
+                        // they have texture lists as tls (wii format) and dxl (literally just TextureList)
+                        // instead of being combined into the file with the project
+                        // as is the case literally everywhere else except for shadow!                    
+                        HandleSplitCsdColors(in_Path, isDxlFilePresent, isTlsFilePresent);
+                    }
+                    else
+                    {
+                        //File probably uses TXD or has no file asssociated with it, try to continue anyway.
+                        WorkProjectCsd = new CsdProject();
+                        WorkProjectCsd.Name = Path.GetFileName(in_Path);
+                        WorkProjectCsd.Project = GetProjectChunkSplit(in_Path, Endianness.Big);
+                        WorkProjectCsd.Textures = new TextureListNN();
+                        Application.ShowMessageBoxCross("Warning", "This file is split, but the program does not know where the textures are.\nThis file will be displayed with no textures.",1);
+                    }
+                }                
                 else
                 {
                     WorkProjectCsd = ResourceUtility.Open<CsdProject>(@in_Path);
@@ -160,7 +177,7 @@ namespace Kunai.ShurikenRenderer
                         string textureNames = "";
                         foreach (string textureName in missingTextures)
                             textureNames += "-" + textureName + "\n";
-                        ShowMessageBoxCross("Warning", $"The file uses textures that could not be found, they will be replaced with squares.\n\nMissing Textures:\n{textureNames}", true);
+                        Application.ShowMessageBoxCross("Warning", $"The file uses textures that could not be found, they will be replaced with squares.\n\nMissing Textures:\n{textureNames}", 1);
                     }
                 }
                 SpriteHelper.LoadTextures(WorkProjectCsd);
@@ -170,7 +187,8 @@ namespace Kunai.ShurikenRenderer
             catch (Exception ex)
             {
 #if !DEBUG
-                ShowMessageBoxCross("Error", $"An error occured whilst trying to load a file.\n{ex.Message}", true);
+                Application.ShowMessageBoxCross("Error", $"An error occured whilst trying to load a file.\n{ex.Message}", 2);
+
 #else
                 throw;
 #endif
@@ -178,17 +196,44 @@ namespace Kunai.ShurikenRenderer
 
         }
 
-        private void HandleSplitCsd(string in_Path, bool in_IsDxlFilePresent, bool in_IsTlsFilePresent)
+        /// <summary>
+        /// Checks if the header of the file starts with FAPC/CPAF or not.
+        /// </summary>
+        /// <param name="in_Path">Path to file</param>
+        /// <returns></returns>
+        private bool IsPathSplitFile(string in_Path)
         {
+            BinaryObjectReader reader = new BinaryObjectReader(in_Path, Endianness.Little, Encoding.UTF8);
+            uint sig = reader.ReadNative<uint>();
+            reader.Dispose();
+            return sig != BinaryPrimitives.ReverseEndianness(CsdPackage.Signature) && sig != CsdPackage.Signature;
+        }
+        private ProjectChunk GetProjectChunkSplit(string in_Path, Endianness in_Endianness)
+        {
+            using var reader = new BinaryObjectReader(@in_Path, in_Endianness, Encoding.UTF8);
+            var infoChunk = reader.ReadObject<InfoChunk>();
+            foreach (IChunk chunk in infoChunk.Chunks)
+            {
+                switch (chunk)
+                {
+                    case ProjectChunk project:
+                        return project;
+                }
+            }
+            return null;
+        }
+
+        private void HandleSplitCsdColors(string in_Path, bool in_IsDxlFilePresent, bool in_IsTlsFilePresent)
+        {
+            string pathExtra = in_IsDxlFilePresent ? Path.ChangeExtension(in_Path, "dxl") : Path.ChangeExtension(in_Path, "tls");
             byte[] csdFile = File.ReadAllBytes(in_Path);
-            string path = in_IsDxlFilePresent ? Path.ChangeExtension(in_Path, "dxl") : Path.ChangeExtension(in_Path, "tls");
-            byte[] textureList = File.ReadAllBytes(path);
+            byte[] textureList = File.ReadAllBytes(pathExtra);
 
             //File.WriteAllBytes(in_Path + "_Test", output);
 
             if (in_IsTlsFilePresent)
             {
-                var tlsFile = TPL.Load(path);
+                var tlsFile = TPL.Load(pathExtra);
                 TextureListNN newTexList = new TextureListNN();
                 string csdName = Path.GetFileNameWithoutExtension(in_Path);
                 string parentDir = Directory.GetParent(in_Path).FullName;
@@ -202,7 +247,6 @@ namespace Kunai.ShurikenRenderer
                         if (!showWarning)
                         {
                             showWarning = true;
-                            ShowMessageBoxCross("Warning", "The textures in the tls file will be converted to dds.\nThis process might take some time.", true);
                         }
 
                         var image = tlsFile.ExtractTextureBytes(i);
@@ -222,19 +266,9 @@ namespace Kunai.ShurikenRenderer
 
                     newTexList.Add(new TextureNN($"{csdName}_tex{i}.dds"));
                 }
-
-                using var reader = new BinaryObjectReader(@in_Path, Endianness.Big, Encoding.ASCII);
-                var test = reader.ReadObject<InfoChunk>();
+               
                 WorkProjectCsd = new CsdProject();
-                foreach (IChunk chunk in test.Chunks)
-                {
-                    switch (chunk)
-                    {
-                        case ProjectChunk project:
-                            WorkProjectCsd.Project = project;
-                            break;
-                    }
-                }
+                WorkProjectCsd.Project = GetProjectChunkSplit(in_Path, Endianness.Big);
                 WorkProjectCsd.Textures = newTexList;
             }
             if (in_IsDxlFilePresent)

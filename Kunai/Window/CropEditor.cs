@@ -109,22 +109,23 @@ namespace Kunai.Window
                     }
                     ImGui.SameLine();
                     if (ImGui.BeginListBox("##texturelist2", new System.Numerics.Vector2(size1, -1)))
-                    {
-                        var texture = SpriteHelper.Textures[m_SelectedIndex];
-                        var sprite = SpriteHelper.Sprites[texture.Sprites[m_SelectedSpriteIndex]];
-                        Vector2 spriteStart = sprite.Start;
-                        Vector2 spriteSize = sprite.Dimensions;
-                        ImGui.SeparatorText("Texture Info");
-                        ImGui.Text($"Name: {texture.Name}");
-                        ImGui.Text($"Width: {texture.Width}");
-                        ImGui.Text($"Height: {texture.Height}");
-                        ImGui.SeparatorText("Crop");
-                        ImGui.InputFloat2("Position", ref spriteStart, "%.0f");
-                        ImGui.InputFloat2("Dimension", ref spriteSize, "%.0f");
-                        sprite.Start = spriteStart;
-                        sprite.Dimensions = spriteSize;
-                        ImGui.EndListBox();
-                    }
+                        {
+                            var texture = SpriteHelper.Textures[m_SelectedIndex];
+                            var sprite = SpriteHelper.Sprites[texture.Sprites[m_SelectedSpriteIndex]];
+                            Vector2 spriteStart = sprite.Start;
+                            Vector2 spriteSize = sprite.Dimensions;
+                            ImGui.SeparatorText("Texture Info");
+                            ImGui.Text($"Name: {texture.Name}");
+                            ImGui.Text($"Width: {texture.Width}");
+                            ImGui.Text($"Height: {texture.Height}");
+                            ImGui.SeparatorText("Crop");
+                            ImGui.InputFloat2("Position", ref spriteStart, "%.0f");
+                            ImGui.InputFloat2("Dimension", ref spriteSize, "%.0f");
+                            sprite.Start = spriteStart;
+                            sprite.Dimensions = spriteSize;
+                            sprite.Recalculate();
+                            ImGui.EndListBox();
+                        }
 
                     ImGui.End();
                 }

@@ -124,7 +124,7 @@ namespace Kunai.ShurikenRenderer
                 VisibilityData = null;
                 Renderer.Quads.Clear();
 
-                if(isSplitFile)
+                if (isSplitFile)
                 {
                     // There's probably a better way to detect if a tls or dxl file exists, but 
                     // this should work.
@@ -146,9 +146,9 @@ namespace Kunai.ShurikenRenderer
                         WorkProjectCsd.Name = Path.GetFileName(in_Path);
                         WorkProjectCsd.Project = GetProjectChunkSplit(in_Path, Endianness.Big);
                         WorkProjectCsd.Textures = new TextureListNN();
-                        Application.ShowMessageBoxCross("Warning", "This file is split, but the program does not know where the textures are.\nThis file will be displayed with no textures.",1);
+                        Application.ShowMessageBoxCross("Warning", "This file is split, but the program does not know where the textures are.\nThis file will be displayed with no textures.", 1);
                     }
-                }                
+                }
                 else
                 {
                     WorkProjectCsd = ResourceUtility.Open<CsdProject>(@in_Path);
@@ -266,7 +266,7 @@ namespace Kunai.ShurikenRenderer
 
                     newTexList.Add(new TextureNN($"{csdName}_tex{i}.dds"));
                 }
-               
+
                 WorkProjectCsd = new CsdProject();
                 WorkProjectCsd.Project = GetProjectChunkSplit(in_Path, Endianness.Big);
                 WorkProjectCsd.Textures = newTexList;

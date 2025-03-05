@@ -88,13 +88,13 @@ namespace Kunai.ShurikenRenderer
         {
             in_SubImages = new();
             in_TextureSizes = TextureSizesOriginal;
-            if(in_TextureSizes.Count < Textures.Count)
+            if (in_TextureSizes.Count < Textures.Count)
             {
                 for (int i = 0; i < Textures.Count - in_TextureSizes.Count; i++)
                 {
                     in_TextureSizes.Add(Textures[i].Size / KunaiProject.Instance.ViewportSize);
                 }
-                
+
             }
             foreach (var entry in Sprites)
             {
@@ -123,7 +123,7 @@ namespace Kunai.ShurikenRenderer
         }
         public static Sprite TryGetSprite(int in_Id)
         {
-            Sprites.TryGetValue(in_Id+1, out Sprite sprite);
+            Sprites.TryGetValue(in_Id + 1, out Sprite sprite);
             return sprite;
         }
         public static int AppendSprite(Sprite in_Spr)
@@ -139,15 +139,15 @@ namespace Kunai.ShurikenRenderer
 
         public static void RecurFindFirstTextureListFromFile(SceneNode in_Node)
         {
-            foreach(var s in in_Node.Scenes)
+            foreach (var s in in_Node.Scenes)
             {
-                if(s.Value.Textures.Count != 0)
+                if (s.Value.Textures.Count != 0)
                 {
                     TextureSizesOriginal = s.Value.Textures;
                     return;
                 }
             }
-            foreach(var n in in_Node.Children)
+            foreach (var n in in_Node.Children)
             {
                 RecurFindFirstTextureListFromFile(n.Value);
             }
@@ -205,7 +205,7 @@ namespace Kunai.ShurikenRenderer
             {
                 Textures = new List<Texture>();
             }
-            foreach(var tex in Textures)
+            foreach (var tex in Textures)
             {
                 tex.Destroy();
             }

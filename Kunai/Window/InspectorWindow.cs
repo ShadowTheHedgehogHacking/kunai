@@ -26,7 +26,20 @@ namespace Kunai.Window
         BottomCenter,
         BottomRight
     }
-    public class InspectorWindow : Singleton<InspectorWindow>, IWindow
+    [Flags]
+    enum GenericUnknownBits : int
+    {
+        None = 0,
+        Flag1 = 1 << 0,  // 0001
+        Flag2 = 1 << 1,  // 0010
+        Flag3 = 1 << 2,  // 0100
+        Flag4 = 1 << 3,  // 1000
+        Flag5 = 1 << 4,  // 10000
+        Flag6 = 1 << 5,  // 100000
+        Flag7 = 1 << 6,  // 1000000
+        Flag8 = 1 << 7   // 10000000
+    }
+public class InspectorWindow : Singleton<InspectorWindow>, IWindow
     {
         public enum ESelectionType
         {
@@ -41,14 +54,13 @@ namespace Kunai.Window
         private static List<string> ms_FontNames = new List<string>();
         public static void SelectCast(Cast in_Cast)
         {
-
             ms_IsEditingCrop = false;
             KunaiProject.Instance.SelectionData.SelectedCast = in_Cast;
             SelectionType = ESelectionType.Cast;
         }
-        public static void SelectScene(KeyValuePair<string, Scene> in_Cast)
+        public static void SelectScene(KeyValuePair<string, Scene> in_Scene)
         {
-            KunaiProject.Instance.SelectionData.SelectedScene = in_Cast;
+            KunaiProject.Instance.SelectionData.SelectedScene = in_Scene;
             SelectionType = ESelectionType.Scene;
         }
 
@@ -145,6 +157,7 @@ namespace Kunai.Window
             string[] blendingStr = { "NRM", "ADD" };
             string[] filteringStr = { "NONE", "LINEAR" };
 
+            GenericUnknownBits unknownFlags = (GenericUnknownBits)selectedCast.Field2C;
             ElementMaterialFlags materialFlags = (ElementMaterialFlags)selectedCast.Field38;
             CastInfo info = selectedCast.Info;
             ElementInheritanceFlags inheritanceFlags = (ElementInheritanceFlags)selectedCast.InheritanceFlags.Value;
@@ -272,6 +285,34 @@ namespace Kunai.Window
                     ImGui.PopID();
                     ImGui.DragFloat("Kerning", ref kerning, 0.005f);
                 }
+            }
+            if(ImGui.CollapsingHeader("Unknown"))
+            {
+                //if(ImGui.TreeNodeEx("Field2C"))
+                //{
+                    bool flag1Active = unknownFlags.HasFlag(GenericUnknownBits.Flag1);
+                    bool flag2Active = unknownFlags.HasFlag(GenericUnknownBits.Flag2);
+                    bool flag3Active = unknownFlags.HasFlag(GenericUnknownBits.Flag3);
+                    bool flag4Active = unknownFlags.HasFlag(GenericUnknownBits.Flag4);
+                    bool flag5Active = unknownFlags.HasFlag(GenericUnknownBits.Flag5);
+                    bool flag6Active = unknownFlags.HasFlag(GenericUnknownBits.Flag6);
+                    bool flag7Active = unknownFlags.HasFlag(GenericUnknownBits.Flag7);
+                    ImGui.Checkbox("Flag1", ref flag1Active);
+                    ImGui.Checkbox("Flag2", ref flag2Active);
+                    ImGui.Checkbox("Flag3", ref flag3Active);
+                    ImGui.Checkbox("Flag4", ref flag4Active);
+                    ImGui.Checkbox("Flag5", ref flag5Active);
+                    ImGui.Checkbox("Flag6", ref flag6Active);
+                    ImGui.Checkbox("Flag7", ref flag7Active);
+                    if(flag1Active)unknownFlags |= GenericUnknownBits.Flag1; else unknownFlags &= ~GenericUnknownBits.Flag1;
+                    if(flag2Active)unknownFlags |= GenericUnknownBits.Flag2; else unknownFlags &= ~GenericUnknownBits.Flag2;
+                    if(flag3Active)unknownFlags |= GenericUnknownBits.Flag3; else unknownFlags &= ~GenericUnknownBits.Flag3;
+                    if(flag4Active)unknownFlags |= GenericUnknownBits.Flag4; else unknownFlags &= ~GenericUnknownBits.Flag4;
+                    if(flag5Active)unknownFlags |= GenericUnknownBits.Flag5; else unknownFlags &= ~GenericUnknownBits.Flag5;
+                    if(flag6Active)unknownFlags |= GenericUnknownBits.Flag6; else unknownFlags &= ~GenericUnknownBits.Flag6;
+                    if(flag7Active)unknownFlags |= GenericUnknownBits.Flag7; else unknownFlags &= ~GenericUnknownBits.Flag7;
+                selectedCast.Field2C = (uint)unknownFlags;
+                //}
             }
             if (type != 0)
             {

@@ -43,7 +43,7 @@ namespace Kunai.Window
                 return;
             if (Enabled)
             {
-                if (ImGui.Begin("Crop"))
+                if (ImGui.Begin("Crop", ref Enabled))
                 {
                     if (ImGui.Button("Add Texture"))
                     {

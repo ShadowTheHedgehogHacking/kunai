@@ -15,8 +15,22 @@ using System;
 namespace Kunai.Window
 {
     
+    
     public class AnimationsWindow : Singleton<AnimationsWindow>, IWindow
     {
+        public struct SKeyframePropertyInfo
+        {
+            public string Icon;
+            public string Name;
+            public Vector4 Color;
+
+            public SKeyframePropertyInfo(string icon, string name, Vector4 color)
+            {
+                Icon = icon;
+                Name = name;
+                Color = color;
+            }
+        }
         private static List<ImPlotPoint> ms_Points = new List<ImPlotPoint>();
 
         private void DrawMotionElement(SVisibilityData.SAnimation in_SceneMotion)
@@ -31,6 +45,38 @@ namespace Kunai.Window
                 ImGui.TreePop();
             }
         }
+        public SKeyframePropertyInfo GetDisplayNameAndIcon(KeyProperty property)
+        {
+            switch (property)
+            {
+                case KeyProperty.HideFlag:
+                    return new SKeyframePropertyInfo() { Icon = FontAwesome6.Square, Name = "Hide Flag", Color = ColorResource.HideFlag };
+                case KeyProperty.PositionX:
+                    return new SKeyframePropertyInfo() { Icon = FontAwesome6.LeftRight, Name = "X Translation", Color = ColorResource.PositionX };
+                case KeyProperty.PositionY:
+                    return new SKeyframePropertyInfo() { Icon = FontAwesome6.UpDown, Name = "Y Translation", Color = ColorResource.PositionY };
+                case KeyProperty.Rotation:
+                    return new SKeyframePropertyInfo() { Icon = FontAwesome6.ArrowsRotate, Name = "Rotation", Color = ColorResource.Rotation };
+                case KeyProperty.ScaleX:
+                    return new SKeyframePropertyInfo() { Icon = FontAwesome6.Expand, Name = "X Scale", Color = ColorResource.ScaleX };
+                case KeyProperty.ScaleY:
+                    return new SKeyframePropertyInfo() { Icon = FontAwesome6.UpRightAndDownLeftFromCenter, Name = "Y Scale", Color = ColorResource.ScaleY };
+                case KeyProperty.SpriteIndex:
+                    return new SKeyframePropertyInfo() { Icon = FontAwesome6.PhotoFilm, Name = "Crop", Color = ColorResource.SpriteIndex };
+                case KeyProperty.Color:
+                    return new SKeyframePropertyInfo() { Icon = FontAwesome6.Palette, Name = "Color", Color = ColorResource.Color };
+                case KeyProperty.GradientTopLeft:
+                    return new SKeyframePropertyInfo() { Icon = FontAwesome6.Palette, Name = "TL Color", Color = ColorResource.GradientTopLeft };
+                case KeyProperty.GradientBottomLeft:
+                    return new SKeyframePropertyInfo() { Icon = FontAwesome6.Palette, Name = "BL Color", Color = ColorResource.GradientBottomLeft };
+                case KeyProperty.GradientTopRight:
+                    return new SKeyframePropertyInfo() { Icon = FontAwesome6.Palette, Name = "TR Color", Color = ColorResource.GradientTopRight };
+                case KeyProperty.GradientBottomRight:
+                    return new SKeyframePropertyInfo() { Icon = FontAwesome6.Palette, Name = "BR Color", Color = ColorResource.GradientBottomRight };
+            }
+
+            return new SKeyframePropertyInfo();
+        }
         private void DrawFamilyMotionElement(FamilyMotion in_FamilyMotion)
         {
             for (int i = 0; i < in_FamilyMotion.CastMotions.Count; i++)
@@ -40,11 +86,36 @@ namespace Kunai.Window
                 ImGui.PushID($"##{castMotion.Cast.Name}anim_{i}");
                 if (ImGui.TreeNode(castMotion.Cast.Name))
                 {
-                    foreach (KeyFrameList track in castMotion)
+                    for (int t = 0; t < castMotion.Count; t++)
                     {
-                        if (ImGui.Selectable(track.Property.ToString()))
+                        ImGui.PushID($"##{castMotion.Cast.Name}anim_{i}_{t}");
+                        KeyFrameList track = castMotion[t];
+                        var info = GetDisplayNameAndIcon(track.Property);
+
+                        var pos = ImGui.GetCursorPosX();
+                        ImGui.PushStyleColor(ImGuiCol.Text, ImGui.ColorConvertFloat4ToU32(info.Color));
+                        ImKunai.TextFontAwesome(info.Icon);
+                        ImGui.PopStyleColor();
+                        ImGui.SameLine();
+                        ImGui.SetCursorPosX(pos + 20);
+                        ImGui.Text(info.Name);
+                        ImGui.SameLine();
+                        ImGui.SetCursorPosX(pos);
+                        if (ImKunai.InvisibleSelectable($"{info.Icon} {info.Name}"))
                         {
                             KunaiProject.Instance.SelectionData.TrackAnimation = track;
+                        }
+                        ImGui.PopID();
+
+                        if (ImGui.BeginPopupContextItem())
+                        {
+                            ImGui.SeparatorText("Track");
+
+                            if (ImGui.MenuItem("Delete"))
+                            {
+                                castMotion.Remove(track);
+                            }
+                            ImGui.EndPopup();
                         }
                     }
                     ImGui.TreePop();
@@ -52,21 +123,23 @@ namespace Kunai.Window
                 ImGui.PopID();
                 if (ImGui.BeginPopupContextItem())
                 {
-                    CastMotionContext(in_FamilyMotion, castMotion);
+                    ImGui.SeparatorText("Cast Anim");
+
+                    if (ImGui.MenuItem("Delete"))
+                    {
+                        in_FamilyMotion.CastMotions.Remove(castMotion);
+                    }
                     ImGui.EndPopup();
                 }
             }
         }
 
-        private void CastMotionContext(FamilyMotion in_FamilyMotion, CastMotion castMotion)
-        {
-
-        }
 
         private void DrawPlot(KunaiProject in_Renderer)
         {
             unsafe
             {
+                ImPlotPoint mousePosPlot = new();
                 if (ImPlot.BeginPlot("##Bezier", new System.Numerics.Vector2(ImGui.GetWindowSize().X / 1.73f, -1)))
                 {
                     const int bufferSize = 256;
@@ -122,9 +195,43 @@ namespace Kunai.Window
 
                         }
                     }
+
+                    mousePosPlot = ImPlot.GetPlotMousePos();
                 }
                 ImPlot.EndPlot();
 
+                if (ImGui.BeginPopupContextItem())
+                {
+                    var selectedScene = KunaiProject.Instance.SelectionData.SelectedScene;
+                    if (selectedScene.Value != null)
+                    {
+                        if (in_Renderer.SelectionData.TrackAnimation != null)
+                        {
+                            if (ImGui.MenuItem("Add Keyframe"))
+                            {
+                                var frame = new KeyFrame();
+                                bool isFloatValue = in_Renderer.SelectionData.TrackAnimation.Property != KeyProperty.Color
+                                    && in_Renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientBottomRight
+                                    && in_Renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientBottomLeft
+                                    && in_Renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientTopLeft
+                                    && in_Renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientTopRight;
+                                frame.Frame = (uint)mousePosPlot.X;
+                                if (isFloatValue)
+                                    frame.Value = (KeyFrame.Union)mousePosPlot.Y;
+                                in_Renderer.SelectionData.TrackAnimation.Add(frame);
+                            }
+                            if(in_Renderer.SelectionData.KeyframeSelected != null)
+                            {
+                                if (ImGui.MenuItem("Delete Keyframe"))
+                                {
+                                    in_Renderer.SelectionData.TrackAnimation.Remove(in_Renderer.SelectionData.KeyframeSelected);
+                                    in_Renderer.SelectionData.KeyframeSelected = null;
+                                }
+                            }
+                        }
+                    }
+                    ImGui.EndPopup();
+                }
             }
         }
         private void DrawKeyframeInspector()
@@ -137,28 +244,34 @@ namespace Kunai.Window
                     ImGui.TextWrapped("Select a keyframe in the timeline to edit its values.");
                 else
                 {
-                    int frame = (int)renderer.SelectionData.KeyframeSelected.Frame;
-                    var val = renderer.SelectionData.KeyframeSelected.Value;
-                    var valColor = renderer.SelectionData.KeyframeSelected.Value.Color.ToVec4();
+                    var keyframe = renderer.SelectionData.KeyframeSelected;
+                    int frame = (int)keyframe.Frame;
+                    var val = keyframe.Value;
+                    var valColor = keyframe.Value.Color.ToVec4();
+                    var interp = (int)keyframe.Interpolation;
                     ImGui.InputInt("Frame", ref frame);
                     bool isFloatValue = renderer.SelectionData.TrackAnimation.Property != KeyProperty.Color
                        && renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientBottomRight
                        && renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientBottomLeft
                        && renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientTopLeft
                        && renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientTopRight;
+
                     if (isFloatValue)
                     {
                         ImGui.InputFloat("Value", ref val.Float);
-                        renderer.SelectionData.KeyframeSelected.Value = val.Float;
+                        keyframe.Value = val.Float;
                     }
                     else
                     {
                         if(ImGui.ColorEdit4("Value", ref valColor))
-                        renderer.SelectionData.KeyframeSelected.Value = valColor.ToSharpNeedleColor();
+                        keyframe.Value = valColor.ToSharpNeedleColor();
                     }
 
+                    if (ImGui.Combo("Interpolation", ref interp, ["Const", "Linear", "Hermite"], 3))
+                        keyframe.Interpolation = (InterpolationType)interp;
 
-                    renderer.SelectionData.KeyframeSelected.Frame = (uint)frame;
+
+                    keyframe.Frame = (uint)frame;
                 }
                 ImGui.EndListBox();
             }

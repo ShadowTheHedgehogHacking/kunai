@@ -27,7 +27,7 @@ namespace Kunai.Window
             if (Enabled)
             {
                 ImGui.SetNextWindowSize(new Vector2(300, 300), ImGuiCond.FirstUseEver);
-                if (ImGui.Begin("Settings"))
+                if (ImGui.Begin("Settings", ref Enabled))
                 {
                     int currentTheme = _themeIsDark ? 1 : 0;
                     var color = renderer.ViewportColor;

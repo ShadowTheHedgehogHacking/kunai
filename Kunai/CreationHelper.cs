@@ -1,4 +1,5 @@
 ﻿using Kunai.ShurikenRenderer;
+using Kunai.Window;
 using SharpNeedle.Framework.Ninja.Csd;
 using Shuriken.Rendering;
 using System;
@@ -15,6 +16,15 @@ namespace Kunai
         static Cast CreateNewCastFromDefault(string in_Name, Cast in_Parent, DrawType in_Type)
         {
             Cast newCast = new Cast();
+            var unknownFlags = (GenericUnknownBits)newCast.Field2C;
+            unknownFlags |= GenericUnknownBits.Flag1;
+            unknownFlags |= GenericUnknownBits.Flag2;
+            unknownFlags |= GenericUnknownBits.Flag3;
+            unknownFlags |= GenericUnknownBits.Flag4;
+            unknownFlags |= GenericUnknownBits.Flag5;
+            unknownFlags |= GenericUnknownBits.Flag6;
+            unknownFlags |= GenericUnknownBits.Flag7;
+            newCast.Field2C = (uint)unknownFlags;
             newCast.SpriteIndices = new int[32];
             for (int i = 0; i < 32; i++)
                 newCast.SpriteIndices[i] = -1;

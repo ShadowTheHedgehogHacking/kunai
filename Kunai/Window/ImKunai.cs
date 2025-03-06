@@ -3,6 +3,7 @@ using Hexa.NET.ImGui;
 using Hexa.NET.Utilities.Text;
 using IconFonts;
 using Kunai.ShurikenRenderer;
+using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -282,6 +283,14 @@ namespace Kunai.Window
                     new Vector2(0, 1), new Vector2(1, 0));
                 ImKunai.EndListBoxCustom();
             }
+        }
+
+        internal static bool InvisibleSelectable(string in_Text)
+        {
+            ImGui.PushStyleColor(ImGuiCol.Text, 0);
+            bool returned = ImGui.Selectable(in_Text);
+            ImGui.PopStyleColor();
+            return returned;
         }
     }
 }

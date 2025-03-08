@@ -477,6 +477,7 @@ namespace Kunai.ShurikenRenderer
                 AspectRatio = in_Scene.AspectRatio,
                 Flags = (ElementMaterialFlags)in_UiElement.Field38
             };
+            float angle = in_Transform.Rotation * MathF.PI / 180.0f; //to radians
             //Redo this at some point
             foreach (var animation in in_Vis.Animation.Where(in_A => in_A.Active))
             {
@@ -556,7 +557,6 @@ namespace Kunai.ShurikenRenderer
             sSpriteDrawData.Position.Y *= in_Transform.Scale.Y;
 
             // Rotate through parent transform
-            float angle = in_Transform.Rotation * MathF.PI / 180.0f; //to radians
             float rotatedX = sSpriteDrawData.Position.X * MathF.Cos(angle) * in_Scene.AspectRatio + sSpriteDrawData.Position.Y * MathF.Sin(angle);
             float rotatedY = sSpriteDrawData.Position.Y * MathF.Cos(angle) - sSpriteDrawData.Position.X * MathF.Sin(angle) * in_Scene.AspectRatio;
 
@@ -670,6 +670,24 @@ namespace Kunai.ShurikenRenderer
             {
                 s.Value.Sprites = in_Sprites;
                 s.Value.Textures = in_TexSizes;
+                foreach (var a in s.Value.Motions)
+                {
+
+                    try
+                    {
+                        var maxFrame = a.Value.FamilyMotions.SelectMany(fm => fm.CastMotions)
+                            .SelectMany(cm => cm)
+                            .SelectMany(kfl => kfl.Frames)
+                            .Max(kf => kf.Frame);
+                        
+                    if(a.Value.EndFrame < maxFrame)
+                        a.Value.EndFrame = maxFrame;
+                    }
+                    catch (InvalidOperationException e)
+                    {
+                        continue;
+                    }
+                }
             }
             foreach (var c in in_Node.Children)
             {
@@ -682,6 +700,7 @@ namespace Kunai.ShurikenRenderer
             List<Vector2> sizes = new List<Vector2>();
             SpriteHelper.BuildCropList(ref subImageList, ref sizes);
             RecursiveSetCropListNode(WorkProjectCsd.Project.Root, subImageList, sizes);
+            
             WorkProjectCsd.Write(string.IsNullOrEmpty(in_Path) ? Config.WorkFilePath : in_Path);
         }
 

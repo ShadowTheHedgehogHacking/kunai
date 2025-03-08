@@ -10,6 +10,7 @@ using System.Numerics;
 using System;
 using HekonrayBase.Base;
 using HekonrayBase;
+using SharpNeedle.Structs;
 
 namespace Kunai.Window
 {
@@ -27,19 +28,26 @@ namespace Kunai.Window
         BottomRight
     }
     [Flags]
-    enum GenericUnknownBits : int
+    enum CastPropertyMask : uint
     {
-        None = 0,
-        Flag1 = 1 << 0,  // 0001
-        Flag2 = 1 << 1,  // 0010
-        Flag3 = 1 << 2,  // 0100
-        Flag4 = 1 << 3,  // 1000
-        Flag5 = 1 << 4,  // 10000
-        Flag6 = 1 << 5,  // 100000
-        Flag7 = 1 << 6,  // 1000000
-        Flag8 = 1 << 7   // 10000000
+        None = 0x0000,
+        ApplyTransform = 0x0001,
+        ApplyTranslationX = 0x0002,
+        ApplyTranslationY = 0x0004,
+        ApplyRotation = 0x0008,
+        ApplyScaleX = 0x0010,
+        ApplyScaleY = 0x0020,
+        Flag7 = 0x0040,
+        ApplyColor = 0x0080,
+        ApplyColorTL = 0x0100,
+        ApplyColorBL = 0x0200,
+        ApplyColorTR = 0x0400,
+        ApplyColorBR = 0x0800,
+        Flag13 = 0x1000,
+        Flag14 = 0x2000,
+        Flag15 = 0x4000
     }
-public class InspectorWindow : Singleton<InspectorWindow>, IWindow
+    public class InspectorWindow : Singleton<InspectorWindow>, IWindow
     {
         public enum ESelectionType
         {
@@ -97,7 +105,7 @@ public class InspectorWindow : Singleton<InspectorWindow>, IWindow
             int simplifiedWidth = width / gcdValue;
             int simplifiedHeight = height / gcdValue;
 
-            if(ImGui.InputText("Name", ref name, 256))
+            if (ImGui.InputText("Name", ref name, 256))
             {
                 vis.Rename(name);
             }
@@ -143,7 +151,7 @@ public class InspectorWindow : Singleton<InspectorWindow>, IWindow
             selectedScene.Value.AspectRatio = aspectRatio;
             selectedScene.Value.FrameRate = fps;
         }
-        
+
         public void DrawCastInspector()
         {
             /// Before you ask
@@ -157,7 +165,7 @@ public class InspectorWindow : Singleton<InspectorWindow>, IWindow
             string[] blendingStr = { "NRM", "ADD" };
             string[] filteringStr = { "NONE", "LINEAR" };
 
-            GenericUnknownBits unknownFlags = (GenericUnknownBits)selectedCast.Field2C;
+            CastPropertyMask unknownFlags = (CastPropertyMask)((BitSet<uint>)selectedCast.Field2C).Value;
             ElementMaterialFlags materialFlags = (ElementMaterialFlags)selectedCast.Field38;
             CastInfo info = selectedCast.Info;
             ElementInheritanceFlags inheritanceFlags = (ElementInheritanceFlags)selectedCast.InheritanceFlags.Value;
@@ -286,37 +294,69 @@ public class InspectorWindow : Singleton<InspectorWindow>, IWindow
                     ImGui.DragFloat("Kerning", ref kerning, 0.005f);
                 }
             }
-            if(ImGui.CollapsingHeader("Unknown"))
+            if (ImGui.CollapsingHeader("Unknown"))
             {
                 //if(ImGui.TreeNodeEx("Field2C"))
                 //{
-                    bool flag1Active = unknownFlags.HasFlag(GenericUnknownBits.Flag1);
-                    bool flag2Active = unknownFlags.HasFlag(GenericUnknownBits.Flag2);
-                    bool flag3Active = unknownFlags.HasFlag(GenericUnknownBits.Flag3);
-                    bool flag4Active = unknownFlags.HasFlag(GenericUnknownBits.Flag4);
-                    bool flag5Active = unknownFlags.HasFlag(GenericUnknownBits.Flag5);
-                    bool flag6Active = unknownFlags.HasFlag(GenericUnknownBits.Flag6);
-                    bool flag7Active = unknownFlags.HasFlag(GenericUnknownBits.Flag7);
-                    ImGui.Checkbox("Flag1", ref flag1Active);
-                    ImGui.Checkbox("Flag2", ref flag2Active);
-                    ImGui.Checkbox("Flag3", ref flag3Active);
-                    ImGui.Checkbox("Flag4", ref flag4Active);
-                    ImGui.Checkbox("Flag5", ref flag5Active);
-                    ImGui.Checkbox("Flag6", ref flag6Active);
-                    ImGui.Checkbox("Flag7", ref flag7Active);
-                    if(flag1Active)unknownFlags |= GenericUnknownBits.Flag1; else unknownFlags &= ~GenericUnknownBits.Flag1;
-                    if(flag2Active)unknownFlags |= GenericUnknownBits.Flag2; else unknownFlags &= ~GenericUnknownBits.Flag2;
-                    if(flag3Active)unknownFlags |= GenericUnknownBits.Flag3; else unknownFlags &= ~GenericUnknownBits.Flag3;
-                    if(flag4Active)unknownFlags |= GenericUnknownBits.Flag4; else unknownFlags &= ~GenericUnknownBits.Flag4;
-                    if(flag5Active)unknownFlags |= GenericUnknownBits.Flag5; else unknownFlags &= ~GenericUnknownBits.Flag5;
-                    if(flag6Active)unknownFlags |= GenericUnknownBits.Flag6; else unknownFlags &= ~GenericUnknownBits.Flag6;
-                    if(flag7Active)unknownFlags |= GenericUnknownBits.Flag7; else unknownFlags &= ~GenericUnknownBits.Flag7;
+                bool flag1Active = !unknownFlags.HasFlag(CastPropertyMask.ApplyTransform);
+                bool flag2Active = !unknownFlags.HasFlag(CastPropertyMask.ApplyTranslationX);
+                bool flag3Active = !unknownFlags.HasFlag(CastPropertyMask.ApplyTranslationY);
+                bool flag4Active = !unknownFlags.HasFlag(CastPropertyMask.ApplyRotation);
+                bool flag5Active = !unknownFlags.HasFlag(CastPropertyMask.ApplyScaleX);
+                bool flag6Active = !unknownFlags.HasFlag(CastPropertyMask.ApplyScaleY);
+                bool flag7Active = !unknownFlags.HasFlag(CastPropertyMask.Flag7);
+                bool flag8Active = !unknownFlags.HasFlag(CastPropertyMask.ApplyColor);
+                bool flag9Active = !unknownFlags.HasFlag(CastPropertyMask.ApplyColorTL);
+                bool flag10Active = !unknownFlags.HasFlag(CastPropertyMask.ApplyColorBL);
+                bool flag11Active = !unknownFlags.HasFlag(CastPropertyMask.ApplyColorTR);
+                bool flag12Active = !unknownFlags.HasFlag(CastPropertyMask.ApplyColorBR);
+                bool flag13Active = !unknownFlags.HasFlag(CastPropertyMask.Flag13);
+                bool flag14Active = !unknownFlags.HasFlag(CastPropertyMask.Flag14);
+                bool flag15Active = !unknownFlags.HasFlag(CastPropertyMask.Flag15);
+
+                ImGui.Checkbox("Ignore Transform", ref flag1Active);
+                if (flag1Active)
+                {
+                    ImGui.Indent();
+                    ImGui.Checkbox("Ignore Horizontal Translation", ref flag2Active);
+                    ImGui.Checkbox("Ignore Vertical Translation", ref flag3Active);
+                    ImGui.Unindent();
+                }
+                ImGui.Checkbox("Ignore Rotation", ref flag4Active);
+                ImGui.Checkbox("Ignore Horizontal Scale", ref flag5Active);
+                ImGui.Checkbox("Ignore Vertical Scale", ref flag6Active);
+                ImGui.Checkbox("Flag7", ref flag7Active);
+                ImGui.Checkbox("Ignore Color", ref flag8Active);
+                ImGui.Checkbox("Ignore Color TL", ref flag9Active);
+                ImGui.Checkbox("Ignore Color BL", ref flag10Active);
+                ImGui.Checkbox("Ignore Color TR", ref flag11Active);
+                ImGui.Checkbox("Ignore Color BR", ref flag12Active);
+                ImGui.Checkbox("Flag13", ref flag13Active);
+                ImGui.Checkbox("Flag14", ref flag14Active);
+                ImGui.Checkbox("Flag15", ref flag15Active);
+
+                if (!flag1Active) unknownFlags |= CastPropertyMask.ApplyTransform; else unknownFlags &= ~CastPropertyMask.ApplyTransform;
+                if (!flag2Active) unknownFlags |= CastPropertyMask.ApplyTranslationX; else unknownFlags &= ~CastPropertyMask.ApplyTranslationX;
+                if (!flag3Active) unknownFlags |= CastPropertyMask.ApplyTranslationY; else unknownFlags &= ~CastPropertyMask.ApplyTranslationY;
+                if (!flag4Active) unknownFlags |= CastPropertyMask.ApplyRotation; else unknownFlags &= ~CastPropertyMask.ApplyRotation;
+                if (!flag5Active) unknownFlags |= CastPropertyMask.ApplyScaleX; else unknownFlags &= ~CastPropertyMask.ApplyScaleX;
+                if (!flag6Active) unknownFlags |= CastPropertyMask.ApplyScaleY; else unknownFlags &= ~CastPropertyMask.ApplyScaleY;
+                if (!flag7Active) unknownFlags |= CastPropertyMask.Flag7; else unknownFlags &= ~CastPropertyMask.Flag7;
+                if (!flag8Active) unknownFlags |= CastPropertyMask.ApplyColor; else unknownFlags &= ~CastPropertyMask.ApplyColor;
+                if (!flag9Active) unknownFlags |= CastPropertyMask.ApplyColorTL; else unknownFlags &= ~CastPropertyMask.ApplyColorTL;
+                if (!flag10Active) unknownFlags |= CastPropertyMask.ApplyColorBL; else unknownFlags &= ~CastPropertyMask.ApplyColorBL;
+                if (!flag11Active) unknownFlags |= CastPropertyMask.ApplyColorTR; else unknownFlags &= ~CastPropertyMask.ApplyColorTR;
+                if (!flag12Active) unknownFlags |= CastPropertyMask.ApplyColorBR; else unknownFlags &= ~CastPropertyMask.ApplyColorBR;
+                if (!flag13Active) unknownFlags |= CastPropertyMask.Flag13; else unknownFlags &= ~CastPropertyMask.Flag13;
+                if (!flag14Active) unknownFlags |= CastPropertyMask.Flag14; else unknownFlags &= ~CastPropertyMask.Flag14;
+                if (!flag15Active) unknownFlags |= CastPropertyMask.Flag15; else unknownFlags &= ~CastPropertyMask.Flag15;
+
                 selectedCast.Field2C = (uint)unknownFlags;
                 //}
             }
             if (type != 0)
             {
-                                                                                                                    
+
                 if (ImGui.CollapsingHeader("Material", ImGuiTreeNodeFlags.DefaultOpen))
                 {
                     int blendingType = materialFlags.HasFlag(ElementMaterialFlags.AdditiveBlending) ? 1 : 0;
@@ -369,7 +409,7 @@ public class InspectorWindow : Singleton<InspectorWindow>, IWindow
                                     {
                                         isPressed = ImKunai.SpriteImageButton($"##pattern{i}", spriteReference);
                                     }
-                                    if(isPressed)
+                                    if (isPressed)
                                         spriteIndex = i;
 
                                 }
@@ -615,7 +655,7 @@ public class InspectorWindow : Singleton<InspectorWindow>, IWindow
                 returnValue = EAlignmentPivot.BottomCenter;
 
             if (topLeft == new Vector2(0, 0) && topRight == new Vector2(1, 0) && bottomLeft == new Vector2(0, 1) && bottomRight == new Vector2(1, 1))
-                returnValue =  EAlignmentPivot.BottomRight;
+                returnValue = EAlignmentPivot.BottomRight;
             return InvertPivot(returnValue);
         }
         private void AlignQuadTo(EAlignmentPivot in_AlignmentPosition, ref Cast in_Cast)

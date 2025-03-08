@@ -5,7 +5,8 @@
     },
     "Kunai Arguments Test": {
       "commandName": "Project",
-      "commandLineArgs": "\"G:\\Steam\\steamapps\\common\\Sonic Generations\\mods\\SecretRingsHUD\\disk\\bb\\SonicActionCommonHud\\GAME_INTERFACE.xncp\""
+      "commandLineArgs": "\"G:\\Steam\\steamapps\\common\\Sonic Generations\\mods\\SecretRingsHUD\\disk\\bb\\SonicActionCommonHud\\GAME_INTERFACE.xncp\"",
+      "nativeDebugging": true
     }
   }
 }

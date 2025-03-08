@@ -60,15 +60,26 @@ namespace Kunai.Window
                 {
                     var cursorpos2 = ImGui.GetCursorScreenPos();
                     var wndSize = ImGui.GetWindowSize();
-                    var vwPos = (wndSize - vwSize) * 0.5f;
-                    ImGui.SetCursorPos(vwPos);
+
+                    // Ensure viewport size correctly reflects the zoomed content
+                    var scaledSize = vwSize * ZoomFactor;
+                    var vwPos = (wndSize - scaledSize) * 0.5f;
+
+                    var fixedVwPos = new Vector2(Math.Max(0, vwPos.X), Math.Max(0, vwPos.Y));
+
+                    // Set scroll region to match full zoomed element
+                    ImGui.SetCursorPosX(fixedVwPos.X);
+                    ImGui.SetCursorPosY(fixedVwPos.Y);
+
+                    // Render the zoomed image
                     ImGui.Image(
-                        new ImTextureID(renderer.GetViewportImageHandle()), vwSize,
+                        new ImTextureID(renderer.GetViewportImageHandle()), scaledSize,
                         new Vector2(0, 1), new Vector2(1, 0));
 
-                    DrawQuadList(cursorpos2, windowPos, vwSize, vwPos);
+                    DrawQuadList(cursorpos2, windowPos, scaledSize, fixedVwPos);
                     ImKunai.EndListBoxCustom();
                 }
+
                 ImGui.End();
             }
         }

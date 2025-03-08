@@ -553,22 +553,7 @@ namespace Kunai.ShurikenRenderer
         private void UpdateCast(Scene in_Scene, Cast in_UiElement, CastTransform in_Transform, int in_Priority, float in_Time, SVisibilityData.SScene in_Vis)
         {
             float sprId = in_UiElement.Info.SpriteIndex;
-            SSpriteDrawData sSpriteDrawData = new SSpriteDrawData()
-            {
-                Hidden = in_UiElement.Info.HideFlag != 0,
-                Position = new Vector2(in_UiElement.Info.Translation.X, in_UiElement.Info.Translation.Y),
-                Rotation = in_UiElement.Info.Rotation,
-                Scale = new Vector2(in_UiElement.Info.Scale.X, in_UiElement.Info.Scale.Y),
-                Color = in_UiElement.Info.Color.ToVec4(),
-                GradientTopLeft = in_UiElement.Info.GradientTopLeft.ToVec4(),
-                GradientBottomLeft = in_UiElement.Info.GradientBottomLeft.ToVec4(),
-                GradientTopRight = in_UiElement.Info.GradientTopRight.ToVec4(),
-                GradientBottomRight = in_UiElement.Info.GradientBottomRight.ToVec4(),
-                ZIndex = (int)in_Scene.Priority + in_UiElement.Priority,
-                OriginCast = in_UiElement,
-                AspectRatio = in_Scene.AspectRatio,
-                Flags = (ElementMaterialFlags)in_UiElement.Field38
-            };
+            SSpriteDrawData sSpriteDrawData = new SSpriteDrawData(in_UiElement, in_Scene);
             float angle = in_Transform.Rotation * MathF.PI / 180.0f; //to radians
 
             ApplyAnimationValues(ref sSpriteDrawData, ref in_Vis, ref sprId, in_UiElement, in_Time);

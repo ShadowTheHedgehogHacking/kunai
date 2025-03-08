@@ -315,7 +315,7 @@ namespace Kunai.Window
                 bool flag15Active = !unknownFlags.HasFlag(CastPropertyMask.Flag15);
 
                 ImGui.Checkbox("Ignore Transform", ref flag1Active);
-                if (flag1Active)
+                if (!flag1Active)
                 {
                     ImGui.Indent();
                     ImGui.Checkbox("Ignore Horizontal Translation", ref flag2Active);

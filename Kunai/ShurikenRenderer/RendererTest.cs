@@ -16,6 +16,7 @@ namespace Shuriken.Rendering
     public struct SSpriteDrawData
     {
         public int ZIndex;
+        public bool Hidden;
         public bool OverrideUvCoords;
         public Vector2 TopLeft, BottomLeft, TopRight, BottomRight;
         public Vector2 Position;

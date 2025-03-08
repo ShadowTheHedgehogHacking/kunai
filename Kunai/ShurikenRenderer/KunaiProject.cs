@@ -458,26 +458,8 @@ namespace Kunai.ShurikenRenderer
             }
             in_Priority = idx++;
         }
-        private void UpdateCast(Scene in_Scene, Cast in_UiElement, CastTransform in_Transform, int in_Priority, float in_Time, SVisibilityData.SScene in_Vis)
+        private void ApplyAnimationValues(ref SSpriteDrawData in_SpriteDraw, ref SVisibilityData.SScene in_Vis, ref float out_SpriteIndex, Cast in_UiElement, float in_Time)
         {
-            bool hideFlag = in_UiElement.Info.HideFlag != 0;
-            float sprId = in_UiElement.Info.SpriteIndex;
-            SSpriteDrawData sSpriteDrawData = new SSpriteDrawData()
-            {
-                Position = new Vector2(in_UiElement.Info.Translation.X, in_UiElement.Info.Translation.Y),
-                Rotation = in_UiElement.Info.Rotation,
-                Scale = new Vector2(in_UiElement.Info.Scale.X, in_UiElement.Info.Scale.Y),
-                Color = in_UiElement.Info.Color.ToVec4(),
-                GradientTopLeft = in_UiElement.Info.GradientTopLeft.ToVec4(),
-                GradientBottomLeft = in_UiElement.Info.GradientBottomLeft.ToVec4(),
-                GradientTopRight = in_UiElement.Info.GradientTopRight.ToVec4(),
-                GradientBottomRight = in_UiElement.Info.GradientBottomRight.ToVec4(),
-                ZIndex = (int)in_Scene.Priority + in_UiElement.Priority,
-                OriginCast = in_UiElement,
-                AspectRatio = in_Scene.AspectRatio,
-                Flags = (ElementMaterialFlags)in_UiElement.Field38
-            };
-            float angle = in_Transform.Rotation * MathF.PI / 180.0f; //to radians
             //Redo this at some point
             foreach (var animation in in_Vis.Animation.Where(in_A => in_A.Active))
             {
@@ -492,57 +474,105 @@ namespace Kunai.ShurikenRenderer
                     switch (animationType)
                     {
                         case AnimationType.HideFlag:
-                            hideFlag = track.GetSingle(in_Time) != 0;
+                            in_SpriteDraw.Hidden = track.GetSingle(in_Time) != 0;
                             break;
 
                         case AnimationType.XPosition:
-                            sSpriteDrawData.Position.X = track.GetSingle(in_Time);
+                            in_SpriteDraw.Position.X = track.GetSingle(in_Time);
                             break;
 
                         case AnimationType.YPosition:
-                            sSpriteDrawData.Position.Y = track.GetSingle(in_Time);
+                            in_SpriteDraw.Position.Y = track.GetSingle(in_Time);
                             break;
 
                         case AnimationType.Rotation:
-                            sSpriteDrawData.Rotation = track.GetSingle(in_Time);
+                            in_SpriteDraw.Rotation = track.GetSingle(in_Time);
                             break;
 
                         case AnimationType.XScale:
-                            sSpriteDrawData.Scale.X = track.GetSingle(in_Time);
+                            in_SpriteDraw.Scale.X = track.GetSingle(in_Time);
                             break;
 
                         case AnimationType.YScale:
-                            sSpriteDrawData.Scale.Y = track.GetSingle(in_Time);
+                            in_SpriteDraw.Scale.Y = track.GetSingle(in_Time);
                             break;
 
                         case AnimationType.SubImage:
-                            sprId = track.GetSingle(in_Time);
+                            out_SpriteIndex = track.GetSingle(in_Time);
                             break;
 
                         case AnimationType.Color:
-                            sSpriteDrawData.Color = track.GetColor(in_Time);
+                            in_SpriteDraw.Color = track.GetColor(in_Time);
                             break;
 
                         case AnimationType.GradientTl:
-                            sSpriteDrawData.GradientTopLeft = track.GetColor(in_Time);
+                            in_SpriteDraw.GradientTopLeft = track.GetColor(in_Time);
                             break;
 
                         case AnimationType.GradientBl:
-                            sSpriteDrawData.GradientBottomLeft = track.GetColor(in_Time);
+                            in_SpriteDraw.GradientBottomLeft = track.GetColor(in_Time);
                             break;
 
                         case AnimationType.GradientTr:
-                            sSpriteDrawData.GradientTopRight = track.GetColor(in_Time);
+                            in_SpriteDraw.GradientTopRight = track.GetColor(in_Time);
                             break;
 
                         case AnimationType.GradientBr:
-                            sSpriteDrawData.GradientBottomRight = track.GetColor(in_Time);
+                            in_SpriteDraw.GradientBottomRight = track.GetColor(in_Time);
                             break;
                     }
                 }
             }
+        }
+        private void ApplyInheritance(ref SSpriteDrawData in_SpriteDraw, ElementInheritanceFlags in_Inheritance, CastTransform in_Transform)
+        {
+            // Inherit position
+            if (in_Inheritance.HasFlag(ElementInheritanceFlags.InheritXPosition))
+                in_SpriteDraw.Position.X += in_Transform.Position.X;
 
-            if (hideFlag)
+            if (in_Inheritance.HasFlag(ElementInheritanceFlags.InheritYPosition))
+                in_SpriteDraw.Position.Y += in_Transform.Position.Y;
+
+            // Inherit rotation
+            if (in_Inheritance.HasFlag(ElementInheritanceFlags.InheritRotation))
+                in_SpriteDraw.Rotation += in_Transform.Rotation;
+
+            // Inherit scale
+            if (in_Inheritance.HasFlag(ElementInheritanceFlags.InheritScaleX))
+                in_SpriteDraw.Scale.X *= in_Transform.Scale.X;
+
+            if (in_Inheritance.HasFlag(ElementInheritanceFlags.InheritScaleY))
+                in_SpriteDraw.Scale.Y *= in_Transform.Scale.Y;
+
+            // Inherit color
+            if (in_Inheritance.HasFlag(ElementInheritanceFlags.InheritColor))
+            {
+                in_SpriteDraw.Color *= in_Transform.Color;
+            }
+        }
+        private void UpdateCast(Scene in_Scene, Cast in_UiElement, CastTransform in_Transform, int in_Priority, float in_Time, SVisibilityData.SScene in_Vis)
+        {
+            float sprId = in_UiElement.Info.SpriteIndex;
+            SSpriteDrawData sSpriteDrawData = new SSpriteDrawData()
+            {
+                Hidden = in_UiElement.Info.HideFlag != 0,
+                Position = new Vector2(in_UiElement.Info.Translation.X, in_UiElement.Info.Translation.Y),
+                Rotation = in_UiElement.Info.Rotation,
+                Scale = new Vector2(in_UiElement.Info.Scale.X, in_UiElement.Info.Scale.Y),
+                Color = in_UiElement.Info.Color.ToVec4(),
+                GradientTopLeft = in_UiElement.Info.GradientTopLeft.ToVec4(),
+                GradientBottomLeft = in_UiElement.Info.GradientBottomLeft.ToVec4(),
+                GradientTopRight = in_UiElement.Info.GradientTopRight.ToVec4(),
+                GradientBottomRight = in_UiElement.Info.GradientBottomRight.ToVec4(),
+                ZIndex = (int)in_Scene.Priority + in_UiElement.Priority,
+                OriginCast = in_UiElement,
+                AspectRatio = in_Scene.AspectRatio,
+                Flags = (ElementMaterialFlags)in_UiElement.Field38
+            };
+            float angle = in_Transform.Rotation * MathF.PI / 180.0f; //to radians
+
+            ApplyAnimationValues(ref sSpriteDrawData, ref in_Vis, ref sprId, in_UiElement, in_Time);
+            if (sSpriteDrawData.Hidden)
                 return;
 
             var visibilityDataCast = in_Vis.GetVisibility(in_UiElement);
@@ -564,30 +594,8 @@ namespace Kunai.ShurikenRenderer
             sSpriteDrawData.Position.Y = rotatedY;
 
             sSpriteDrawData.Position += in_UiElement.Origin;
-            var inheritanceFlags = (ElementInheritanceFlags)in_UiElement.InheritanceFlags.Value;
-            // Inherit position
-            if (inheritanceFlags.HasFlag(ElementInheritanceFlags.InheritXPosition))
-                sSpriteDrawData.Position.X += in_Transform.Position.X;
-
-            if (inheritanceFlags.HasFlag(ElementInheritanceFlags.InheritYPosition))
-                sSpriteDrawData.Position.Y += in_Transform.Position.Y;
-
-            // Inherit rotation
-            if (inheritanceFlags.HasFlag(ElementInheritanceFlags.InheritRotation))
-                sSpriteDrawData.Rotation += in_Transform.Rotation;
-
-            // Inherit scale
-            if (inheritanceFlags.HasFlag(ElementInheritanceFlags.InheritScaleX))
-                sSpriteDrawData.Scale.X *= in_Transform.Scale.X;
-
-            if (inheritanceFlags.HasFlag(ElementInheritanceFlags.InheritScaleY))
-                sSpriteDrawData.Scale.Y *= in_Transform.Scale.Y;
-
-            // Inherit color
-            if (inheritanceFlags.HasFlag(ElementInheritanceFlags.InheritColor))
-            {
-                sSpriteDrawData.Color *= in_Transform.Color;
-            }
+            ApplyInheritance(ref sSpriteDrawData, (ElementInheritanceFlags)in_UiElement.InheritanceFlags.Value, in_Transform);
+            ApplyPropertyMask(ref sSpriteDrawData, (CastPropertyMask)in_UiElement.Field2C);
             var type = (DrawType)in_UiElement.Field04;
             var flags = (ElementMaterialFlags)in_UiElement.Field38;
 
@@ -658,6 +666,45 @@ namespace Kunai.ShurikenRenderer
                     UpdateCast(in_Scene, child, childTransform, in_Priority++, in_Time, in_Vis);
             }
 
+        }
+
+        private void ApplyPropertyMask(ref SSpriteDrawData sSpriteDrawData, CastPropertyMask field2C)
+        {
+            if(!field2C.HasFlag(CastPropertyMask.ApplyTransform))
+            {
+                sSpriteDrawData.Position = Vector2.Zero;
+            }
+            else
+            {
+                if (!field2C.HasFlag(CastPropertyMask.ApplyTranslationX))
+                    sSpriteDrawData.Position.X = 0;
+
+                if (!field2C.HasFlag(CastPropertyMask.ApplyTranslationY))
+                    sSpriteDrawData.Position.Y = 0;
+            }
+            if (!field2C.HasFlag(CastPropertyMask.ApplyRotation))
+                sSpriteDrawData.Rotation = 0;
+
+            if (!field2C.HasFlag(CastPropertyMask.ApplyScaleX))
+                sSpriteDrawData.Scale.X = 1;
+
+            if (!field2C.HasFlag(CastPropertyMask.ApplyScaleY))
+                sSpriteDrawData.Scale.Y = 1;
+
+            if (!field2C.HasFlag(CastPropertyMask.ApplyColor))
+                sSpriteDrawData.Color = new Vector4(1, 1, 1, 1);
+
+            if (!field2C.HasFlag(CastPropertyMask.ApplyColorBL))
+                sSpriteDrawData.GradientBottomLeft = new Vector4(1, 1, 1, 1);
+
+            if (!field2C.HasFlag(CastPropertyMask.ApplyColorBR))
+                sSpriteDrawData.GradientBottomRight = new Vector4(1, 1, 1, 1);
+
+            if (!field2C.HasFlag(CastPropertyMask.ApplyColorTL))
+                sSpriteDrawData.GradientTopLeft = new Vector4(1, 1, 1, 1);
+
+            if (!field2C.HasFlag(CastPropertyMask.ApplyColorTR))
+                sSpriteDrawData.GradientTopRight = new Vector4(1, 1, 1, 1);
         }
 
         public int GetViewportImageHandle()

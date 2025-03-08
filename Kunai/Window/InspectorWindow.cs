@@ -294,7 +294,7 @@ namespace Kunai.Window
                     ImGui.DragFloat("Kerning", ref kerning, 0.005f);
                 }
             }
-            if (ImGui.CollapsingHeader("Unknown"))
+            if (ImGui.CollapsingHeader("Property Mask", ImGuiTreeNodeFlags.DefaultOpen))
             {
                 //if(ImGui.TreeNodeEx("Field2C"))
                 //{

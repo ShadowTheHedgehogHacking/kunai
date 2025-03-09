@@ -33,7 +33,6 @@ namespace Kunai.Window
                 if (windowHovered)
                     ZoomFactor += ImGui.GetIO().MouseWheel / 5;
                 ZoomFactor = Math.Clamp(ZoomFactor, 0.5f, 5);
-                float windowHeight = ImGui.GetWindowWidth() * (renderer.ViewportSize.Y / renderer.ViewportSize.X);
 
                 ImKunai.TextFontAwesome(FontAwesome6.MagnifyingGlass);
                 ImGui.SameLine();
@@ -51,40 +50,41 @@ namespace Kunai.Window
                     else
                         renderer.ViewportSize = new Vector2(640, 480);
                 }
-                var vwSize = new Vector2(ImGui.GetWindowWidth(), windowHeight) * ZoomFactor;
-
                 if (renderer.WorkProjectCsd == null)
                     ImGui.Text("Open a XNCP, YNCP, GNCP or SNCP file to edit it.");
 
-                if (ImKunai.BeginListBoxCustom("##list", new Vector2(-1, -1)))
-                {
-                    var cursorpos2 = ImGui.GetCursorScreenPos();
-                    var wndSize = ImGui.GetWindowSize();
-
-                    // Ensure viewport size correctly reflects the zoomed content
-                    var scaledSize = vwSize * ZoomFactor;
-                    var vwPos = (wndSize - scaledSize) * 0.5f;
-
-                    var fixedVwPos = new Vector2(Math.Max(0, vwPos.X), Math.Max(0, vwPos.Y));
-
-                    // Set scroll region to match full zoomed element
-                    ImGui.SetCursorPosX(fixedVwPos.X);
-                    ImGui.SetCursorPosY(fixedVwPos.Y);
-
-                    // Render the zoomed image
-                    ImGui.Image(
-                        new ImTextureID(renderer.GetViewportImageHandle()), scaledSize,
-                        new Vector2(0, 1), new Vector2(1, 0));
-
-                    DrawQuadList(cursorpos2, windowPos, scaledSize, fixedVwPos);
-                    ImKunai.EndListBoxCustom();
-                }
+                ImKunai.CenteredZoomableImage("##viewportcenter", new Vector2(-1, -1), renderer.ViewportSize.Y / renderer.ViewportSize.X, ZoomFactor, new ImTextureID(renderer.GetViewportImageHandle()), DrawQuadList);
+                //var vwSize = new Vector2(ImGui.GetWindowWidth(), windowHeight) * ZoomFactor;
+                //
+                //if (ImKunai.BeginListBoxCustom("##list", new Vector2(-1, -1)))
+                //{
+                //    var cursorpos2 = ImGui.GetCursorScreenPos();
+                //    var wndSize = ImGui.GetWindowSize();
+                //
+                //    // Ensure viewport size correctly reflects the zoomed content
+                //    var scaledSize = vwSize * ZoomFactor;
+                //    var vwPos = (wndSize - scaledSize) * 0.5f;
+                //
+                //    var fixedVwPos = new Vector2(Math.Max(0, vwPos.X), Math.Max(0, vwPos.Y));
+                //
+                //    // Set scroll region to match full zoomed element
+                //    ImGui.SetCursorPosX(fixedVwPos.X);
+                //    ImGui.SetCursorPosY(fixedVwPos.Y);
+                //
+                //    // Render the zoomed image
+                //    ImGui.Image(
+                //        , scaledSize,
+                //        new Vector2(0, 1), new Vector2(1, 0));
+                //
+                //    DrawQuadList(cursorpos2, windowPos, scaledSize, fixedVwPos);
+                //    ImKunai.EndListBoxCustom();
+                //}
 
                 ImGui.End();
             }
         }
 
-        private void DrawQuadList(Vector2 in_CursorPos2, Vector2 in_WindowPos, Vector2 in_ViewSize, Vector2 in_ViewPos)
+        private void DrawQuadList(SCenteredImageData in_Data)
         {
             bool PointInQuad(Vector2 in_P, Vector2 in_P1, Vector2 in_P2, Vector2 in_P3, Vector2 in_P4)
             {
@@ -105,7 +105,7 @@ namespace Kunai.Window
             }
             var renderer = KunaiProject.Instance;
             var cursorpos = ImGui.GetItemRectMin();
-            Vector2 screenPos = in_CursorPos2 + in_ViewPos - new Vector2(3, 2);
+            Vector2 screenPos = in_Data.Position + in_Data.ImagePosition - new Vector2(3, 2);
 
             List<Cast> possibleSelections = new List<Cast>();
 
@@ -116,11 +116,11 @@ namespace Kunai.Window
                 var qBotRight = quad.BottomRight.Position;
                 var qTopRight = quad.TopRight.Position;
                 var qBotLeft = quad.BottomLeft.Position;
-
-                Vector2 pTopLeft = screenPos + new Vector2(qTopLeft.X * in_ViewSize.X, qTopLeft.Y * in_ViewSize.Y);
-                Vector2 pBotRight = screenPos + new Vector2(qBotRight.X * in_ViewSize.X, qBotRight.Y * in_ViewSize.Y);
-                Vector2 pTopRight = screenPos + new Vector2(qTopRight.X * in_ViewSize.X, qTopRight.Y * in_ViewSize.Y);
-                Vector2 pBotLeft = screenPos + new Vector2(qBotLeft.X * in_ViewSize.X, qBotLeft.Y * in_ViewSize.Y);
+                var viewSize = in_Data.ImageSize;
+                Vector2 pTopLeft = screenPos + new Vector2(qTopLeft.X * viewSize.X, qTopLeft.Y * viewSize.Y);
+                Vector2 pBotRight = screenPos + new Vector2(qBotRight.X * viewSize.X, qBotRight.Y * viewSize.Y);
+                Vector2 pTopRight = screenPos + new Vector2(qTopRight.X * viewSize.X, qTopRight.Y * viewSize.Y);
+                Vector2 pBotLeft = screenPos + new Vector2(qBotLeft.X * viewSize.X, qBotLeft.Y * viewSize.Y);
 
                 Vector2 mousePos = ImGui.GetMousePos();
                 var cast = quad.OriginalData.OriginCast;

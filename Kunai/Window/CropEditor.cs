@@ -60,7 +60,7 @@ namespace Kunai.Window
                             }
                         }
                     }
-                    var size1 = ImGui.GetWindowSize().X / 4;
+                    var size1 = ImGui.GetWindowSize().X / 3;
 
                     ImGui.Checkbox("Show all crops on texture", ref m_ShowAllCoords);
                     ImGui.Separator();
@@ -89,24 +89,25 @@ namespace Kunai.Window
                     //Texture BG
                     ImGui.AddRectFilled(drawlist, viewportPos, viewportPos + imageSize, ImGui.ColorConvertFloat4ToU32(new Vector4(70 / 255.0f, 70 / 255.0f, 70 / 255.0f, 255)));
 
-                    //Actual texture image
-                    if (SpriteHelper.Textures[m_SelectedIndex].GlTex != null)
-                        ImGui.Image(new ImTextureID(SpriteHelper.Textures[m_SelectedIndex].GlTex.Id), imageSize, new System.Numerics.Vector2(0, 1), new System.Numerics.Vector2(1, 0));
+                    ImKunai.CenteredZoomableImage("##cropEdit", new Vector2(size1, -1), SpriteHelper.Textures[m_SelectedIndex].Size.Y / SpriteHelper.Textures[m_SelectedIndex].Size.X, ZoomFactor, new ImTextureID(SpriteHelper.Textures[m_SelectedIndex].GlTex.Id));
+                    ////Actual texture image
+                    //if (SpriteHelper.Textures[m_SelectedIndex].GlTex != null)
+                    //    ImGui.Image(, imageSize, new System.Numerics.Vector2(0, 1), new System.Numerics.Vector2(1, 0));
 
-                    //Show selection boxes for all crops
-                    if (m_ShowAllCoords)
-                    {
-                        foreach (var t in SpriteHelper.Textures[m_SelectedIndex].Sprites)
-                            DrawCropBox(drawlist, viewportPos, imageSize, SpriteHelper.Sprites[t], new Vector4(150, 0, 0, 150), t - 1);
-
-                        var spr = SpriteHelper.Sprites[SpriteHelper.Textures[m_SelectedIndex].Sprites[m_SelectedSpriteIndex]];
-                        DrawCropBox(drawlist, viewportPos, imageSize, spr, new Vector4(200, 200, 200, 200), m_SelectedSpriteIndex);
-                    }
-                    else
-                    {
-                        var spr = SpriteHelper.Sprites[SpriteHelper.Textures[m_SelectedIndex].Sprites[m_SelectedSpriteIndex]];
-                        DrawCropBox(drawlist, viewportPos, imageSize, spr, new Vector4(200, 200, 200, 200), m_SelectedSpriteIndex);
-                    }
+                    ////Show selection boxes for all crops
+                    //if (m_ShowAllCoords)
+                    //{
+                    //    foreach (var t in SpriteHelper.Textures[m_SelectedIndex].Sprites)
+                    //        DrawCropBox(drawlist, viewportPos, imageSize, SpriteHelper.Sprites[t], new Vector4(150, 0, 0, 150), t - 1);
+                    //
+                    //    var spr = SpriteHelper.Sprites[SpriteHelper.Textures[m_SelectedIndex].Sprites[m_SelectedSpriteIndex]];
+                    //    DrawCropBox(drawlist, viewportPos, imageSize, spr, new Vector4(200, 200, 200, 200), m_SelectedSpriteIndex);
+                    //}
+                    //else
+                    //{
+                    //    var spr = SpriteHelper.Sprites[SpriteHelper.Textures[m_SelectedIndex].Sprites[m_SelectedSpriteIndex]];
+                    //    DrawCropBox(drawlist, viewportPos, imageSize, spr, new Vector4(200, 200, 200, 200), m_SelectedSpriteIndex);
+                    //}
                     ImGui.SameLine();
                     if (ImGui.BeginListBox("##texturelist2", new System.Numerics.Vector2(size1, -1)))
                         {

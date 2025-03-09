@@ -32,6 +32,21 @@ namespace Kunai.Window
             return SpriteHelper.Textures[TextureIndex].Sprites[SpriteIndex] - 1;
         }
     }
+    public struct SCenteredImageData
+    {
+        public Vector2 Position;
+        public Vector2 WindowPosition;
+        public Vector2 ImageSize;
+        public Vector2 ImagePosition;
+
+        public SCenteredImageData(Vector2 cursorPos2, Vector2 windowPos, Vector2 scaledViewportSize, Vector2 fixedViewportPosition)
+        {
+            Position = cursorPos2;
+            WindowPosition = windowPos;
+            ImageSize = scaledViewportSize;
+            ImagePosition = fixedViewportPosition;
+        }
+    } 
     public static class ImKunai
     {
         public struct SIconData
@@ -269,19 +284,33 @@ namespace Kunai.Window
             ImGui.EndChild();
         }
 
-        public static void CenteredZoomableImage(string in_Label, Vector2 in_Size, float in_WindowHeight, float in_ZoomFactor, ImTextureID in_Texture)
+        public static void CenteredZoomableImage(string in_Label, Vector2 in_Size, float in_ImageAspect, float in_Zoom, ImTextureID in_Texture, Action<SCenteredImageData> in_QuadDraw = null)
         {
-            if (ImKunai.BeginListBoxCustom(in_Label, new Vector2(-1, -1)))
+            float desiredSize = in_Size.X == -1 ? ImGui.GetContentRegionAvail().X : in_Size.X;
+            var vwSize = new Vector2(desiredSize, desiredSize * in_ImageAspect);
+
+            if (BeginListBoxCustom(in_Label, in_Size))
             {
-                var vwSize = new Vector2(ImGui.GetWindowWidth(), in_WindowHeight) * in_ZoomFactor;
-                var cursorpos2 = ImGui.GetCursorScreenPos();
+                Vector2 cursorpos2 = ImGui.GetCursorScreenPos();
                 var wndSize = ImGui.GetWindowSize();
-                var vwPos = (wndSize - vwSize) * 0.5f;
-                ImGui.SetCursorPos(vwPos);
-                ImGui.Image(in_Texture
-                    , vwSize,
+
+                // Ensure viewport size correctly reflects the zoomed content
+                var scaledSize = vwSize * in_Zoom;
+                var vwPos = (wndSize - scaledSize) * 0.5f;
+
+                var fixedVwPos = new Vector2(Math.Max(0, vwPos.X), Math.Max(0, vwPos.Y));
+
+                // Set scroll region to match full zoomed element
+                ImGui.SetCursorPosX(fixedVwPos.X);
+                ImGui.SetCursorPosY(fixedVwPos.Y);
+
+                // Render the zoomed image
+                ImGui.Image(
+                    in_Texture, scaledSize,
                     new Vector2(0, 1), new Vector2(1, 0));
-                ImKunai.EndListBoxCustom();
+                in_QuadDraw?.Invoke(new SCenteredImageData(cursorpos2, ImGui.GetWindowPos(), scaledSize, fixedVwPos));
+                //DrawQuadList(cursorpos2, windowPos, scaledSize, fixedVwPos);
+                EndListBoxCustom();
             }
         }
 

@@ -3,8 +3,10 @@ using HekonrayBase.Base;
 using Hexa.NET.ImGui;
 using Kunai.ShurikenRenderer;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace Kunai.Window
@@ -158,6 +160,29 @@ namespace Kunai.Window
                         SettingsWindow.Enabled = !SettingsWindow.Enabled;
                     }
 
+                    ImGui.EndMenu();
+                }
+                if (ImGui.BeginMenu("Tools"))
+                {
+                    if (ImGui.MenuItem("Scan folder for textures"))
+                    {
+                        var e = NativeFileDialogSharp.Dialog.FolderPicker("");
+                        if (e.IsOk)
+                        {
+                            var files = Directory.EnumerateFiles(e.Path, "*.*", SearchOption.AllDirectories).ToList();
+                            var textureNames = new HashSet<string>(SpriteHelper.Textures.Select(t => t.Name));
+
+                            foreach (string file in files)
+                            {
+                                if (textureNames.Any(file.Contains))
+                                {
+                                    string newPath = Path.Combine(Directory.GetParent(renderer.Config.WorkFilePath).FullName, Path.GetFileName(file));
+                                    if (!File.Exists(newPath))
+                                        File.Copy(file, newPath);
+                                }
+                            }
+                        }
+                    }
                     ImGui.EndMenu();
                 }
                 if (ImGui.BeginMenu("View"))

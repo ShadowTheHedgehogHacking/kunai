@@ -377,7 +377,7 @@ namespace Kunai.Window
                     ImGui.InputInt("Selected Sprite", ref spriteIndex);
                     spriteIndex = Math.Clamp(spriteIndex, -1, 32); //can go over 32 for scu
 
-                    if (ImKunai.BeginListBoxCustom("##listpatterns", new System.Numerics.Vector2(ImGui.GetContentRegionAvail().X, 160)))
+                    if (ImKunai.BeginListBoxCustom("##listpatterns", new Vector2(ImGui.GetContentRegionAvail().X, 160)))
                     {
                         //Draw Pattern selector
                         for (int i = 0; i < selectedCast.SpriteIndices.Length; i++)

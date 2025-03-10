@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HekonrayBase.Base;
 using HekonrayBase;
+using Kunai;
 namespace Kunai.Window
 {
     public class ViewportWindow : Singleton<ViewportWindow>, IWindow
@@ -53,7 +54,7 @@ namespace Kunai.Window
                 if (renderer.WorkProjectCsd == null)
                     ImGui.Text("Open a XNCP, YNCP, GNCP or SNCP file to edit it.");
 
-                ImKunai.CenteredZoomableImage("##viewportcenter", new Vector2(-1, -1), renderer.ViewportSize.Y / renderer.ViewportSize.X, ZoomFactor, new ImTextureID(renderer.GetViewportImageHandle()), DrawQuadList);
+                ImKunai.ImageViewport("##viewportcenter", new Vector2(-1, -1), renderer.ViewportSize.Y / renderer.ViewportSize.X, ZoomFactor, new ImTextureID(renderer.GetViewportImageHandle()), DrawQuadList);
                 //var vwSize = new Vector2(ImGui.GetWindowWidth(), windowHeight) * ZoomFactor;
                 //
                 //if (ImKunai.BeginListBoxCustom("##list", new Vector2(-1, -1)))
@@ -86,23 +87,6 @@ namespace Kunai.Window
 
         private void DrawQuadList(SCenteredImageData in_Data)
         {
-            bool PointInQuad(Vector2 in_P, Vector2 in_P1, Vector2 in_P2, Vector2 in_P3, Vector2 in_P4)
-            {
-                bool SameSide(Vector2 in_A, Vector2 in_B, Vector2 in_C, Vector2 in_P)
-                {
-                    Vector2 ab = in_B - in_A;
-                    Vector2 ac = in_C - in_A;
-                    Vector2 ap = in_P - in_A;
-
-                    float cross1 = ab.X * ac.Y - ab.Y * ac.X;
-                    float cross2 = ab.X * ap.Y - ab.Y * ap.X;
-
-                    return Math.Sign(cross1) == Math.Sign(cross2);
-                }
-
-                return SameSide(in_P1, in_P2, in_P3, in_P) && SameSide(in_P2, in_P3, in_P4, in_P) &&
-                       SameSide(in_P3, in_P4, in_P1, in_P) && SameSide(in_P4, in_P1, in_P2, in_P);
-            }
             var renderer = KunaiProject.Instance;
             var cursorpos = ImGui.GetItemRectMin();
             Vector2 screenPos = in_Data.Position + in_Data.ImagePosition - new Vector2(3, 2);
@@ -130,7 +114,7 @@ namespace Kunai.Window
                 //Check if the mouse is inside the quad
                 if (ImGui.IsWindowHovered(ImGuiHoveredFlags.ChildWindows))
                 {
-                    if (PointInQuad(mousePos, pTopLeft, pTopRight, pBotRight, pBotLeft))
+                    if (KunaiMath.IsPointInRect(mousePos, pTopLeft, pTopRight, pBotRight, pBotLeft))
                     {
                         //Add selection box
                         ImGui.GetWindowDrawList().AddQuad(pTopLeft, pTopRight, pBotRight, pBotLeft, ImGui.ColorConvertFloat4ToU32(new Vector4(1, 0.3f, 0, 0.3f)), 3);

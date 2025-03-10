@@ -46,7 +46,7 @@ namespace Kunai.Window
             ImageSize = scaledViewportSize;
             ImagePosition = fixedViewportPosition;
         }
-    } 
+    }
     public static class ImKunai
     {
         public struct SIconData
@@ -75,22 +75,19 @@ namespace Kunai.Window
             int selectedIndex = -2;
             int selectedSpriteIndex = -2;
             int idx = 0;
-            foreach (var t in in_Renderer.WorkProjectCsd.Textures)
+            foreach (var texture in in_Renderer.WorkProjectCsd.Textures)
             {
-                if (ImGui.TreeNode(t.Name))
+                if (ImGui.CollapsingHeader(texture.Name))
                 {
-                    if(in_EditMode)
-                    {
-                        if (ImGui.Button("+"))
-                        {
-                            SpriteHelper.Textures[idx].Sprites.Add(SpriteHelper.CreateSprite(SpriteHelper.Textures[idx]));
-                        }
-                    }
+                    if (in_EditMode)
+                        ImGui.Indent();
                     int idx2 = 0;
-                    foreach (var s in SpriteHelper.Textures[idx].Sprites)
+                    var spritesList = SpriteHelper.Textures[idx].Sprites;
+                    for (int i = 0; i < spritesList.Count; i++)
                     {
-                        Shuriken.Rendering.Sprite spr = SpriteHelper.Sprites[s];
-
+                        int spriteIdx = spritesList[i];
+                        Shuriken.Rendering.Sprite spr = SpriteHelper.Sprites[spriteIdx];
+                        ImGui.BeginGroup();
                         if (spr != null)
                         {
                             if (spr.Texture.GlTex == null)
@@ -99,7 +96,7 @@ namespace Kunai.Window
                             }
                             else
                             {
-                                if (ImKunai.SpriteImageButton($"##crop{idx2}", spr))
+                                if (ImKunai.SpriteImageButton($"##{texture.Name}_crop{idx2}", spr))
                                 {
                                     selectedIndex = idx;
                                     selectedSpriteIndex = idx2;
@@ -110,27 +107,49 @@ namespace Kunai.Window
                         {
                             ImKunai.EmptyTextureButton(idx2);
                         }
+                        if (in_EditMode)
+                        {
+                            if (ImGui.BeginPopupContextItem())
+                            {
+                                if (ImGui.MenuItem("Add"))
+                                {
+                                    SpriteHelper.Textures[idx].Sprites.Add(SpriteHelper.CreateSprite(SpriteHelper.Textures[idx]));
+                                }
+                                ImGui.BeginDisabled(spritesList.Count <= 1);
+                                if (ImGui.MenuItem("Delete"))
+                                {
+                                    SpriteHelper.DeleteSprite(spriteIdx);
+                                    SpriteHelper.Textures[idx].Sprites.Remove(spriteIdx);
+                                }
+                                ImGui.EndDisabled();
+                                ImGui.EndPopup();
+                            }
+                        }
                         ImGui.SameLine();
+                        ImGui.PushID($"##{texture.Name}_crop{idx2}txt");
                         ImGui.Text($"Crop ({idx2})");
+                        ImGui.PopID();
+                        ImGui.EndGroup();
+                        
                         idx2++;
                     }
+                    if (in_EditMode)
+                        ImGui.Unindent();
 
-                    ImGui.TreePop();
                 }
                 idx++;
             }
             return new STextureSelectorResult(selectedIndex, selectedSpriteIndex);
         }
-        public static unsafe bool SpriteImageButton(string in_Id, Shuriken.Rendering.Sprite in_Spr)
+        public static unsafe bool SpriteImageButton(string in_Id, Shuriken.Rendering.Sprite in_Spr, Vector2 in_Size = default)
         {
             //This is so stupid, this is how youre supposed to do it according to the HexaNET issues
             unsafe
             {
-
                 var name = Marshal.StringToHGlobalAnsi($"##{in_Id}");
                 var uvCoords = in_Spr.GetImGuiUv();
                 //Draw sprite
-                return ImGui.ImageButton((byte*)name, new ImTextureID(in_Spr.Texture.GlTex.Id), new System.Numerics.Vector2(50, 50), uvCoords[0], uvCoords[1]);
+                return ImGui.ImageButton((byte*)name, new ImTextureID(in_Spr.Texture.GlTex.Id), in_Size == Vector2.Zero ? new System.Numerics.Vector2(50, 50) : in_Size, uvCoords[0], uvCoords[1]);
             }
         }
         public static bool EmptyTextureButton(int in_Id)
@@ -284,7 +303,7 @@ namespace Kunai.Window
             ImGui.EndChild();
         }
 
-        public static void CenteredZoomableImage(string in_Label, Vector2 in_Size, float in_ImageAspect, float in_Zoom, ImTextureID in_Texture, Action<SCenteredImageData> in_QuadDraw = null)
+        public static void ImageViewport(string in_Label, Vector2 in_Size, float in_ImageAspect, float in_Zoom, ImTextureID in_Texture, Action<SCenteredImageData> in_QuadDraw = null, Vector4 in_BackgroundColor = default)
         {
             float desiredSize = in_Size.X == -1 ? ImGui.GetContentRegionAvail().X : in_Size.X;
             var vwSize = new Vector2(desiredSize, desiredSize * in_ImageAspect);
@@ -304,6 +323,11 @@ namespace Kunai.Window
                 ImGui.SetCursorPosX(fixedVwPos.X);
                 ImGui.SetCursorPosY(fixedVwPos.Y);
 
+                if(in_BackgroundColor != Vector4.Zero)
+                {
+                    ImGui.AddRectFilled(ImGui.GetWindowDrawList(), ImGui.GetWindowPos() + fixedVwPos, ImGui.GetWindowPos() + fixedVwPos + scaledSize, ImGui.ColorConvertFloat4ToU32(in_BackgroundColor));
+
+                }
                 // Render the zoomed image
                 ImGui.Image(
                     in_Texture, scaledSize,

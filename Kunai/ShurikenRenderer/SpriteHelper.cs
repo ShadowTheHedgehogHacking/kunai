@@ -136,6 +136,20 @@ namespace Kunai.ShurikenRenderer
             Sprite spr = new Sprite(in_Tex, in_Top, in_Left, in_Bottom, in_Right);
             return AppendSprite(spr);
         }
+        public static void DeleteSprite(int in_SprIndex)
+        {
+            Sprites.Remove(in_SprIndex);
+            ms_NextSpriteId--;
+        }
+        public static int CreateSprite(Texture in_Tex, Vector2 start, Vector2 dimensions)
+        {
+            float in_Left = MathF.Max(0.0f, MathF.Min(1.0f, start.X));
+            float in_Top = MathF.Max(0.0f, MathF.Min(1.0f, start.Y));
+
+            float in_Right = MathF.Max(0.0f, MathF.Min(1.0f, start.X + dimensions.X));
+            float in_Bottom = MathF.Max(0.0f, MathF.Min(1.0f, start.Y + dimensions.Y));
+            return CreateSprite(in_Tex, in_Top, in_Left, in_Bottom, in_Right);
+        }
 
         public static void RecurFindFirstTextureListFromFile(SceneNode in_Node)
         {

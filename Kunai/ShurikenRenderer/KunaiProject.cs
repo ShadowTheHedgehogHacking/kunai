@@ -11,7 +11,6 @@ using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.Desktop;
 using SharpNeedle.Framework.Ninja;
 using SharpNeedle.Framework.Ninja.Csd;
-using SharpNeedle.Framework.Ninja.Csd.Motions;
 using SharpNeedle.IO;
 using SharpNeedle.Resource;
 using SharpNeedle.Utilities;
@@ -34,29 +33,8 @@ using PixelFormat = OpenTK.Graphics.OpenGL.PixelFormat;
 namespace Kunai.ShurikenRenderer
 {
 
-    public class KunaiProject : Singleton<KunaiProject>, IProgramProject
+    public partial class KunaiProject : Singleton<KunaiProject>, IProgramProject
     {
-        public struct SViewportData
-        {
-            public int CsdRenderTextureHandle;
-            public OpenTK.Mathematics.Vector2i FramebufferSize;
-            public int RenderbufferHandle;
-            public int FramebufferHandle;
-        }
-        public struct SProjectConfig
-        {
-            public string WorkFilePath;
-            public bool PlayingAnimations;
-            public bool ShowQuads;
-            public double Time;
-        }
-        public struct SSelectionData
-        {
-            public KeyFrameList TrackAnimation;
-            public KeyFrame KeyframeSelected;
-            public Cast SelectedCast;
-            public KeyValuePair<string, Scene> SelectedScene;
-        }
         public Renderer Renderer;
         public Vector2 ViewportSize;
         public Vector2 ScreenSize;
@@ -66,7 +44,7 @@ namespace Kunai.ShurikenRenderer
         public SProjectConfig Config;
         private SViewportData _viewportData;
         private HekonrayWindow _window;
-        private int _currentDrawPriority;
+        public SReferenceImageData referenceImageData;
         public List<WindowBase> Windows = new List<WindowBase>();
         bool m_SaveScreenshotWhenRendered = false;
         public Vector3 ViewportColor
@@ -86,6 +64,7 @@ namespace Kunai.ShurikenRenderer
                 SettingsManager.SetFloat("ViewColor_Z", value.Z);
             }
         }
+
 
         public KunaiProject()
         {
@@ -109,6 +88,15 @@ namespace Kunai.ShurikenRenderer
                 System.Windows.MessageBox.Show(in_Message, in_Title, System.Windows.MessageBoxButton.OK, in_IsWarning ? System.Windows.MessageBoxImage.Warning : System.Windows.MessageBoxImage.Information);
             }
         }
+
+
+        public void LoadReferenceImage(string in_Path)
+        {
+            referenceImageData.texture = new Texture(in_Path);
+            referenceImageData.sprite = new KunaiSprite(referenceImageData.texture);
+            referenceImageData.enabled = true;
+        }
+
         public void LoadFile(string in_Path)
         {
             try
@@ -425,6 +413,10 @@ namespace Kunai.ShurikenRenderer
             if (Config.PlayingAnimations)
                 Config.Time += in_DeltaTime;
 
+            if(referenceImageData.enabled)
+            {
+                Renderer.DrawFullscreenQuad(referenceImageData.sprite, referenceImageData.opacity);
+            }
 
             RenderNode(in_CsdProject.Project.Root, Config.Time);
             foreach (KeyValuePair<string, SceneNode> node in in_CsdProject.Project.Root.Children)

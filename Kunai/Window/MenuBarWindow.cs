@@ -17,22 +17,7 @@ namespace Kunai.Window
         private static readonly string FiltersOpen = "xncp,yncp,gncp,sncp";
         private static readonly string Filters = "xncp;yncp;gncp;sncp";
 
-        public static string AddQuotesIfRequired(string in_Path)
-        {
-            return !string.IsNullOrWhiteSpace(in_Path) ?
-                in_Path.Contains(" ") && (!in_Path.StartsWith("\"") && !in_Path.EndsWith("\"")) ?
-                    "\"" + in_Path + "\"" : in_Path :
-                    string.Empty;
-        }
-        public static void ExecuteAsAdmin(string in_FileName)
-        {
-            in_FileName = AddQuotesIfRequired(in_FileName);
-            Process proc = new Process();
-            proc.StartInfo.FileName = in_FileName;
-            proc.StartInfo.UseShellExecute = true;
-            proc.StartInfo.Verb = "runas";
-            proc.Start();
-        }
+        
         //https://stackoverflow.com/questions/4580263/how-to-open-in-default-browser-in-c-sharp
         private void OpenUrl(string in_Url)
         {
@@ -86,6 +71,7 @@ namespace Kunai.Window
                         renderer.WorkProjectCsd = null;
                         renderer.LoadFile(renderer.Config.WorkFilePath);
                     }
+                    ImGui.Separator();
                     if (ImGui.BeginMenu("Save"))
                     {
                         if (ImGui.MenuItem("Csd Project...", "Ctrl + S"))
@@ -141,6 +127,7 @@ namespace Kunai.Window
                         }
                         ImGui.EndMenu();
                     }
+                    ImGui.Separator();
                     if (ImGui.MenuItem("Exit"))
                     {
                         Environment.Exit(0);
@@ -150,10 +137,32 @@ namespace Kunai.Window
                 }
                 if (ImGui.BeginMenu("Edit"))
                 {
-                    if (ImGui.MenuItem("Associate extensions"))
+                    if (ImGui.BeginMenu("Reference Image"))
                     {
-                        ExecuteAsAdmin(@Path.Combine(@Program.Path, "FileTypeRegisterService.exe"));
+                        if(ImGui.MenuItem("Load"))
+                        {
+                            var dialog = NativeFileDialogSharp.Dialog.FileOpen("png,jpg,jpeg,dds");
+                            if (dialog.IsOk)
+                            {
+                                renderer.LoadReferenceImage(dialog.Path);
+                                renderer.referenceImageData.opacity = 1;
+                            }
+                        }
+                        if (ImGui.MenuItem("Remove"))
+                        {
+                            renderer.referenceImageData.enabled = false;
+                        }
+                        ImGui.Separator();
+                        if (ImGui.BeginMenu("Opacity"))
+                        {
+                            float transparency = renderer.referenceImageData.opacity;
+                            ImGui.SliderFloat("##referenceopacity", ref transparency, 0, 1);
+                            renderer.referenceImageData.opacity = transparency;
+                            ImGui.EndMenu();
+                        }
+                        ImGui.EndMenu();
                     }
+                    ImGui.Separator();
                     if (ImGui.MenuItem("Preferences", SettingsWindow.Enabled))
                     {
                         SettingsWindow.Enabled = !SettingsWindow.Enabled;

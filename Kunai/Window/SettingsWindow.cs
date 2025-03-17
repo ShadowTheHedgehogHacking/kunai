@@ -6,6 +6,8 @@ using IconFonts;
 using Kunai.ShurikenRenderer;
 using Shuriken.Rendering;
 using System;
+using System.Diagnostics;
+using System.IO;
 using System.Numerics;
 using TeamSpettro.SettingsSystem;
 
@@ -15,7 +17,32 @@ namespace Kunai.Window
     {
         public static bool Enabled = false;
         bool _themeIsDark = SettingsManager.GetBool("IsDarkThemeEnabled");
+        public static string AddQuotesIfRequired(string in_Path)
+        {
+            return !string.IsNullOrWhiteSpace(in_Path) ?
+                in_Path.Contains(" ") && (!in_Path.StartsWith("\"") && !in_Path.EndsWith("\"")) ?
+                    "\"" + in_Path + "\"" : in_Path :
+                    string.Empty;
+        }
+        public static void ExecuteAsAdmin(string in_FileName)
+        {
+            //If the user cancels the UAC prompt, it'll throw an exception
+            //so just do nothing in case that happens
+            try
+            {
 
+                in_FileName = AddQuotesIfRequired(in_FileName);
+                Process proc = new Process();
+                proc.StartInfo.FileName = in_FileName;
+                proc.StartInfo.UseShellExecute = true;
+                proc.StartInfo.Verb = "runas";
+                proc.Start();
+            }
+            catch(Exception e)
+            {
+
+            }
+        }
         public void OnReset(IProgramProject in_Renderer)
         {
         }
@@ -40,6 +67,9 @@ namespace Kunai.Window
                     {
                         renderer.ViewportColor = color;
                     }
+
+                    if(ImGui.Button("Associate file extensions"))
+                        ExecuteAsAdmin(@Path.Combine(@Program.Path, "FileTypeRegisterService.exe"));
                     ImGui.End();
                 }
             }

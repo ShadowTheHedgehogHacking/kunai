@@ -238,44 +238,6 @@ namespace Kunai.Window
         }
         public static void ItemRowsBackground(Vector4 in_Color, float in_LineHeight = -1.0f)
         {
-            var drawList = ImGui.GetWindowDrawList();
-            var style = ImGui.GetStyle();
-
-            if (in_LineHeight < 0)
-            {
-                in_LineHeight = ImGui.GetTextLineHeight();
-            }
-            in_LineHeight += style.ItemSpacing.Y;
-
-            float scrollOffsetH = ImGui.GetScrollX();
-            float scrollOffsetV = ImGui.GetScrollY();
-            float scrolledOutLines = (float)Math.Floor(scrollOffsetV / in_LineHeight);
-            scrollOffsetV -= in_LineHeight * scrolledOutLines;
-
-            Vector2 clipRectMin = new Vector2(ImGui.GetWindowPos().X, ImGui.GetWindowPos().Y);
-            Vector2 clipRectMax = new Vector2(clipRectMin.X + ImGui.GetWindowWidth(), clipRectMin.Y + ImGui.GetWindowHeight());
-
-            if (ImGui.GetScrollMaxX() > 0)
-            {
-                clipRectMax.Y -= style.ScrollbarSize;
-            }
-
-            drawList.PushClipRect(clipRectMin, clipRectMax);
-
-            bool isOdd = ((int)(scrolledOutLines) % 2) == 0;
-
-            float yMin = clipRectMin.Y - scrollOffsetV + ImGui.GetCursorPosY();
-            float yMax = clipRectMax.Y - scrollOffsetV + in_LineHeight;
-            float xMin = clipRectMin.X + scrollOffsetH + ImGui.GetContentRegionAvail().X;
-            float xMax = clipRectMin.X + scrollOffsetH + ImGui.GetContentRegionAvail().X;
-
-            for (float y = yMin; y < yMax; y += in_LineHeight, isOdd = !isOdd)
-            {
-                if (isOdd)
-                {
-                    drawList.AddRectFilled(new Vector2(xMin, y - style.ItemSpacing.Y), new Vector2(xMax, y + in_LineHeight), ImGui.ColorConvertFloat4ToU32(in_Color));
-                }
-            }
         }
         /// <summary>
         /// Fake list box that allows horizontal scrolling

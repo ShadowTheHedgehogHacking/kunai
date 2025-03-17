@@ -182,13 +182,17 @@ namespace Kunai.Window
                 //if (ImGui.BeginListBox("##hierarchylist", new System.Numerics.Vector2(-1, -1)))
                 //{
 
-                if (renderer.WorkProjectCsd != null)
+                if(ImKunai.BeginListBoxCustom("##hierarchylist", new Vector2(-1,-1)))
                 {
-                    foreach (var f in renderer.VisibilityData.Nodes)
+                    if (renderer.WorkProjectCsd != null)
                     {
-                        DrawSceneNode(f);
-                    }
+                        foreach (var f in renderer.VisibilityData.Nodes)
+                        {
+                            DrawSceneNode(f);
+                        }
 
+                    }
+                    ImKunai.EndListBoxCustom();
                 }
                 //ImGui.EndListBox();
                 //}

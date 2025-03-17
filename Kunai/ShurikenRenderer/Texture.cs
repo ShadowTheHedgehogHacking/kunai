@@ -1,19 +1,19 @@
-﻿using System.IO;
-using System.Collections.ObjectModel;
-using System.Windows;
-using System.Windows.Media.Imaging;
-using DirectXTexNet;
+﻿using DirectXTexNet;
 using Shuriken.Rendering.Gvr;
-using System.Windows.Media;
-using System.Drawing;
-using System.Windows.Interop;
-using OpenTK.Graphics.OpenGL;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Numerics;
+using System.Windows;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using Image = SixLabors.ImageSharp.Image;
 
 namespace Shuriken.Rendering
-{    
+{
     public class Texture
     {
         public string Name { get; }
@@ -48,7 +48,10 @@ namespace Shuriken.Rendering
         public void Destroy()
         {
             if(GlTex != null)
-            GL.DeleteTexture(GlTex.Id);
+            {
+                GlTex.Dispose();
+            }
+            ImageSource = null;
         }
         /// <summary>
         /// Used for GVR textures for GNCPs, converts GVR's to BitmapSource and output a pixel array for the GL WPF Control
@@ -110,7 +113,7 @@ namespace Shuriken.Rendering
             Height = in_Gvr.Height;
 
             byte[] forGlTex = null;
-            var bmp = LoadTga(in_Gvr, ref forGlTex);
+            BitmapSource bmp = LoadTga(in_Gvr, ref forGlTex);
             if (bmp == null)
                 return;
 
@@ -125,7 +128,7 @@ namespace Shuriken.Rendering
                 CreateTexture(TexHelper.Instance.LoadFromDDSMemory((nint)pBytes, in_Bytes.Length, DDS_FLAGS.NONE));
         }
 
-        private void CreateTexture(string in_Filename)
+        private void CreateTextureDDS(string in_Filename)
         {
             CreateTexture(TexHelper.Instance.LoadFromDDSFile(in_Filename, DDS_FLAGS.NONE));
         }
@@ -150,14 +153,44 @@ namespace Shuriken.Rendering
             
             if(File.Exists(in_Filename))
             {
-                if (Path.GetExtension(in_Filename) == ".gvr")
+                string ext = Path.GetExtension(in_Filename);
+                if (ext == ".gvr")
                 {
                     GvrFile gVr = new GvrFile();
                     gVr.LoadFromGvrFile(in_Filename.ToLower());
                     CreateTextureGvr(gVr);
+                    return;
                 }
-                else
-                    CreateTexture(in_Filename);
+                if(ext == ".dds")
+                {
+                    CreateTextureDDS(in_Filename);
+                    return;
+                }
+                try
+                {
+                    CreateTextureUnknown(in_Filename);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Unknown file format.");
+                }
+                
+            }
+        }
+
+        private void CreateTextureUnknown(string in_Filename)
+        {
+            Image<Bgra32> image = Image.Load<Bgra32>(in_Filename);
+
+            image.Mutate(in_X => in_X.Flip(FlipMode.Vertical));
+            Width = image.Width;
+            Height = image.Height;
+            byte[] pixelArray = new byte[(image.Width * image.Height) * 4];
+            image.CopyPixelDataTo(pixelArray);
+            unsafe
+            {
+                fixed (byte* pBytes = pixelArray)
+                    GlTex = new GlTexture((nint)pBytes, Width, Height);
             }
         }
 

@@ -94,7 +94,9 @@ namespace Kunai.Window
 
             //ImGui.GetWindowDrawList().AddCircle(screenPos, 10, ImGui.ColorConvertFloat4ToU32(new Vector4(1, 1, 1, 1)));
             foreach (var quad in renderer.Renderer.Quads)
-            {                
+            {
+                if (quad.OriginalData.Unselectable)
+                    continue;
                 var qTopLeft = quad.TopLeft.Position;
                 var qBotRight = quad.BottomRight.Position;
                 var qTopRight = quad.TopRight.Position;

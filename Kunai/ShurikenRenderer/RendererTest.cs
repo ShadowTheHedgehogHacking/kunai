@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Linq;
+using System.Numerics;
 
 namespace Shuriken.Rendering
 {
@@ -262,7 +263,46 @@ namespace Shuriken.Rendering
 
             _quads.Add(quad);
         }
+        public void DrawFullscreenQuad(KunaiSprite in_Spr, float in_Transparency)
+        {
+            /// TODO: wtf is NextSprite or SpriteFactor?
+            var quad = new Quad();
+            var topLeft = Vector2.Zero;
+            var bottomRight = Vector2.One;
 
+                var begin = new Vector2(
+                    in_Spr.Start.X / in_Spr.Texture.Width,
+                    in_Spr.Start.Y / in_Spr.Texture.Height);
+
+                var end = begin + new Vector2(
+                    in_Spr.Dimensions.X / in_Spr.Texture.Width,
+                    in_Spr.Dimensions.Y / in_Spr.Texture.Height);
+
+                begin = (1.0f) * begin;
+                end = (1.0f) * end;
+
+                quad.TopLeft.Uv = begin;
+                quad.TopRight.Uv = new Vector2(end.X, begin.Y);
+                quad.BottomLeft.Uv = new Vector2(begin.X, end.Y);
+                quad.BottomRight.Uv = end;
+            quad.TopRight.Position = new Vector2(1, 0);
+            quad.BottomLeft.Position = new Vector2(0, 1);
+            quad.BottomRight.Position = Vector2.One;
+                quad.Texture = in_Spr.Texture;
+
+            Vector4 color = new Vector4(in_Transparency, 1, 1, 1);
+            quad.TopLeft.Color = color;
+            quad.TopRight.Color = color;
+            quad.BottomLeft.Color = color;
+            quad.BottomRight.Color = color;
+
+            quad.ZIndex = 0;
+            quad.Additive = false;
+            quad.LinearFiltering = true;
+            quad.OriginalData.Unselectable = true;
+
+            _quads.Add(quad);
+        }
         public void SetShader(ShaderProgram in_Param)
         {
             _shader = in_Param;
@@ -307,6 +347,11 @@ namespace Shuriken.Rendering
 
             if (BatchStarted)
                 EndBatch();
+        }
+
+        internal void DrawFullscreenQuad(object referenceImageSprite)
+        {
+            throw new NotImplementedException();
         }
     }
 }

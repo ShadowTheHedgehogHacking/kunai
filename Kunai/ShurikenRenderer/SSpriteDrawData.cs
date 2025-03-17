@@ -8,6 +8,7 @@ namespace Shuriken.Rendering
 {
     public struct SSpriteDrawData
     {
+        public bool Unselectable;
         public int ZIndex;
         public bool Hidden;
         public bool OverrideUvCoords;
@@ -43,5 +44,6 @@ namespace Shuriken.Rendering
             AspectRatio = in_Scene.AspectRatio;
             Flags = (ElementMaterialFlags)in_Cast.Field38;
         }
+
     }
 }

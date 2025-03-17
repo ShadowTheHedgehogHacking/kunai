@@ -65,7 +65,7 @@ namespace Kunai.ShurikenRenderer
         public CsdProject WorkProjectCsd;
         public SProjectConfig Config;
         private SViewportData _viewportData;
-        private GameWindow _window;
+        private HekonrayWindow _window;
         private int _currentDrawPriority;
         public List<WindowBase> Windows = new List<WindowBase>();
         bool m_SaveScreenshotWhenRendered = false;
@@ -95,7 +95,7 @@ namespace Kunai.ShurikenRenderer
             _viewportData = new SViewportData();
             Config = new SProjectConfig();
         }
-        public void SetWindowParameters(GameWindow in_Window2, Vector2 in_ClientSize)
+        public void SetWindowParameters(HekonrayWindow in_Window2, Vector2 in_ClientSize)
         {
             ScreenSize = in_ClientSize;
             _window = in_Window2;
@@ -193,7 +193,12 @@ namespace Kunai.ShurikenRenderer
                 throw;
 #endif
             }
+            SendResetSignal();
+        }
 
+        private void SendResetSignal()
+        {
+            _window.ResetWindows(this);
         }
 
         /// <summary>

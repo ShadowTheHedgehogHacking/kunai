@@ -7,8 +7,6 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Linq;
 
-
-
 namespace Shuriken.Rendering
 {
     public class Renderer

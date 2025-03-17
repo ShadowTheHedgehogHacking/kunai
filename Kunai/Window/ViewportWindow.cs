@@ -18,7 +18,6 @@ namespace Kunai.Window
 
         public void OnReset(IProgramProject in_Renderer)
         {
-            throw new NotImplementedException();
         }
 
         public void Render(IProgramProject in_Renderer)

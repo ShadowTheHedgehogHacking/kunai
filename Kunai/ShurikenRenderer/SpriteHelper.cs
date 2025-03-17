@@ -46,31 +46,18 @@ namespace Kunai.ShurikenRenderer
             }
             foreach (var entry in Sprites)
             {
-                Shuriken.Rendering.KunaiSprite sprite = entry.Value;
+                KunaiSprite sprite = entry.Value;
                 int textureIndex = Textures.IndexOf(sprite.Texture);
 
-                //TODO: CroppedImage might almost always be null,
-                //might need to remove this check and use the other case
-                if (sprite.CroppedImage != null)
-                {
-                    SharpNeedle.Framework.Ninja.Csd.Sprite subImage = new();
-                    subImage.TextureIndex = textureIndex;
-                    subImage.TopLeft = new Vector2((float)sprite.X / sprite.Texture.Width, (float)sprite.Y / sprite.Texture.Height);
-                    subImage.BottomRight = new Vector2((float)(sprite.X + sprite.Width) / sprite.Texture.Width, (float)(sprite.Y + sprite.Height) / sprite.Texture.Height);
-                    in_SubImages.Add(subImage);
-                }
-                else
-                {
-                    var size = in_TextureSizes[textureIndex] * KunaiProject.Instance.ViewportSize;
-                    sprite.GenerateCoordinates(size);
-                    SharpNeedle.Framework.Ninja.Csd.Sprite subImage = new();
-                    subImage.TextureIndex = textureIndex;
-                    subImage.TopLeft = new Vector2((float)sprite.X / size.X, (float)sprite.Y / size.Y);
-                    subImage.BottomRight = new Vector2((float)(sprite.X + sprite.Width) / size.X, (float)(sprite.Y + sprite.Height) / size.Y);
-                    in_SubImages.Add(subImage);
-                }
-            }
+                var size = in_TextureSizes[textureIndex] * KunaiProject.Instance.ViewportSize;
+                sprite.GenerateCoordinates(size);
 
+                Sprite subImage = new();
+                subImage.TextureIndex = textureIndex;
+                subImage.TopLeft = new Vector2((float)sprite.X / size.X, (float)sprite.Y / size.Y);
+                subImage.BottomRight = new Vector2((float)(sprite.X + sprite.Width) / size.X, (float)(sprite.Y + sprite.Height) / size.Y);
+                in_SubImages.Add(subImage);
+            }
         }
         /// <summary>
         /// Tries to get a KunaiSprite from a Crop ID.

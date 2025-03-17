@@ -23,7 +23,8 @@ namespace Kunai.Window
         }
         public void OnReset(IProgramProject in_Renderer)
         {
-            throw new NotImplementedException();
+            m_SelectedIndex = 0;
+            m_SelectedSpriteIndex = 0;
         }
         private void DrawQuadList(SCenteredImageData in_Data)
         {

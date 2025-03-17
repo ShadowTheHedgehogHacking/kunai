@@ -1,10 +1,12 @@
 ﻿using HekonrayBase;
 using HekonrayBase.Base;
 using Hexa.NET.ImGui;
+using Kunai.Modal;
 using Kunai.ShurikenRenderer;
 using Shuriken.Rendering;
 using System;
 using System.Numerics;
+using TeamSpettro.SettingsSystem;
 
 namespace Kunai.Window
 {
@@ -14,12 +16,11 @@ namespace Kunai.Window
         public static bool Enabled = false;
         int m_SelectedIndex = 0;
         int m_SelectedSpriteIndex = 0;
-        bool m_ShowAllCoords = false;
-        bool m_CutMenuOpen = false;
-        int m_CutType;
-        Vector2 m_CutParam;
-        Vector2 m_ViewportStart;
-        bool isDragging = false;
+        bool m_ShowAllCoords 
+        {
+            get { return SettingsManager.GetBool("ShowAllCoordsCrop"); }
+            set { SettingsManager.SetBool("ShowAllCoordsCrop", value); }
+        }
         public void OnReset(IProgramProject in_Renderer)
         {
             throw new NotImplementedException();
@@ -36,10 +37,10 @@ namespace Kunai.Window
             {
                 int spriteIdx = SpriteHelper.Textures[m_SelectedIndex].Sprites[i];
                 var sprite = SpriteHelper.Sprites[spriteIdx];
-                var qTopLeft = new Vector2(sprite.OriginalLeft, sprite.OriginalTop);
-                var qTopRight = new Vector2(sprite.OriginalRight, sprite.OriginalTop);
-                var qBotLeft = new Vector2(sprite.OriginalLeft, sprite.OriginalBottom);
-                var qBotRight = new Vector2(sprite.OriginalRight, sprite.OriginalBottom);
+                var qTopLeft = sprite.Crop.TopLeft;
+                var qTopRight = new Vector2(sprite.Crop.BottomRight.X, sprite.Crop.TopLeft.Y);
+                var qBotLeft = new Vector2(sprite.Crop.TopLeft.X, sprite.Crop.BottomRight.Y);
+                var qBotRight = sprite.Crop.BottomRight;
                 Vector2 pTopLeft = screenPos + new Vector2(qTopLeft.X * viewSize.X, qTopLeft.Y * viewSize.Y);
                 Vector2 pBotRight = screenPos + new Vector2(qBotRight.X * viewSize.X, qBotRight.Y * viewSize.Y);
                 Vector2 pTopRight = screenPos + new Vector2(qTopRight.X * viewSize.X, qTopRight.Y * viewSize.Y);
@@ -68,40 +69,7 @@ namespace Kunai.Window
 
             }
         }
-        void CreateCropGrid(Vector2 in_IndividualSize)
-        {
-            var texture = SpriteHelper.Textures[m_SelectedIndex];
-            Vector2 count = new Vector2(
-                MathF.Floor(texture.Size.X / in_IndividualSize.X),
-                MathF.Floor(texture.Size.Y / in_IndividualSize.Y)
-            );
-
-            // Arbitrary limit
-            if (count.X > 256 || count.Y > 256) return;
-            if (count.X == 0 || count.Y == 0) return;
-
-            for (int y = 0; y < count.Y; y++)
-            {
-                for (int x = 0; x < count.X; x++)
-                {
-                    // Calculate position in [0,1] range
-                    var position = new Vector2(
-                        (x * in_IndividualSize.X) / texture.Size.X,
-                        (y * in_IndividualSize.Y) / texture.Size.Y
-                    );
-
-                    // Calculate size in [0,1] range
-                    var newSize = new Vector2(
-                        in_IndividualSize.X / texture.Size.X,
-                        in_IndividualSize.Y / texture.Size.Y
-                    );
-
-                    // Create and add sprite with normalized position and size
-                    var newSprite = SpriteHelper.CreateSprite(texture, position, newSize);
-                    texture.Sprites.Add(newSprite);
-                }
-            }
-        }
+        
         public void Render(IProgramProject in_Renderer)
         {
             var renderer = (KunaiProject)in_Renderer;
@@ -109,45 +77,9 @@ namespace Kunai.Window
                 return;
             if (Enabled)
             {
-                DrawCropCutMenu();
                 if (ImGui.Begin("Crop", ref Enabled, ImGuiWindowFlags.MenuBar))
                 {
-                    if (ImGui.BeginMenuBar())
-                    {
-                        if (ImGui.BeginMenu("Add"))
-                        {
-                            if (ImGui.MenuItem("Add Texture"))
-                            {
-                                var res = NativeFileDialogSharp.Dialog.FileOpen("dds");
-                                if (res.IsOk)
-                                {
-                                    if (!SpriteHelper.DoesTextureExist(res.Path))
-                                    {
-                                        SpriteHelper.AddTexture(new Texture(res.Path));
-                                    }
-                                    else
-                                    {
-                                        Application.ShowMessageBoxCross("Error", "A texture with this exact name already exists!\nPlease rename the target texture and try again.");
-                                    }
-                                }
-                            }
-                            ImGui.EndMenu();
-                        }
-                        if (ImGui.BeginMenu("Edit"))
-                        {
-                            if (ImGui.MenuItem("Generate Crops"))
-                            {
-                                ImGui.OpenPopup("##generatecrops");
-                                m_CutMenuOpen = true;
-                            }
-                            ImGui.Separator();
-                            if (ImGui.MenuItem("Show all crops on texture", m_ShowAllCoords))
-                                m_ShowAllCoords = !m_ShowAllCoords;
-
-                            ImGui.EndMenu();
-                        }
-                        ImGui.EndMenuBar();
-                    }
+                    DrawMenuBar();
                     ZoomFactor = Math.Clamp(ZoomFactor, 0.5f, 5);
                     var padding = ImGui.GetStyle().ItemSpacing;
                     var size1 = (ImGui.GetWindowSize().X / 4) - padding.X;
@@ -205,66 +137,50 @@ namespace Kunai.Window
                         ImGui.EndListBox();
                     }
 
-                    ImGui.End();
                 }
+                ImGui.End();
+
+                CropGenerator.Draw(m_SelectedIndex);
             }
         }
 
-        private void DrawCropCutMenu()
+        private void DrawMenuBar()
         {
-            if (m_CutMenuOpen)
+            if (ImGui.BeginMenuBar())
             {
-                ImGui.OpenPopup("##generatecrops");
-                Vector2 windowSize = new Vector2(500, 160);
-
-                // Calculate centered position
-                var viewport = ImGui.GetMainViewport();
-                Vector2 centerPos = new Vector2(
-                    viewport.WorkPos.X + (viewport.WorkSize.X - windowSize.X) * 0.5f,
-                    viewport.WorkPos.Y + (viewport.WorkSize.Y - windowSize.Y) * 0.5f
-                );
-                ImGui.SetNextWindowPos(centerPos);
-                ImGui.SetNextWindowSize(windowSize);
-                if (ImGui.BeginPopupModal("##generatecrops", ref m_CutMenuOpen, ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize))
+                if (ImGui.BeginMenu("Add"))
                 {
-                    var texture = SpriteHelper.Textures[m_SelectedIndex];
-                    ImGui.Combo("Type", ref m_CutType, ["Size", "Count"], 2);
-
-                    ImGui.InputFloat2(m_CutType == 0 ? "Individual Size" : "Grid Count", ref m_CutParam);
-                    ImGui.Separator();
-                    Vector2 estimate = m_CutType == 0 ? texture.Size / m_CutParam : m_CutParam;
-                    float estimateCount = (int)(estimate.Y * estimate.X);
-                    if (estimateCount < 0 || estimateCount > 256)
-                        estimateCount = 0;
-
-                    ImGui.Text($"{estimateCount} crops will be generated");
-                    ImGui.Separator();
-                    if (ImGui.Button("Execute"))
+                    if (ImGui.MenuItem("Add Texture"))
                     {
-                        switch (m_CutType)
+                        var res = NativeFileDialogSharp.Dialog.FileOpen("dds");
+                        if (res.IsOk)
                         {
-                            case 0:
-                                {
-                                    CreateCropGrid(m_CutParam);
-                                    break;
-                                }
-                            case 1:
-                                {
-                                    CreateCropGrid(texture.Size / m_CutParam);
-                                    break;
-                                }
+                            if (!SpriteHelper.DoesTextureExist(res.Path))
+                            {
+                                SpriteHelper.AddTexture(new Texture(res.Path));
+                            }
+                            else
+                            {
+                                Application.ShowMessageBoxCross("Error", "A texture with this exact name already exists!\nPlease rename the target texture and try again.");
+                            }
                         }
-                        m_CutMenuOpen = false;
-                        ImGui.CloseCurrentPopup();
                     }
-                    ImGui.SameLine();
-                    if (ImGui.Button("Cancel"))
-                    {
-                        m_CutMenuOpen = false;
-                        ImGui.CloseCurrentPopup();
-                    }
-                    ImGui.EndPopup();
+                    ImGui.EndMenu();
                 }
+                if (ImGui.BeginMenu("Edit"))
+                {
+                    if (ImGui.MenuItem("Generate Crops"))
+                    {
+                        ImGui.OpenPopup("##generatecrops");
+                        CropGenerator.Activate();
+                    }
+                    ImGui.Separator();
+                    if (ImGui.MenuItem("Show all crops on texture", m_ShowAllCoords))
+                        m_ShowAllCoords = !m_ShowAllCoords;
+
+                    ImGui.EndMenu();
+                }
+                ImGui.EndMenuBar();
             }
         }
     }

@@ -86,7 +86,7 @@ namespace Kunai.Window
                     for (int i = 0; i < spritesList.Count; i++)
                     {
                         int spriteIdx = spritesList[i];
-                        Shuriken.Rendering.Sprite spr = SpriteHelper.Sprites[spriteIdx];
+                        Shuriken.Rendering.KunaiSprite spr = SpriteHelper.Sprites[spriteIdx];
                         ImGui.BeginGroup();
                         if (spr != null)
                         {
@@ -113,13 +113,12 @@ namespace Kunai.Window
                             {
                                 if (ImGui.MenuItem("Add"))
                                 {
-                                    SpriteHelper.Textures[idx].Sprites.Add(SpriteHelper.CreateSprite(SpriteHelper.Textures[idx]));
+                                    SpriteHelper.CreateSprite(SpriteHelper.Textures[idx]);
                                 }
                                 ImGui.BeginDisabled(spritesList.Count <= 1);
                                 if (ImGui.MenuItem("Delete"))
                                 {
                                     SpriteHelper.DeleteSprite(spriteIdx);
-                                    SpriteHelper.Textures[idx].Sprites.Remove(spriteIdx);
                                 }
                                 ImGui.EndDisabled();
                                 ImGui.EndPopup();
@@ -141,7 +140,7 @@ namespace Kunai.Window
             }
             return new STextureSelectorResult(selectedIndex, selectedSpriteIndex);
         }
-        public static unsafe bool SpriteImageButton(string in_Id, Shuriken.Rendering.Sprite in_Spr, Vector2 in_Size = default)
+        public static unsafe bool SpriteImageButton(string in_Id, Shuriken.Rendering.KunaiSprite in_Spr, Vector2 in_Size = default)
         {
             //This is so stupid, this is how youre supposed to do it according to the HexaNET issues
             unsafe
@@ -158,7 +157,7 @@ namespace Kunai.Window
             ImGui.SameLine();
             return val;
         }
-        public static unsafe void SpriteImage(string in_Id, Shuriken.Rendering.Sprite in_Spr)
+        public static unsafe void SpriteImage(string in_Id, Shuriken.Rendering.KunaiSprite in_Spr)
         {
             unsafe
             {
@@ -334,8 +333,8 @@ namespace Kunai.Window
                     new Vector2(0, 1), new Vector2(1, 0));
                 in_QuadDraw?.Invoke(new SCenteredImageData(cursorpos2, ImGui.GetWindowPos(), scaledSize, fixedVwPos));
                 //DrawQuadList(cursorpos2, windowPos, scaledSize, fixedVwPos);
-                EndListBoxCustom();
             }
+            EndListBoxCustom();
         }
 
         internal static bool InvisibleSelectable(string in_Text)

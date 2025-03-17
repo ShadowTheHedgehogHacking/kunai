@@ -1,21 +1,16 @@
 ﻿using Hexa.NET.ImGui;
 using Hexa.NET.ImPlot;
-using Hexa.NET.ImGuizmo;
 using Kunai.ShurikenRenderer;
 using Hexa.NET.Utilities.Text;
 using SharpNeedle.Framework.Ninja.Csd.Motions;
 using System.Collections.Generic;
 using System.Numerics;
 using IconFonts;
-using OpenTK.Graphics.OpenGL;
 using HekonrayBase.Base;
 using HekonrayBase;
-using System;
 
 namespace Kunai.Window
 {
-    
-    
     public class AnimationsWindow : Singleton<AnimationsWindow>, IWindow
     {
         public struct SKeyframePropertyInfo
@@ -157,7 +152,7 @@ namespace Kunai.Window
                             double time = in_Renderer.Config.Time * selectedScene.Value.FrameRate;
                             ms_Points.Clear();
                             //Line for the anim time
-                            if(ImPlot.DragLineX(0, &time, new Vector4(1, 1, 1, 1), 1))
+                            if (ImPlot.DragLineX(0, &time, new Vector4(1, 1, 1, 1), 1))
                             {
                                 in_Renderer.Config.Time = time / selectedScene.Value.FrameRate;
                             }
@@ -220,7 +215,7 @@ namespace Kunai.Window
                                     frame.Value = (KeyFrame.Union)mousePosPlot.Y;
                                 in_Renderer.SelectionData.TrackAnimation.Add(frame);
                             }
-                            if(in_Renderer.SelectionData.KeyframeSelected != null)
+                            if (in_Renderer.SelectionData.KeyframeSelected != null)
                             {
                                 if (ImGui.MenuItem("Delete Keyframe"))
                                 {
@@ -263,8 +258,8 @@ namespace Kunai.Window
                     }
                     else
                     {
-                        if(ImGui.ColorEdit4("Value", ref valColor))
-                        keyframe.Value = valColor.ToSharpNeedleColor();
+                        if (ImGui.ColorEdit4("Value", ref valColor))
+                            keyframe.Value = valColor.ToSharpNeedleColor();
                     }
 
                     if (ImGui.Combo("Interpolation", ref interp, ["Const", "Linear", "Hermite"], 3))

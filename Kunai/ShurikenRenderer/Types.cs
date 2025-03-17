@@ -3,6 +3,7 @@ using System.Windows.Media.Imaging;
 using System.Windows;
 using System.Numerics;
 using System;
+using Kunai.ShurikenRenderer;
 
 namespace Shuriken.Rendering
 {
@@ -89,17 +90,14 @@ namespace Shuriken.Rendering
         public bool LinearFiltering;
         public SSpriteDrawData OriginalData;
     }
-    public class Sprite
+    public class KunaiSprite
     {
         public Vector2 Start { get; set; }
         public Vector2 Dimensions { get; set; }
         public Texture Texture { get; set; }
+        public Crop Crop;
 
         // Used for saving to avoid corruption in un-edited values
-        public float OriginalTop { get; set; }
-        public float OriginalBottom { get; set; }
-        public float OriginalLeft { get; set; }
-        public float OriginalRight { get; set; }
         public bool HasChanged { get; set; }
 
         public Vector2 RelativeStart
@@ -164,14 +162,14 @@ namespace Shuriken.Rendering
             }
         }
 
-        public CroppedBitmap Crop { get; set; }
+        public CroppedBitmap CroppedImage { get; set; }
 
         private void CreateCrop()
         {
             if (X + Width <= Texture.Width && Y + Height <= Texture.Height)
             {
                 if (Width > 0 && Height > 0)
-                    Crop = new CroppedBitmap(Texture.ImageSource, new Int32Rect(X, Y, Width, Height));
+                    CroppedImage = new CroppedBitmap(Texture.ImageSource, new Int32Rect(X, Y, Width, Height));
             }
         }
         public Vector2[] GetImGuiUv()
@@ -190,34 +188,38 @@ namespace Shuriken.Rendering
         public void Recalculate()
         {
             var textureSize = Texture.Size;
-            OriginalLeft = Start.X / textureSize.X;
-            OriginalTop = Start.Y / textureSize.Y;
-            OriginalRight = (Start.X + Dimensions.X) / textureSize.X;
-            OriginalBottom = (Start.Y + Dimensions.Y) / textureSize.Y;
+            Crop.TopLeft.X = Start.X / textureSize.X;
+            Crop.TopLeft.Y = Start.Y / textureSize.Y;
+            Crop.BottomRight.X = (Start.X + Dimensions.X) / textureSize.X;
+            Crop.BottomRight.Y = (Start.Y + Dimensions.Y) / textureSize.Y;
         }
         public void GenerateCoordinates(Vector2 in_TextureSize)
         {
-            var start1X = MathF.Round(OriginalLeft * in_TextureSize.X);
-            var start1Y = MathF.Round(OriginalTop * in_TextureSize.Y);
+            var oLeft = Crop.TopLeft.X;
+            var oRight = Crop.BottomRight.X;
+            var oTop = Crop.TopLeft.Y;
+            var oBtm = Crop.BottomRight.Y;
+            var start1X = MathF.Round(oLeft * in_TextureSize.X);
+            var start1Y = MathF.Round(oTop * in_TextureSize.Y);
             Start = new Vector2(start1X, start1Y);
             Start = new Vector2(Math.Clamp(Start.X, 0, in_TextureSize.X), Math.Clamp(Start.Y, 0, in_TextureSize.Y));
-            Dimensions = new Vector2(MathF.Round((OriginalRight - OriginalLeft) * in_TextureSize.X), MathF.Round((OriginalBottom - OriginalTop) * in_TextureSize.Y));
+            Dimensions = new Vector2(MathF.Round((oRight - oLeft) * in_TextureSize.X), MathF.Round((oBtm - oTop) * in_TextureSize.Y));
         }
-        public Sprite(Texture in_Tex, float in_Top = 0.0f, float in_Left = 0.0f, float in_Bottom = 1.0f, float in_Right = 1.0f)
+        public KunaiSprite(Texture in_Tex, float in_Top = 0.0f, float in_Left = 0.0f, float in_Bottom = 1.0f, float in_Right = 1.0f)
         {
             Texture = in_Tex;
 
+            Crop = new Crop();
+            Crop.TextureIndex = (uint)SpriteHelper.Textures.IndexOf(in_Tex);
+            Crop.TopLeft = new Vector2(in_Left, in_Top);
+            Crop.BottomRight = new Vector2(in_Right, in_Bottom);
             CreateCrop();
 
-            OriginalTop = in_Top;
-            OriginalLeft = in_Left;
-            OriginalBottom = in_Bottom;
-            OriginalRight = in_Right;
             HasChanged = false;
             GenerateCoordinates(in_Tex.Size);
         }
 
-        public Sprite()
+        public KunaiSprite()
         {
             Start = new Vector2();
             Dimensions = new Vector2();

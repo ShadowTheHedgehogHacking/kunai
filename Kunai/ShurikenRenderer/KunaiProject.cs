@@ -591,8 +591,8 @@ namespace Kunai.ShurikenRenderer
                 {
                     int spriteIdx1 = Math.Min(in_UiElement.SpriteIndices.Length - 1, (int)sprId);
                     int spriteIdx2 = Math.Min(in_UiElement.SpriteIndices.Length - 1, (int)sprId + 1);
-                    Shuriken.Rendering.Sprite spr = sprId >= 0 ? SpriteHelper.TryGetSprite(in_UiElement.SpriteIndices[spriteIdx1]) : null;
-                    Shuriken.Rendering.Sprite nextSpr = sprId >= 0 ? SpriteHelper.TryGetSprite(in_UiElement.SpriteIndices[spriteIdx2]) : null;
+                    Shuriken.Rendering.KunaiSprite spr = sprId >= 0 ? SpriteHelper.TryGetSprite(in_UiElement.SpriteIndices[spriteIdx1]) : null;
+                    Shuriken.Rendering.KunaiSprite nextSpr = sprId >= 0 ? SpriteHelper.TryGetSprite(in_UiElement.SpriteIndices[spriteIdx2]) : null;
 
                     spr ??= nextSpr;
                     nextSpr ??= spr;
@@ -612,7 +612,7 @@ namespace Kunai.ShurikenRenderer
                         if (font == null)
                             continue;
 
-                        Shuriken.Rendering.Sprite spr = null;
+                        Shuriken.Rendering.KunaiSprite spr = null;
 
                         foreach (var mapping in font)
                         {

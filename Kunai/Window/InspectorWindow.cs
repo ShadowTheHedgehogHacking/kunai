@@ -2,7 +2,7 @@
 using Hexa.NET.ImGui;
 using SharpNeedle.Framework.Ninja.Csd;
 using Shuriken.Rendering;
-using Sprite = Shuriken.Rendering.Sprite;
+using KunaiSprite = Shuriken.Rendering.KunaiSprite;
 using Hexa.NET.Utilities.Text;
 using Vector2 = System.Numerics.Vector2;
 using System.Collections.Generic;
@@ -394,7 +394,7 @@ namespace Kunai.Window
                             }
                             else
                             {
-                                Sprite spriteReference = SpriteHelper.TryGetSprite(selectedCast.SpriteIndices[i]);
+                                KunaiSprite spriteReference = SpriteHelper.TryGetSprite(selectedCast.SpriteIndices[i]);
                                 if (spriteReference != null)
                                 {
 

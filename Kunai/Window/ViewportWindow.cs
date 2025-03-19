@@ -10,11 +10,13 @@ using HekonrayBase.Base;
 using HekonrayBase;
 using Kunai;
 using Hexa.NET.ImGuizmo;
+using TeamSpettro.SettingsSystem;
+
 namespace Kunai.Window
 {
     public class ViewportWindow : Singleton<ViewportWindow>, IWindow
     {
-        private static float ms_ZoomFactor = 1;
+        private float m_ZoomFactor = 1;
         private int m_CurrentAspectRatio = 0;
         private bool m_Dragging;
         static Vector2 ms_DragStartMousePos;
@@ -35,14 +37,14 @@ namespace Kunai.Window
             {
                 bool windowHovered = ImGui.IsWindowHovered(ImGuiHoveredFlags.ChildWindows);
                 if (windowHovered)
-                    ms_ZoomFactor += ImGui.GetIO().MouseWheel / 5;
-                ms_ZoomFactor = Math.Clamp(ms_ZoomFactor, 0.5f, 5);
+                    m_ZoomFactor += ImGui.GetIO().MouseWheel / 5;
+                m_ZoomFactor = Math.Clamp(m_ZoomFactor, 0.5f, 5);
 
                 ImKunai.TextFontAwesome(FontAwesome6.MagnifyingGlass);
                 ImGui.SameLine();
 
                 ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - 200);
-                ImGui.SliderFloat("##zoom", ref ms_ZoomFactor, 0.5f, 5);
+                ImGui.SliderFloat("##zoom", ref m_ZoomFactor, 0.5f, 5);
                 ImGui.SameLine();
                 ImKunai.TextFontAwesome(FontAwesome6.Display);
                 ImGui.SameLine();
@@ -60,7 +62,7 @@ namespace Kunai.Window
                 ImKunai.ImageViewport("##viewportcenter", 
                     new Vector2(-1, -1),
                     renderer.ViewportSize.Y / renderer.ViewportSize.X,
-                    ms_ZoomFactor,
+                    m_ZoomFactor,
                     new ImTextureID(renderer.GetViewportImageHandle()),
                     DrawQuadList);
                 
@@ -99,10 +101,10 @@ namespace Kunai.Window
                 //ImGui.GetWindowDrawList().AddCircle(pcenter, 10, ImGui.ColorConvertFloat4ToU32(new Vector4(1, 1, 1, 1)));
 
                 //Null cast indicator
-                if (cast.Field04 == 0)
+                if (cast.Field04 == 0 && SettingsWindow.ShowNullCasts)
                 {
                     Vector2 center = KunaiMath.CenterOfRect(pTopLeft, pTopRight, pBotRight, pBotLeft);
-                    float extents = 10 * ms_ZoomFactor;
+                    float extents = 10 * m_ZoomFactor;
                     var color = ImGui.ColorConvertFloat4ToU32(new Vector4(0, 0.2f, 1, 1));
                     
                     Vector2 extentsLineV = new Vector2(0, extents);

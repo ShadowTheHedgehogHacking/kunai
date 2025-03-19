@@ -160,6 +160,7 @@ namespace Kunai.Window
             Cast selectedCast = KunaiProject.Instance.SelectionData.SelectedCast;
             if (selectedCast == null)
                 return;
+            Vector2 screenMultiplier = (SettingsWindow.ScreenCoordinates ? KunaiProject.Instance.ViewportSize : Vector2.One);
             ImGui.SeparatorText("Cast");
             string[] typeStrings = { "Null (No Draw)", "Sprite", "Font" };
             string[] blendingStr = { "NRM", "ADD" };
@@ -184,8 +185,8 @@ namespace Kunai.Window
             Vector2 bottomLeftVert = selectedCast.BottomLeft * KunaiProject.Instance.ViewportSize;
             Vector2 bottomRightVert = selectedCast.BottomRight * KunaiProject.Instance.ViewportSize;
             float rotation = info.Rotation;
-            Vector2 origin = selectedCast.Origin;
-            Vector2 translation = info.Translation;
+            Vector2 origin = selectedCast.Origin * screenMultiplier;
+            Vector2 translation = info.Translation * screenMultiplier;
             Vector4 color = info.Color.ToVec4().Invert();
             Vector4 colorTl = info.GradientTopLeft.ToVec4().Invert();
             Vector4 colorTr = info.GradientTopRight.ToVec4().Invert();
@@ -255,9 +256,9 @@ namespace Kunai.Window
             {
                 ImGui.DragFloat("Rotation", ref rotation);
                 ImGui.SetItemTooltip("Rotation in degrees.");
-                ImGui.InputFloat2("Origin", ref origin);
+                ImGui.DragFloat2("Origin", ref origin);
                 ImGui.SetItemTooltip("Value used to offset the position of the cast (translation), this cannot be changed by animations.");
-                ImGui.InputFloat2("Translation", ref translation);
+                ImGui.DragFloat2("Translation", ref translation);
                 ImGui.SetItemTooltip("Position of the cast.");
                 ImGui.InputFloat2("Scale", ref scale);
             }
@@ -468,8 +469,8 @@ namespace Kunai.Window
             selectedCast.BottomLeft = bottomLeftVert / KunaiProject.Instance.ViewportSize;
             selectedCast.BottomRight = bottomRightVert / KunaiProject.Instance.ViewportSize;
             info.Rotation = rotation;
-            selectedCast.Origin = origin;
-            info.Translation = translation;
+            selectedCast.Origin = origin / screenMultiplier;
+            info.Translation = translation / screenMultiplier;
             info.Color = color.Invert().ToSharpNeedleColor();
             info.GradientTopLeft = colorTl.Invert().ToSharpNeedleColor();
             info.GradientTopRight = colorTr.Invert().ToSharpNeedleColor();

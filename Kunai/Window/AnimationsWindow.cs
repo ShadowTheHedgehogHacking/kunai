@@ -286,7 +286,7 @@ namespace Kunai.Window
             if (ImGui.Begin("Animations", MainWindow.WindowFlags | ImGuiWindowFlags.NoTitleBar))
             {
                 ImGui.SameLine();
-                ImGui.Text("Time");
+                ImKunai.TextFontAwesome(FontAwesome6.Stopwatch);
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(60);
                 if (ImGui.DragFloat("##animTime", ref renderer.Config.Time, 0.01f))
@@ -305,6 +305,8 @@ namespace Kunai.Window
                     renderer.SaveScreenshot();
                 }
                 ImGui.SameLine();
+
+
                 // Center group by setting the cursor position
                 ImGui.SetCursorPosX((windowSize.X - groupWidth) * 0.7f);
                 ImGui.BeginGroup();

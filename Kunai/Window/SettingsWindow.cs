@@ -16,6 +16,8 @@ namespace Kunai.Window
     public class SettingsWindow : Singleton<CropEditor>, IWindow
     {
         public static bool Enabled = false;
+        public static bool ShowNullCasts = true;
+        public static bool ScreenCoordinates = true;
         bool m_ThemeIsDark = SettingsManager.GetBool("IsDarkThemeEnabled");
         public static string AddQuotesIfRequired(string in_Path)
         {
@@ -38,13 +40,15 @@ namespace Kunai.Window
                 proc.StartInfo.Verb = "runas";
                 proc.Start();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
-
+                // ignored
             }
         }
         public void OnReset(IProgramProject in_Renderer)
         {
+            ShowNullCasts = SettingsManager.GetBool("ShowNullCasts", true);
+            ScreenCoordinates = SettingsManager.GetBool("UseScreenCoordinates", true);
         }
 
         public void Render(IProgramProject in_Renderer)
@@ -57,19 +61,34 @@ namespace Kunai.Window
                 {
                     int currentTheme = m_ThemeIsDark ? 1 : 0;
                     var color = renderer.ViewportColor;
+                    ImGui.SeparatorText("Appearance");
                     if (ImGui.Combo("Theme", ref currentTheme, ["Light", "Dark"], 2))
                     {
                         m_ThemeIsDark = currentTheme == 1;
                         SettingsManager.SetBool("IsDarkThemeEnabled", m_ThemeIsDark);
                         ImGuiThemeManager.SetTheme(m_ThemeIsDark);
                     }
+                    ImGui.SetItemTooltip("Sets the theme of the interface.");
+                    if(ImGui.Checkbox("Show coordinates in screen-space", ref ScreenCoordinates))
+                    {
+                        SettingsManager.SetBool("UseScreenCoordinates", ScreenCoordinates);
+                    }
+                    ImGui.SetItemTooltip("If this is enabled, values for translations and offsets\nwill be converted to pixel coordinates.\nIf this is disabled, the raw values from the file\nwill be shown instead.\n(This setting doesn't affect animations.)");
+                    ImGui.SeparatorText("Viewport");
+                    if (ImGui.Checkbox("Show null casts", ref ShowNullCasts))
+                    {
+                        SettingsManager.SetBool("ShowNullCasts", ShowNullCasts);
+                    }
+                    ImGui.SetItemTooltip("If this is enabled, Null casts will have an indicator\nin the viewport similar to the one in CellSpriteEditor.");
                     if (ImGui.ColorEdit3("Viewport Color", ref color))
                     {
                         renderer.SetViewportColor(color);
                     }
-
-                    if(ImGui.Button("Associate file extensions"))
+                    ImGui.SeparatorText("Utilities");
+                    if(ImGui.Button("Associate file extensions", new Vector2(-1, 32)))
                         ExecuteAsAdmin(@Path.Combine(@Program.Path, "FileTypeRegisterService.exe"));
+                    
+                    ImGui.SetItemTooltip("Associate xncp, yncp, gncp and sncp files with Kunai.\n(Make sure to place the program in a folder where it won't be moved)");
                     ImGui.End();
                 }
             }

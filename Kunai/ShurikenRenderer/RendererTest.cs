@@ -203,7 +203,26 @@ namespace Shuriken.Rendering
             _buffer[BufferPos++] = in_Quad.BottomRight.WithInvertedColor();
             NumIndices += 6;
         }
+        public void DrawEmptyQuad(SSpriteDrawData in_DrawData)
+        {
+            /// TODO: wtf is NextSprite or SpriteFactor?
+            var quad = new Quad();
+            var aspect = new Vector2(in_DrawData.AspectRatio, 1.0f);
 
+            float scale = 0.0001f;
+            var topLeft = in_DrawData.OverrideUvCoords ? in_DrawData.TopLeft : in_DrawData.OriginCast.TopLeft;
+            var bottomLeft = in_DrawData.OverrideUvCoords ? in_DrawData.BottomLeft : in_DrawData.OriginCast.BottomLeft;
+            var topRight = in_DrawData.OverrideUvCoords ? in_DrawData.TopRight : in_DrawData.OriginCast.TopRight;
+            var bottomRight = in_DrawData.OverrideUvCoords ? in_DrawData.BottomRight : in_DrawData.OriginCast.BottomRight;
+
+            quad.TopLeft.Position = in_DrawData.Position + ((topLeft * scale * aspect) / aspect);
+            quad.BottomLeft.Position = in_DrawData.Position + ((bottomLeft * scale * aspect) / aspect);
+            quad.TopRight.Position = in_DrawData.Position + ((topRight * scale * aspect) / aspect);
+            quad.BottomRight.Position = in_DrawData.Position + ((bottomRight * scale * aspect) / aspect);
+            quad.OriginalData = in_DrawData;
+
+            _quads.Add(quad);
+        }
         public void DrawSprite(SSpriteDrawData in_DrawData)
         {
             /// TODO: wtf is NextSprite or SpriteFactor?
@@ -347,11 +366,6 @@ namespace Shuriken.Rendering
 
             if (BatchStarted)
                 EndBatch();
-        }
-
-        internal void DrawFullscreenQuad(object referenceImageSprite)
-        {
-            throw new NotImplementedException();
         }
     }
 }

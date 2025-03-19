@@ -27,6 +27,7 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
+using SharpNeedle.Framework.Ninja.Csd.Motions;
 using TeamSpettro.SettingsSystem;
 using PixelFormat = OpenTK.Graphics.OpenGL.PixelFormat;
 
@@ -46,24 +47,8 @@ namespace Kunai.ShurikenRenderer
         private HekonrayWindow _window;
         public SReferenceImageData referenceImageData;
         public List<WindowBase> Windows = new List<WindowBase>();
-        bool m_SaveScreenshotWhenRendered = false;
-        public Vector3 ViewportColor
-        {
-            get
-            {
-                var x = SettingsManager.GetFloat("ViewColor_X", 0.6627450980f);
-                var y = SettingsManager.GetFloat("ViewColor_Y", 0.6627450980f);
-                var z = SettingsManager.GetFloat("ViewColor_Z", 0.66274509803f);
-                return new Vector3(x, y, z);
-            }
-            set
-            {
-
-                SettingsManager.SetFloat("ViewColor_X", value.X);
-                SettingsManager.SetFloat("ViewColor_Y", value.Y);
-                SettingsManager.SetFloat("ViewColor_Z", value.Z);
-            }
-        }
+        bool m_SaveScreenshotWhenRendered;
+        public Vector3 ViewportColor = new Vector3(-1,-1,-1);
 
 
         public KunaiProject()
@@ -73,6 +58,13 @@ namespace Kunai.ShurikenRenderer
             Renderer.SetShader(Renderer.ShaderDictionary["basic"]);
             _viewportData = new SViewportData();
             Config = new SProjectConfig();
+        }
+        public void SetViewportColor(Vector3 color)
+        {
+            ViewportColor = color;
+            SettingsManager.SetFloat("ViewColor_X", color.X);
+            SettingsManager.SetFloat("ViewColor_Y", color.Y);
+            SettingsManager.SetFloat("ViewColor_Z", color.Z);
         }
         public void SetWindowParameters(HekonrayWindow in_Window2, Vector2 in_ClientSize)
         {
@@ -272,7 +264,7 @@ namespace Kunai.ShurikenRenderer
                 {
                     VirtualFile file = new VirtualFile(Path.GetFileName(in_Path), new VirtualDirectory(Directory.GetParent(in_Path).FullName));
                     file.BaseStream = memstr;
-                    WorkProjectCsd = ResourceManager.Instance.Open<CsdProject>(file, true);
+                    WorkProjectCsd = ResourceManager.Instance.Open<CsdProject>(file);
                 }
             }
         }
@@ -285,6 +277,12 @@ namespace Kunai.ShurikenRenderer
         /// <exception cref="Exception"></exception>
         public void Render(CsdProject in_CsdProject, float in_DeltaTime)
         {
+            if(ViewportColor.X == -1)
+            {
+                ViewportColor.X = SettingsManager.GetFloat("ViewColor_X", 0.6627450980f);
+                ViewportColor.Y = SettingsManager.GetFloat("ViewColor_Y", 0.6627450980f);
+                ViewportColor.Z = SettingsManager.GetFloat("ViewColor_Z", 0.66274509803f);
+            }
             //If one or both of these are 0, it means the application is minimized.
             if (ScreenSize.X == 0 || ScreenSize.Y == 0)
                 return;
@@ -368,8 +366,8 @@ namespace Kunai.ShurikenRenderer
                     byte[] buffer = new byte[wsizei.X * wsizei.Y * 4];
                     GL.ReadPixels(0, 0, wsizei.X, wsizei.Y, PixelFormat.Rgba, PixelType.UnsignedByte, buffer);
 
-                    Image<SixLabors.ImageSharp.PixelFormats.Rgba32> screenshot =
-                        Image.LoadPixelData<SixLabors.ImageSharp.PixelFormats.Rgba32>(buffer, wsizei.X, wsizei.Y);
+                    Image<Rgba32> screenshot =
+                        Image.LoadPixelData<Rgba32>(buffer, wsizei.X, wsizei.Y);
 
                     //Flip vertically to fix orientation
                     screenshot.Mutate(in_X => in_X.Flip(FlipMode.Vertical));
@@ -440,7 +438,6 @@ namespace Kunai.ShurikenRenderer
         }
         public void RenderScenes(Scene in_Scene, SVisibilityData.SNode in_Vis, ref int in_Priority, double in_DeltaTime)
         {
-            int idx = in_Priority;
             var vis = in_Vis.GetVisibility(in_Scene);
             foreach (var family in in_Scene.Families)
             {
@@ -450,99 +447,105 @@ namespace Kunai.ShurikenRenderer
                     continue;
                 Cast cast = family.Casts[0];
 
-                UpdateCast(in_Scene, cast, transform, idx, (float)(in_DeltaTime * in_Scene.FrameRate), vis);
-                idx += cast.Children.Count + 1;
+                UpdateCast(in_Scene, cast, transform, in_Priority, (float)(in_DeltaTime * in_Scene.FrameRate), vis);
+                in_Priority += cast.Children.Count + 1;
             }
-            in_Priority = idx++;
         }
         private void ApplyAnimationValues(ref SSpriteDrawData in_SpriteDraw, ref SVisibilityData.SScene in_Vis, ref float out_SpriteIndex, Cast in_UiElement, float in_Time)
         {
             //Redo this at some point
-            foreach (var animation in in_Vis.Animation.Where(in_A => in_A.Active))
+            foreach (SVisibilityData.SAnimation animation in in_Vis.Animation)
             {
-                for (int i = 0; i < 12; i++)
+                if (!animation.Active)
+                    continue;
+                foreach (var familyMotion in animation.Motion.Value.FamilyMotions)
                 {
-                    var animationType = (AnimationType)(1 << i);
-                    var track = animation.GetTrack(in_UiElement, animationType);
-
-                    if (track == null)
-                        continue;
-
-                    switch (animationType)
+                    foreach (CastMotion castMotion in familyMotion.CastMotions)
                     {
-                        case AnimationType.HideFlag:
-                            in_SpriteDraw.Hidden = track.GetSingle(in_Time) != 0;
-                            break;
+                        if (castMotion.Cast != in_UiElement || castMotion.Capacity == 0) continue;
+                        foreach (KeyFrameList track in castMotion)
+                        {
+                            if (track.Count != 0)
+                            {
+                                switch (track.Property)
+                                {
+                                    case KeyProperty.HideFlag:
+                                        in_SpriteDraw.Hidden = track.GetSingle(in_Time) != 0;
+                                        break;
 
-                        case AnimationType.XPosition:
-                            in_SpriteDraw.Position.X = track.GetSingle(in_Time);
-                            break;
+                                    case KeyProperty.PositionX:
+                                        in_SpriteDraw.Position.X = track.GetSingle(in_Time);
+                                        break;
 
-                        case AnimationType.YPosition:
-                            in_SpriteDraw.Position.Y = track.GetSingle(in_Time);
-                            break;
+                                    case KeyProperty.PositionY:
+                                        in_SpriteDraw.Position.Y = track.GetSingle(in_Time);
+                                        break;
 
-                        case AnimationType.Rotation:
-                            in_SpriteDraw.Rotation = track.GetSingle(in_Time);
-                            break;
+                                    case KeyProperty.Rotation:
+                                        in_SpriteDraw.Rotation = track.GetSingle(in_Time);
+                                        break;
 
-                        case AnimationType.XScale:
-                            in_SpriteDraw.Scale.X = track.GetSingle(in_Time);
-                            break;
+                                    case KeyProperty.ScaleX:
+                                        in_SpriteDraw.Scale.X = track.GetSingle(in_Time);
+                                        break;
 
-                        case AnimationType.YScale:
-                            in_SpriteDraw.Scale.Y = track.GetSingle(in_Time);
-                            break;
+                                    case KeyProperty.ScaleY:
+                                        in_SpriteDraw.Scale.Y = track.GetSingle(in_Time);
+                                        break;
 
-                        case AnimationType.SubImage:
-                            out_SpriteIndex = track.GetSingle(in_Time);
-                            break;
+                                    case KeyProperty.SpriteIndex:
+                                        out_SpriteIndex = track.GetSingle(in_Time);
+                                        break;
 
-                        case AnimationType.Color:
-                            in_SpriteDraw.Color = track.GetColor(in_Time);
-                            break;
+                                    case KeyProperty.Color:
+                                        in_SpriteDraw.Color = track.GetColor(in_Time);
+                                        break;
 
-                        case AnimationType.GradientTl:
-                            in_SpriteDraw.GradientTopLeft = track.GetColor(in_Time);
-                            break;
+                                    case KeyProperty.GradientTopLeft:
+                                        in_SpriteDraw.GradientTopLeft = track.GetColor(in_Time);
+                                        break;
 
-                        case AnimationType.GradientBl:
-                            in_SpriteDraw.GradientBottomLeft = track.GetColor(in_Time);
-                            break;
+                                    case KeyProperty.GradientBottomLeft:
+                                        in_SpriteDraw.GradientBottomLeft = track.GetColor(in_Time);
+                                        break;
 
-                        case AnimationType.GradientTr:
-                            in_SpriteDraw.GradientTopRight = track.GetColor(in_Time);
-                            break;
+                                    case KeyProperty.GradientTopRight:
+                                        in_SpriteDraw.GradientTopRight = track.GetColor(in_Time);
+                                        break;
 
-                        case AnimationType.GradientBr:
-                            in_SpriteDraw.GradientBottomRight = track.GetColor(in_Time);
-                            break;
+                                    case KeyProperty.GradientBottomRight:
+                                        in_SpriteDraw.GradientBottomRight = track.GetColor(in_Time);
+                                        break;
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
+
         private void ApplyInheritance(ref SSpriteDrawData in_SpriteDraw, ElementInheritanceFlags in_Inheritance, CastTransform in_Transform)
         {
             // Inherit position
-            if (in_Inheritance.HasFlag(ElementInheritanceFlags.InheritXPosition))
+            if ((in_Inheritance & ElementInheritanceFlags.InheritXPosition) != 0)
                 in_SpriteDraw.Position.X += in_Transform.Position.X;
 
-            if (in_Inheritance.HasFlag(ElementInheritanceFlags.InheritYPosition))
+            if ((in_Inheritance & ElementInheritanceFlags.InheritYPosition) != 0)
                 in_SpriteDraw.Position.Y += in_Transform.Position.Y;
 
             // Inherit rotation
-            if (in_Inheritance.HasFlag(ElementInheritanceFlags.InheritRotation))
+            if ((in_Inheritance & ElementInheritanceFlags.InheritRotation) != 0)
                 in_SpriteDraw.Rotation += in_Transform.Rotation;
 
             // Inherit scale
-            if (in_Inheritance.HasFlag(ElementInheritanceFlags.InheritScaleX))
+            if ((in_Inheritance & ElementInheritanceFlags.InheritScaleX) != 0)
                 in_SpriteDraw.Scale.X *= in_Transform.Scale.X;
 
-            if (in_Inheritance.HasFlag(ElementInheritanceFlags.InheritScaleY))
+            if ((in_Inheritance & ElementInheritanceFlags.InheritScaleY) != 0)
                 in_SpriteDraw.Scale.Y *= in_Transform.Scale.Y;
 
             // Inherit color
-            if (in_Inheritance.HasFlag(ElementInheritanceFlags.InheritColor))
+            if ((in_Inheritance & ElementInheritanceFlags.InheritColor) != 0)
             {
                 in_SpriteDraw.Color *= in_Transform.Color;
             }
@@ -565,6 +568,7 @@ namespace Kunai.ShurikenRenderer
             }
             // Inherit position scale
             // TODO: Is this handled through flags?
+            // UPDATE: might actually be something the game doesnt do
             sSpriteDrawData.Position.X *= in_Transform.Scale.X;
             sSpriteDrawData.Position.Y *= in_Transform.Scale.Y;
 
@@ -579,7 +583,6 @@ namespace Kunai.ShurikenRenderer
             ApplyInheritance(ref sSpriteDrawData, (ElementInheritanceFlags)in_UiElement.InheritanceFlags.Value, in_Transform);
             ApplyPropertyMask(ref sSpriteDrawData, (CastPropertyMask)in_UiElement.Field2C);
             var type = (DrawType)in_UiElement.Field04;
-            var flags = (ElementMaterialFlags)in_UiElement.Field38;
 
             if (visibilityDataCast.Active && in_UiElement.Enabled)
             {
@@ -588,8 +591,8 @@ namespace Kunai.ShurikenRenderer
                 {
                     int spriteIdx1 = Math.Min(in_UiElement.SpriteIndices.Length - 1, (int)sprId);
                     int spriteIdx2 = Math.Min(in_UiElement.SpriteIndices.Length - 1, (int)sprId + 1);
-                    Shuriken.Rendering.KunaiSprite spr = sprId >= 0 ? SpriteHelper.TryGetSprite(in_UiElement.SpriteIndices[spriteIdx1]) : null;
-                    Shuriken.Rendering.KunaiSprite nextSpr = sprId >= 0 ? SpriteHelper.TryGetSprite(in_UiElement.SpriteIndices[spriteIdx2]) : null;
+                    KunaiSprite spr = sprId >= 0 ? SpriteHelper.TryGetSprite(in_UiElement.SpriteIndices[spriteIdx1]) : null;
+                    KunaiSprite nextSpr = sprId >= 0 ? SpriteHelper.TryGetSprite(in_UiElement.SpriteIndices[spriteIdx2]) : null;
 
                     spr ??= nextSpr;
                     nextSpr ??= spr;
@@ -609,7 +612,7 @@ namespace Kunai.ShurikenRenderer
                         if (font == null)
                             continue;
 
-                        Shuriken.Rendering.KunaiSprite spr = null;
+                        KunaiSprite spr = null;
 
                         foreach (var mapping in font)
                         {
@@ -641,7 +644,10 @@ namespace Kunai.ShurikenRenderer
                         xOffset += width + BitConverter.ToSingle(BitConverter.GetBytes(in_UiElement.Field4C));
                     }
                 }
-
+                if(type == DrawType.None)
+                {
+                    Renderer.DrawEmptyQuad(sSpriteDrawData);
+                }
                 var childTransform = new CastTransform(sSpriteDrawData.Position, sSpriteDrawData.Rotation, sSpriteDrawData.Scale, sSpriteDrawData.Color);
 
                 foreach (var child in in_UiElement.Children)
@@ -652,40 +658,40 @@ namespace Kunai.ShurikenRenderer
 
         private void ApplyPropertyMask(ref SSpriteDrawData sSpriteDrawData, CastPropertyMask field2C)
         {
-            if(!field2C.HasFlag(CastPropertyMask.ApplyTransform))
+            if((field2C & CastPropertyMask.ApplyTransform) == 0)
             {
                 sSpriteDrawData.Position = Vector2.Zero;
             }
             else
             {
-                if (!field2C.HasFlag(CastPropertyMask.ApplyTranslationX))
+                if ((field2C & CastPropertyMask.ApplyTranslationX) == 0)
                     sSpriteDrawData.Position.X = 0;
 
-                if (!field2C.HasFlag(CastPropertyMask.ApplyTranslationY))
+                if ((field2C & CastPropertyMask.ApplyTranslationY) == 0)
                     sSpriteDrawData.Position.Y = 0;
             }
-            if (!field2C.HasFlag(CastPropertyMask.ApplyRotation))
+            if ((field2C & CastPropertyMask.ApplyRotation) == 0)
                 sSpriteDrawData.Rotation = 0;
 
-            if (!field2C.HasFlag(CastPropertyMask.ApplyScaleX))
+            if ((field2C & CastPropertyMask.ApplyScaleX) == 0)
                 sSpriteDrawData.Scale.X = 1;
 
-            if (!field2C.HasFlag(CastPropertyMask.ApplyScaleY))
+            if ((field2C & CastPropertyMask.ApplyScaleY) == 0)
                 sSpriteDrawData.Scale.Y = 1;
 
-            if (!field2C.HasFlag(CastPropertyMask.ApplyColor))
+            if ((field2C & CastPropertyMask.ApplyColor) == 0)
                 sSpriteDrawData.Color = new Vector4(1, 1, 1, 1);
 
-            if (!field2C.HasFlag(CastPropertyMask.ApplyColorBL))
+            if ((field2C & CastPropertyMask.ApplyColorBL) == 0)
                 sSpriteDrawData.GradientBottomLeft = new Vector4(1, 1, 1, 1);
 
-            if (!field2C.HasFlag(CastPropertyMask.ApplyColorBR))
+            if ((field2C & CastPropertyMask.ApplyColorBR) == 0)
                 sSpriteDrawData.GradientBottomRight = new Vector4(1, 1, 1, 1);
 
-            if (!field2C.HasFlag(CastPropertyMask.ApplyColorTL))
+            if ((field2C & CastPropertyMask.ApplyColorTL) == 0)
                 sSpriteDrawData.GradientTopLeft = new Vector4(1, 1, 1, 1);
 
-            if (!field2C.HasFlag(CastPropertyMask.ApplyColorTR))
+            if ((field2C & CastPropertyMask.ApplyColorTR) == 0)
                 sSpriteDrawData.GradientTopRight = new Vector4(1, 1, 1, 1);
         }
 
@@ -693,7 +699,7 @@ namespace Kunai.ShurikenRenderer
         {
             return _viewportData.CsdRenderTextureHandle;
         }
-        void RecursiveSetCropListNode(SceneNode in_Node, List<SharpNeedle.Framework.Ninja.Csd.Sprite> in_Sprites, List<Vector2> in_TexSizes)
+        void RecursiveSetCropListNode(SceneNode in_Node, List<Sprite> in_Sprites, List<Vector2> in_TexSizes)
         {
             foreach (var s in in_Node.Scenes)
             {
@@ -725,7 +731,7 @@ namespace Kunai.ShurikenRenderer
         }
         public void SaveCurrentFile(string in_Path)
         {
-            List<SharpNeedle.Framework.Ninja.Csd.Sprite> subImageList = new();
+            List<Sprite> subImageList = new();
             List<Vector2> sizes = new List<Vector2>();
             SpriteHelper.BuildCropList(ref subImageList, ref sizes);
             RecursiveSetCropListNode(WorkProjectCsd.Project.Root, subImageList, sizes);

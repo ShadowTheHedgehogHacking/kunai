@@ -8,7 +8,7 @@
             public string WorkFilePath;
             public bool PlayingAnimations;
             public bool ShowQuads;
-            public double Time;
+            public float Time;
         }
     }
 }

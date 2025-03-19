@@ -65,7 +65,7 @@ namespace Kunai.Window
                     }
                     if (ImGui.ColorEdit3("Viewport Color", ref color))
                     {
-                        renderer.ViewportColor = color;
+                        renderer.SetViewportColor(color);
                     }
 
                     if(ImGui.Button("Associate file extensions"))

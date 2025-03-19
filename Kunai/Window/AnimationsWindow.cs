@@ -154,7 +154,7 @@ namespace Kunai.Window
                             //Line for the anim time
                             if (ImPlot.DragLineX(0, &time, new Vector4(1, 1, 1, 1), 1))
                             {
-                                in_Renderer.Config.Time = time / selectedScene.Value.FrameRate;
+                                in_Renderer.Config.Time = (float)(time / selectedScene.Value.FrameRate);
                             }
 
                             bool isFloatValue = in_Renderer.SelectionData.TrackAnimation.Property != KeyProperty.Color
@@ -276,6 +276,7 @@ namespace Kunai.Window
         {
         }
 
+        float test;
         public void Render(IProgramProject in_Renderer)
         {
             var renderer = (KunaiProject)in_Renderer;
@@ -284,19 +285,29 @@ namespace Kunai.Window
             ImGui.SetNextWindowSize(new System.Numerics.Vector2(size1 * 2.5f, ImGui.GetWindowViewport().Size.Y / 3), ImGuiCond.Always);
             if (ImGui.Begin("Animations", MainWindow.WindowFlags | ImGuiWindowFlags.NoTitleBar))
             {
-
-                ImGui.Checkbox("Show Quads", ref renderer.Config.ShowQuads);
+                ImGui.SameLine();
+                ImGui.Text("Time");
+                ImGui.SameLine();
                 ImGui.SetNextItemWidth(60);
+                if (ImGui.DragFloat("##animTime", ref renderer.Config.Time, 0.01f))
+                {
+                    if (renderer.Config.Time < 0)
+                        renderer.Config.Time = 0.0f;
+                }
                 ImGui.SameLine();
-                ImGui.InputDouble("Time", ref renderer.Config.Time, "%.2f");
-                ImGui.SameLine();
-                ImGui.BeginGroup();
+                var windowSize = ImGui.GetWindowSize();
+                var groupWidth = size1; // Adjust as needed
+
+
                 ImGui.PushFont(ImGuiController.FontAwesomeFont);
                 if (ImGui.Button(FontAwesome6.Camera))
                 {
                     renderer.SaveScreenshot();
                 }
                 ImGui.SameLine();
+                // Center group by setting the cursor position
+                ImGui.SetCursorPosX((windowSize.X - groupWidth) * 0.7f);
+                ImGui.BeginGroup();
                 if (ImGui.Button(FontAwesome6.Stop))
                 {
                     renderer.Config.PlayingAnimations = false;
@@ -313,6 +324,7 @@ namespace Kunai.Window
                 }
                 ImGui.PopFont();
                 ImGui.EndGroup();
+
 
 
                 //The list of anims, anim tracks and cast animations

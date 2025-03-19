@@ -76,9 +76,17 @@ namespace Kunai
             }
             public SCast GetVisibility(Cast in_Cast)
             {
-                return Casts.FirstOrDefault(in_Node => in_Node.Cast == in_Cast);
+                foreach (var node in Casts)
+                {
+                    if (node.Cast == in_Cast) return node;
+                }
+                return null;
             }
-
+            public bool FindCastByName(string castName)
+            {
+                if(string.IsNullOrEmpty(castName)) return true;
+                return Casts.Any(cast => cast.Cast.Name.ToLower().Contains(castName));
+            }
             public void Rename(string in_NewName)
             {
                 var node = Parent.Node.Value;

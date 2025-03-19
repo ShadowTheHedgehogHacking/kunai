@@ -7,6 +7,7 @@ namespace Kunai
         public string SearchTxt = "";
         public string MComparisonString = "";
         public string MSearchTxtCopy = "";
+        public bool IsSearching { get { return SearchTxt != ""; } }
 
         //Call 1st
         public void Render()

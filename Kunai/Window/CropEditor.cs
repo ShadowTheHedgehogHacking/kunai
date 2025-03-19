@@ -6,7 +6,13 @@ using Kunai.ShurikenRenderer;
 using Shuriken.Rendering;
 using System;
 using System.Numerics;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Drawing;
+using SixLabors.ImageSharp.PixelFormats;
 using TeamSpettro.SettingsSystem;
+
+using SixLabors.ImageSharp.Drawing.Processing;
+using SixLabors.ImageSharp.Processing;
 
 namespace Kunai.Window
 {
@@ -170,6 +176,11 @@ namespace Kunai.Window
                 }
                 if (ImGui.BeginMenu("Edit"))
                 {
+                    if (ImGui.MenuItem("Export Crops"))
+                    {
+                        GenerateImage();
+                    }
+
                     if (ImGui.MenuItem("Generate Crops"))
                     {
                         ImGui.OpenPopup("##generatecrops");
@@ -183,6 +194,69 @@ namespace Kunai.Window
                 }
                 ImGui.EndMenuBar();
             }
+        }
+
+        private void GenerateImage()
+        {
+            var options = new DrawingOptions();
+            options.GraphicsOptions = new GraphicsOptions { Antialias = false };
+            var imageSize = SpriteHelper.Textures[m_SelectedIndex].Size;
+            Image<Rgba32> image = new Image<Rgba32>( (int)imageSize.X, (int)imageSize.Y);
+            Random random = new Random();
+
+            Color[] possibleColors =
+            [
+                new(new Abgr32(255, 255, 255, 100)),
+                new(new Abgr32(255, 0, 0, 100)),
+                new(new Abgr32(255, 255, 0, 100)),
+                new(new Abgr32(255, 0, 255, 100)),
+                new(new Abgr32(0, 255, 0, 100)),
+                new(new Abgr32(0, 255, 255, 100)),
+                new(new Abgr32(0, 0, 255, 100)),
+                new(new Abgr32(255, 0, 255, 100))
+            ];
+            ;
+            Color color = new Color(new Abgr32(255, 0, 0, 100));
+            Color color2 = new Color(new Abgr32(0, 255, 0, 100));
+            for (int i = 0; i < SpriteHelper.Textures[m_SelectedIndex].Sprites.Count; i++)
+            {
+                int spriteIdx = SpriteHelper.Textures[m_SelectedIndex].Sprites[i];
+                var sprite = SpriteHelper.Sprites[spriteIdx];
+                
+                
+                // Stroke width
+                float strokeWidth = 2f; // Adjust as needed
+
+                // Shrink the square inward to keep the stroke inside
+                float inset = strokeWidth / 2;
+                
+                var qTopLeft = sprite.Crop.TopLeft * imageSize;
+                var qTopRight = new Vector2(sprite.Crop.BottomRight.X, sprite.Crop.TopLeft.Y) * imageSize;
+                var qBotLeft = new Vector2(sprite.Crop.TopLeft.X, sprite.Crop.BottomRight.Y) * imageSize;
+                var qBotRight = sprite.Crop.BottomRight * imageSize;
+                
+                
+                Vector2 topLeftInner = qTopLeft + new Vector2(inset, inset);
+                Vector2 topRightInner = qTopRight + new Vector2(-inset, inset);
+                Vector2 bottomRightInner = qBotRight + new Vector2(-inset, -inset);
+                Vector2 bottomLeftInner = qBotLeft + new Vector2(inset, -inset);
+                
+                var outlinePathBuilder = new PathBuilder();
+                outlinePathBuilder.AddLine(qTopLeft, qTopRight);
+                outlinePathBuilder.AddLine(qTopRight, qBotRight);
+                outlinePathBuilder.AddLine(qBotRight, qBotLeft);
+                outlinePathBuilder.AddLine(qBotLeft, qTopLeft);
+                var outlinePath = outlinePathBuilder.Build();
+                
+                var polygon = new Polygon(new LinearLineSegment(new PointF[]  { qTopLeft, qTopRight, qBotRight, qBotLeft }));
+                var colorToUse = possibleColors[random.Next(0, possibleColors.Length)];
+                
+                image.Mutate(ctx => 
+                    ctx.Fill(options, colorToUse, outlinePath)
+                );
+                
+            }
+            image.SaveAsPng("K:\\Exported.png");
         }
     }
 }

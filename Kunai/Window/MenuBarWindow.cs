@@ -203,6 +203,8 @@ namespace Kunai.Window
                         }
                         ImGui.EndMenu();
                     }
+                    if (ImGui.MenuItem("Show Cast quads", renderer.Config.ShowQuads))
+                        renderer.Config.ShowQuads = !renderer.Config.ShowQuads;
                     ImGui.EndMenu();
                 }
                 if (ImGui.BeginMenu("Help"))

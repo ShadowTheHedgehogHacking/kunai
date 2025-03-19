@@ -16,6 +16,15 @@ namespace Kunai
 
             return Math.Sign(cross1) == Math.Sign(cross2);
         }
+
+        public static Vector2 CenterOfRect(Vector2 in_TopLeft, Vector2 in_TopRight, Vector2 in_BtmRight, Vector2 in_BtmLeft)
+        {
+            return new Vector2(
+                (in_TopLeft.X + in_BtmRight.X + in_TopRight.X + in_BtmLeft.X) / 4,
+                (in_TopLeft.Y + in_BtmRight.Y + in_TopRight.Y + in_BtmLeft.Y) / 4
+            );
+
+        }
         /// <summary>
         /// Checks if a point is within a rect made up of 4 Vector2s.
         /// </summary>

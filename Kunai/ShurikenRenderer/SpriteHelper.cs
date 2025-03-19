@@ -131,7 +131,7 @@ namespace Kunai.ShurikenRenderer
                 foreach (Sprite item in scene.Value.Sprites)
                 {
                     int textureIndex = (int)item.TextureIndex;
-                    if (textureIndex >= 0)
+                    if (textureIndex >= 0 && Textures.Count > textureIndex)
                     {
                         CreateSprite(Textures[textureIndex], item.TopLeft.Y, item.TopLeft.X,
                             item.BottomRight.Y, item.BottomRight.X);

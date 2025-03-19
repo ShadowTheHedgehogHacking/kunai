@@ -52,6 +52,7 @@ namespace Kunai
             Windows.Add(new ViewportWindow());
             Windows.Add(new CropEditor());
             Windows.Add(new SettingsWindow());
+            SettingsWindow.Instance.OnReset(null);
         }
 
         private void LoadFromArgs(string[] in_Args)

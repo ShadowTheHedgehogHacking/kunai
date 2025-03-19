@@ -178,7 +178,11 @@ namespace Kunai.Window
                 {
                     if (ImGui.MenuItem("Export Crops"))
                     {
-                        GenerateImage();
+                        var res = NativeFileDialogSharp.Dialog.FileSave("png");
+                        if (res.IsOk)
+                        {
+                            GenerateImage(res.Path);
+                        }
                     }
 
                     if (ImGui.MenuItem("Generate Crops"))
@@ -196,7 +200,7 @@ namespace Kunai.Window
             }
         }
 
-        private void GenerateImage()
+        private void GenerateImage(string in_Path)
         {
             var options = new DrawingOptions();
             options.GraphicsOptions = new GraphicsOptions { Antialias = false };
@@ -256,7 +260,7 @@ namespace Kunai.Window
                 );
                 
             }
-            image.SaveAsPng("K:\\Exported.png");
+            image.SaveAsPng(in_Path);
         }
     }
 }

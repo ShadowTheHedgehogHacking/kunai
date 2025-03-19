@@ -22,7 +22,7 @@ namespace Kunai.Window
         public static bool Enabled = false;
         int m_SelectedIndex = 0;
         int m_SelectedSpriteIndex = 0;
-        bool m_ShowAllCoords 
+        bool MShowAllCoords 
         {
             get { return SettingsManager.GetBool("ShowAllCoordsCrop"); }
             set { SettingsManager.SetBool("ShowAllCoordsCrop", value); }
@@ -55,7 +55,7 @@ namespace Kunai.Window
 
                 Vector2 mousePos = ImGui.GetMousePos();
 
-                if (m_ShowAllCoords)
+                if (MShowAllCoords)
                     ImGui.GetWindowDrawList().AddQuad(pTopLeft, pTopRight, pBotRight, pBotLeft, ImGui.ColorConvertFloat4ToU32(new Vector4(1, 1, 1, 1)), 1.5f);
                 if (KunaiMath.IsPointInRect(mousePos, pTopLeft, pTopRight, pBotRight, pBotLeft) || i == m_SelectedSpriteIndex)
                 {
@@ -187,8 +187,8 @@ namespace Kunai.Window
                         CropGenerator.Activate();
                     }
                     ImGui.Separator();
-                    if (ImGui.MenuItem("Show all crops on texture", m_ShowAllCoords))
-                        m_ShowAllCoords = !m_ShowAllCoords;
+                    if (ImGui.MenuItem("Show all crops on texture", MShowAllCoords))
+                        MShowAllCoords = !MShowAllCoords;
 
                     ImGui.EndMenu();
                 }
@@ -251,8 +251,8 @@ namespace Kunai.Window
                 var polygon = new Polygon(new LinearLineSegment(new PointF[]  { qTopLeft, qTopRight, qBotRight, qBotLeft }));
                 var colorToUse = possibleColors[random.Next(0, possibleColors.Length)];
                 
-                image.Mutate(ctx => 
-                    ctx.Fill(options, colorToUse, outlinePath)
+                image.Mutate(in_Ctx => 
+                    in_Ctx.Fill(options, colorToUse, outlinePath)
                 );
                 
             }

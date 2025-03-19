@@ -19,11 +19,11 @@ namespace Kunai.Window
             public string Name;
             public Vector4 Color;
 
-            public SKeyframePropertyInfo(string icon, string name, Vector4 color)
+            public SKeyframePropertyInfo(string in_Icon, string in_Name, Vector4 in_Color)
             {
-                Icon = icon;
-                Name = name;
-                Color = color;
+                Icon = in_Icon;
+                Name = in_Name;
+                Color = in_Color;
             }
         }
         private static List<ImPlotPoint> ms_Points = new List<ImPlotPoint>();
@@ -40,9 +40,9 @@ namespace Kunai.Window
                 ImGui.TreePop();
             }
         }
-        public SKeyframePropertyInfo GetDisplayNameAndIcon(KeyProperty property)
+        public SKeyframePropertyInfo GetDisplayNameAndIcon(KeyProperty in_Property)
         {
-            switch (property)
+            switch (in_Property)
             {
                 case KeyProperty.HideFlag:
                     return new SKeyframePropertyInfo() { Icon = FontAwesome6.Square, Name = "Hide Flag", Color = ColorResource.HideFlag };
@@ -276,7 +276,7 @@ namespace Kunai.Window
         {
         }
 
-        float test;
+        float m_Test;
         public void Render(IProgramProject in_Renderer)
         {
             var renderer = (KunaiProject)in_Renderer;

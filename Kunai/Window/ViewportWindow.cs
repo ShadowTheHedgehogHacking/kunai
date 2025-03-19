@@ -16,9 +16,9 @@ namespace Kunai.Window
     {
         private static float ms_ZoomFactor = 1;
         private int m_CurrentAspectRatio = 0;
-        private bool dragging;
-        static Vector2 dragStartMousePos;
-        static Vector2 dragStartQuadCenter;
+        private bool m_Dragging;
+        static Vector2 ms_DragStartMousePos;
+        static Vector2 ms_DragStartQuadCenter;
 
         public void OnReset(IProgramProject in_Renderer)
         {

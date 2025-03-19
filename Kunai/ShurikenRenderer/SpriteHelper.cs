@@ -89,15 +89,15 @@ namespace Kunai.ShurikenRenderer
             Sprites.Remove(in_SprIndex);
             ms_NextCropId--;
         }
-        public static int CreateSprite(Texture in_Tex, Vector2 start, Vector2 dimensions)
+        public static int CreateSprite(Texture in_Tex, Vector2 in_Start, Vector2 in_Dimensions)
         {
-            float in_Left = MathF.Max(0.0f, MathF.Min(1.0f, start.X));
-            float in_Top = MathF.Max(0.0f, MathF.Min(1.0f, start.Y));
+            float inLeft = MathF.Max(0.0f, MathF.Min(1.0f, in_Start.X));
+            float inTop = MathF.Max(0.0f, MathF.Min(1.0f, in_Start.Y));
 
-            float in_Right = MathF.Max(0.0f, MathF.Min(1.0f, start.X + dimensions.X));
-            float in_Bottom = MathF.Max(0.0f, MathF.Min(1.0f, start.Y + dimensions.Y));
+            float inRight = MathF.Max(0.0f, MathF.Min(1.0f, in_Start.X + in_Dimensions.X));
+            float inBottom = MathF.Max(0.0f, MathF.Min(1.0f, in_Start.Y + in_Dimensions.Y));
 
-            return CreateSprite(in_Tex, in_Top, in_Left, in_Bottom, in_Right);
+            return CreateSprite(in_Tex, inTop, inLeft, inBottom, inRight);
         }
 
         public static void RecurFindFirstTextureListFromFile(SceneNode in_Node)

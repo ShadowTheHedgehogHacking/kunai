@@ -3,11 +3,11 @@ namespace Shuriken.Rendering
 {
     internal class GlTexture
     {
-        private int _id = 0;
+        private int m_Id = 0;
         public int Id
         {
-            get { return _id; }
-            set { _id = value; }
+            get { return m_Id; }
+            set { m_Id = value; }
         }
 
         public GlTexture()
@@ -17,7 +17,7 @@ namespace Shuriken.Rendering
 
         public GlTexture(nint in_Pixels, int in_Width, int in_Height)
         {
-            GL.GenTextures(1, out _id);
+            GL.GenTextures(1, out m_Id);
 
             GL.BindTexture(TextureTarget.Texture2D, Id);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
@@ -29,12 +29,12 @@ namespace Shuriken.Rendering
 
         public void Bind()
         {
-            GL.BindTexture(TextureTarget.Texture2D, _id);
+            GL.BindTexture(TextureTarget.Texture2D, m_Id);
         }
 
         public void Dispose()
         {
-            GL.DeleteTextures(1, ref _id);
+            GL.DeleteTextures(1, ref m_Id);
         }
     }
 

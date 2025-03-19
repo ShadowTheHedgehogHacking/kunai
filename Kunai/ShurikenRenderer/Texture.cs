@@ -128,7 +128,7 @@ namespace Shuriken.Rendering
                 CreateTexture(TexHelper.Instance.LoadFromDDSMemory((nint)pBytes, in_Bytes.Length, DDS_FLAGS.NONE));
         }
 
-        private void CreateTextureDDS(string in_Filename)
+        private void CreateTextureDds(string in_Filename)
         {
             CreateTexture(TexHelper.Instance.LoadFromDDSFile(in_Filename, DDS_FLAGS.NONE));
         }
@@ -163,7 +163,7 @@ namespace Shuriken.Rendering
                 }
                 if(ext == ".dds")
                 {
-                    CreateTextureDDS(in_Filename);
+                    CreateTextureDds(in_Filename);
                     return;
                 }
                 try

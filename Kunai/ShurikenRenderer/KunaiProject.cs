@@ -43,9 +43,9 @@ namespace Kunai.ShurikenRenderer
         public SSelectionData SelectionData;
         public CsdProject WorkProjectCsd;
         public SProjectConfig Config;
-        private SViewportData _viewportData;
-        private HekonrayWindow _window;
-        public SReferenceImageData referenceImageData;
+        private SViewportData m_ViewportData;
+        private HekonrayWindow m_Window;
+        public SReferenceImageData ReferenceImageData;
         public List<WindowBase> Windows = new List<WindowBase>();
         bool m_SaveScreenshotWhenRendered;
         public Vector3 ViewportColor = new Vector3(-1,-1,-1);
@@ -56,20 +56,20 @@ namespace Kunai.ShurikenRenderer
             ViewportSize = new Vector2(1280, 720);
             Renderer = new Renderer((int)ViewportSize.X, (int)ViewportSize.Y);
             Renderer.SetShader(Renderer.ShaderDictionary["basic"]);
-            _viewportData = new SViewportData();
+            m_ViewportData = new SViewportData();
             Config = new SProjectConfig();
         }
-        public void SetViewportColor(Vector3 color)
+        public void SetViewportColor(Vector3 in_Color)
         {
-            ViewportColor = color;
-            SettingsManager.SetFloat("ViewColor_X", color.X);
-            SettingsManager.SetFloat("ViewColor_Y", color.Y);
-            SettingsManager.SetFloat("ViewColor_Z", color.Z);
+            ViewportColor = in_Color;
+            SettingsManager.SetFloat("ViewColor_X", in_Color.X);
+            SettingsManager.SetFloat("ViewColor_Y", in_Color.Y);
+            SettingsManager.SetFloat("ViewColor_Z", in_Color.Z);
         }
         public void SetWindowParameters(HekonrayWindow in_Window2, Vector2 in_ClientSize)
         {
             ScreenSize = in_ClientSize;
-            _window = in_Window2;
+            m_Window = in_Window2;
 
         }
 
@@ -84,9 +84,9 @@ namespace Kunai.ShurikenRenderer
 
         public void LoadReferenceImage(string in_Path)
         {
-            referenceImageData.texture = new Texture(in_Path);
-            referenceImageData.sprite = new KunaiSprite(referenceImageData.texture);
-            referenceImageData.enabled = true;
+            ReferenceImageData.Texture = new Texture(in_Path);
+            ReferenceImageData.Sprite = new KunaiSprite(ReferenceImageData.Texture);
+            ReferenceImageData.Enabled = true;
         }
 
         public void LoadFile(string in_Path)
@@ -178,7 +178,7 @@ namespace Kunai.ShurikenRenderer
 
         private void SendResetSignal()
         {
-            _window.ResetWindows(this);
+            m_Window.ResetWindows(this);
         }
 
         /// <summary>
@@ -293,28 +293,28 @@ namespace Kunai.ShurikenRenderer
                 Vector2 wsize = ScreenSize;
                 // make sure the buffers are the currect size
                 OpenTK.Mathematics.Vector2i wsizei = new((int)wsize.X, (int)wsize.Y);
-                if (_viewportData.FramebufferSize != wsizei || isSavingScreenshot)
+                if (m_ViewportData.FramebufferSize != wsizei || isSavingScreenshot)
                 {
-                    _viewportData.FramebufferSize = wsizei;
+                    m_ViewportData.FramebufferSize = wsizei;
 
                     // create our frame buffer if needed
-                    if (_viewportData.FramebufferHandle == 0)
+                    if (m_ViewportData.FramebufferHandle == 0)
                     {
-                        _viewportData.FramebufferHandle = GL.GenFramebuffer();
+                        m_ViewportData.FramebufferHandle = GL.GenFramebuffer();
                         // bind our frame buffer
-                        GL.BindFramebuffer(FramebufferTarget.Framebuffer, _viewportData.FramebufferHandle);
-                        GL.ObjectLabel(ObjectLabelIdentifier.Framebuffer, _viewportData.FramebufferHandle, 10, "GameWindow");
+                        GL.BindFramebuffer(FramebufferTarget.Framebuffer, m_ViewportData.FramebufferHandle);
+                        GL.ObjectLabel(ObjectLabelIdentifier.Framebuffer, m_ViewportData.FramebufferHandle, 10, "GameWindow");
                     }
 
                     // bind our frame buffer
-                    GL.BindFramebuffer(FramebufferTarget.Framebuffer, _viewportData.FramebufferHandle);
+                    GL.BindFramebuffer(FramebufferTarget.Framebuffer, m_ViewportData.FramebufferHandle);
 
-                    if (_viewportData.CsdRenderTextureHandle > 0)
-                        GL.DeleteTexture(_viewportData.CsdRenderTextureHandle);
+                    if (m_ViewportData.CsdRenderTextureHandle > 0)
+                        GL.DeleteTexture(m_ViewportData.CsdRenderTextureHandle);
 
-                    _viewportData.CsdRenderTextureHandle = GL.GenTexture();
-                    GL.BindTexture(TextureTarget.Texture2D, _viewportData.CsdRenderTextureHandle);
-                    GL.ObjectLabel(ObjectLabelIdentifier.Texture, _viewportData.CsdRenderTextureHandle, 16, "GameWindow:Color");
+                    m_ViewportData.CsdRenderTextureHandle = GL.GenTexture();
+                    GL.BindTexture(TextureTarget.Texture2D, m_ViewportData.CsdRenderTextureHandle);
+                    GL.ObjectLabel(ObjectLabelIdentifier.Texture, m_ViewportData.CsdRenderTextureHandle, 16, "GameWindow:Color");
                     //IMPORTANT!
                     //Rgba for screenshots, rgb for everything else
                     var pixelInternalFormat = isSavingScreenshot ? PixelInternalFormat.Rgba : PixelInternalFormat.Rgb;
@@ -322,17 +322,17 @@ namespace Kunai.ShurikenRenderer
                     GL.TexImage2D(TextureTarget.Texture2D, 0, pixelInternalFormat, wsizei.X, wsizei.Y, 0, pixelFormat, PixelType.UnsignedByte, IntPtr.Zero);
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-                    GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, _viewportData.CsdRenderTextureHandle, 0);
+                    GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, m_ViewportData.CsdRenderTextureHandle, 0);
 
-                    if (_viewportData.RenderbufferHandle > 0)
-                        GL.DeleteRenderbuffer(_viewportData.RenderbufferHandle);
+                    if (m_ViewportData.RenderbufferHandle > 0)
+                        GL.DeleteRenderbuffer(m_ViewportData.RenderbufferHandle);
 
-                    _viewportData.RenderbufferHandle = GL.GenRenderbuffer();
-                    GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, _viewportData.RenderbufferHandle);
-                    GL.ObjectLabel(ObjectLabelIdentifier.Renderbuffer, _viewportData.RenderbufferHandle, 16, "GameWindow:Depth");
+                    m_ViewportData.RenderbufferHandle = GL.GenRenderbuffer();
+                    GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, m_ViewportData.RenderbufferHandle);
+                    GL.ObjectLabel(ObjectLabelIdentifier.Renderbuffer, m_ViewportData.RenderbufferHandle, 16, "GameWindow:Depth");
                     GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.DepthComponent32f, wsizei.X, wsizei.Y);
 
-                    GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, _viewportData.RenderbufferHandle);
+                    GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, m_ViewportData.RenderbufferHandle);
                     //GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, 0);
 
                     //texDepth = GL.GenTexture();
@@ -350,8 +350,8 @@ namespace Kunai.ShurikenRenderer
                 else
                 {
                     // bind our frame and depth buffer
-                    GL.BindFramebuffer(FramebufferTarget.Framebuffer, _viewportData.FramebufferHandle);
-                    GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, _viewportData.RenderbufferHandle);
+                    GL.BindFramebuffer(FramebufferTarget.Framebuffer, m_ViewportData.FramebufferHandle);
+                    GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, m_ViewportData.RenderbufferHandle);
                 }
                 GL.Viewport(0, 0, wsizei.X, wsizei.Y); // change the viewport to window
                 // actually draw the scene
@@ -395,7 +395,7 @@ namespace Kunai.ShurikenRenderer
                 }
                 // unbind our bo so nothing else uses it
                 GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-                GL.Viewport(0, 0, _window.ClientSize.X, _window.ClientSize.Y); // back to full screen size
+                GL.Viewport(0, 0, m_Window.ClientSize.X, m_Window.ClientSize.Y); // back to full screen size
             }
             UpdateWindows();
         }
@@ -411,9 +411,9 @@ namespace Kunai.ShurikenRenderer
             if (Config.PlayingAnimations)
                 Config.Time += in_DeltaTime;
 
-            if(referenceImageData.enabled)
+            if(ReferenceImageData.Enabled)
             {
-                Renderer.DrawFullscreenQuad(referenceImageData.sprite, referenceImageData.opacity);
+                Renderer.DrawFullscreenQuad(ReferenceImageData.Sprite, ReferenceImageData.Opacity);
             }
 
             RenderNode(in_CsdProject.Project.Root, Config.Time);
@@ -451,7 +451,7 @@ namespace Kunai.ShurikenRenderer
                 in_Priority += cast.Children.Count + 1;
             }
         }
-        private void ApplyAnimationValues(ref SSpriteDrawData in_SpriteDraw, ref SVisibilityData.SScene in_Vis, ref float out_SpriteIndex, Cast in_UiElement, float in_Time)
+        private void ApplyAnimationValues(ref SSpriteDrawData in_SpriteDraw, ref SVisibilityData.SScene in_Vis, ref float in_OutSpriteIndex, Cast in_UiElement, float in_Time)
         {
             //Redo this at some point
             foreach (SVisibilityData.SAnimation animation in in_Vis.Animation)
@@ -494,7 +494,7 @@ namespace Kunai.ShurikenRenderer
                                         break;
 
                                     case KeyProperty.SpriteIndex:
-                                        out_SpriteIndex = track.GetSingle(in_Time);
+                                        in_OutSpriteIndex = track.GetSingle(in_Time);
                                         break;
 
                                     case KeyProperty.Color:
@@ -656,48 +656,48 @@ namespace Kunai.ShurikenRenderer
 
         }
 
-        private void ApplyPropertyMask(ref SSpriteDrawData sSpriteDrawData, CastPropertyMask field2C)
+        private void ApplyPropertyMask(ref SSpriteDrawData in_SSpriteDrawData, CastPropertyMask in_Field2C)
         {
-            if((field2C & CastPropertyMask.ApplyTransform) == 0)
+            if((in_Field2C & CastPropertyMask.ApplyTransform) == 0)
             {
-                sSpriteDrawData.Position = Vector2.Zero;
+                in_SSpriteDrawData.Position = Vector2.Zero;
             }
             else
             {
-                if ((field2C & CastPropertyMask.ApplyTranslationX) == 0)
-                    sSpriteDrawData.Position.X = 0;
+                if ((in_Field2C & CastPropertyMask.ApplyTranslationX) == 0)
+                    in_SSpriteDrawData.Position.X = 0;
 
-                if ((field2C & CastPropertyMask.ApplyTranslationY) == 0)
-                    sSpriteDrawData.Position.Y = 0;
+                if ((in_Field2C & CastPropertyMask.ApplyTranslationY) == 0)
+                    in_SSpriteDrawData.Position.Y = 0;
             }
-            if ((field2C & CastPropertyMask.ApplyRotation) == 0)
-                sSpriteDrawData.Rotation = 0;
+            if ((in_Field2C & CastPropertyMask.ApplyRotation) == 0)
+                in_SSpriteDrawData.Rotation = 0;
 
-            if ((field2C & CastPropertyMask.ApplyScaleX) == 0)
-                sSpriteDrawData.Scale.X = 1;
+            if ((in_Field2C & CastPropertyMask.ApplyScaleX) == 0)
+                in_SSpriteDrawData.Scale.X = 1;
 
-            if ((field2C & CastPropertyMask.ApplyScaleY) == 0)
-                sSpriteDrawData.Scale.Y = 1;
+            if ((in_Field2C & CastPropertyMask.ApplyScaleY) == 0)
+                in_SSpriteDrawData.Scale.Y = 1;
 
-            if ((field2C & CastPropertyMask.ApplyColor) == 0)
-                sSpriteDrawData.Color = new Vector4(1, 1, 1, 1);
+            if ((in_Field2C & CastPropertyMask.ApplyColor) == 0)
+                in_SSpriteDrawData.Color = new Vector4(1, 1, 1, 1);
 
-            if ((field2C & CastPropertyMask.ApplyColorBL) == 0)
-                sSpriteDrawData.GradientBottomLeft = new Vector4(1, 1, 1, 1);
+            if ((in_Field2C & CastPropertyMask.ApplyColorBl) == 0)
+                in_SSpriteDrawData.GradientBottomLeft = new Vector4(1, 1, 1, 1);
 
-            if ((field2C & CastPropertyMask.ApplyColorBR) == 0)
-                sSpriteDrawData.GradientBottomRight = new Vector4(1, 1, 1, 1);
+            if ((in_Field2C & CastPropertyMask.ApplyColorBr) == 0)
+                in_SSpriteDrawData.GradientBottomRight = new Vector4(1, 1, 1, 1);
 
-            if ((field2C & CastPropertyMask.ApplyColorTL) == 0)
-                sSpriteDrawData.GradientTopLeft = new Vector4(1, 1, 1, 1);
+            if ((in_Field2C & CastPropertyMask.ApplyColorTl) == 0)
+                in_SSpriteDrawData.GradientTopLeft = new Vector4(1, 1, 1, 1);
 
-            if ((field2C & CastPropertyMask.ApplyColorTR) == 0)
-                sSpriteDrawData.GradientTopRight = new Vector4(1, 1, 1, 1);
+            if ((in_Field2C & CastPropertyMask.ApplyColorTr) == 0)
+                in_SSpriteDrawData.GradientTopRight = new Vector4(1, 1, 1, 1);
         }
 
         public int GetViewportImageHandle()
         {
-            return _viewportData.CsdRenderTextureHandle;
+            return m_ViewportData.CsdRenderTextureHandle;
         }
         void RecursiveSetCropListNode(SceneNode in_Node, List<Sprite> in_Sprites, List<Vector2> in_TexSizes)
         {
@@ -710,10 +710,10 @@ namespace Kunai.ShurikenRenderer
 
                     try
                     {
-                        var maxFrame = a.Value.FamilyMotions.SelectMany(fm => fm.CastMotions)
-                            .SelectMany(cm => cm)
-                            .SelectMany(kfl => kfl.Frames)
-                            .Max(kf => kf.Frame);
+                        var maxFrame = a.Value.FamilyMotions.SelectMany(in_Fm => in_Fm.CastMotions)
+                            .SelectMany(in_Cm => in_Cm)
+                            .SelectMany(in_Kfl => in_Kfl.Frames)
+                            .Max(in_Kf => in_Kf.Frame);
                         
                     if(a.Value.EndFrame < maxFrame)
                         a.Value.EndFrame = maxFrame;

@@ -39,10 +39,10 @@ namespace Kunai.Window
         ApplyScaleY = 0x0020,
         Flag7 = 0x0040,
         ApplyColor = 0x0080,
-        ApplyColorTL = 0x0100,
-        ApplyColorBL = 0x0200,
-        ApplyColorTR = 0x0400,
-        ApplyColorBR = 0x0800,
+        ApplyColorTl = 0x0100,
+        ApplyColorBl = 0x0200,
+        ApplyColorTr = 0x0400,
+        ApplyColorBr = 0x0800,
         Flag13 = 0x1000,
         Flag14 = 0x2000,
         Flag15 = 0x4000
@@ -306,10 +306,10 @@ namespace Kunai.Window
                 bool flag6Active = !unknownFlags.HasFlag(CastPropertyMask.ApplyScaleY);
                 bool flag7Active = !unknownFlags.HasFlag(CastPropertyMask.Flag7);
                 bool flag8Active = !unknownFlags.HasFlag(CastPropertyMask.ApplyColor);
-                bool flag9Active = !unknownFlags.HasFlag(CastPropertyMask.ApplyColorTL);
-                bool flag10Active = !unknownFlags.HasFlag(CastPropertyMask.ApplyColorBL);
-                bool flag11Active = !unknownFlags.HasFlag(CastPropertyMask.ApplyColorTR);
-                bool flag12Active = !unknownFlags.HasFlag(CastPropertyMask.ApplyColorBR);
+                bool flag9Active = !unknownFlags.HasFlag(CastPropertyMask.ApplyColorTl);
+                bool flag10Active = !unknownFlags.HasFlag(CastPropertyMask.ApplyColorBl);
+                bool flag11Active = !unknownFlags.HasFlag(CastPropertyMask.ApplyColorTr);
+                bool flag12Active = !unknownFlags.HasFlag(CastPropertyMask.ApplyColorBr);
                 bool flag13Active = !unknownFlags.HasFlag(CastPropertyMask.Flag13);
                 bool flag14Active = !unknownFlags.HasFlag(CastPropertyMask.Flag14);
                 bool flag15Active = !unknownFlags.HasFlag(CastPropertyMask.Flag15);
@@ -343,10 +343,10 @@ namespace Kunai.Window
                 if (!flag6Active) unknownFlags |= CastPropertyMask.ApplyScaleY; else unknownFlags &= ~CastPropertyMask.ApplyScaleY;
                 if (!flag7Active) unknownFlags |= CastPropertyMask.Flag7; else unknownFlags &= ~CastPropertyMask.Flag7;
                 if (!flag8Active) unknownFlags |= CastPropertyMask.ApplyColor; else unknownFlags &= ~CastPropertyMask.ApplyColor;
-                if (!flag9Active) unknownFlags |= CastPropertyMask.ApplyColorTL; else unknownFlags &= ~CastPropertyMask.ApplyColorTL;
-                if (!flag10Active) unknownFlags |= CastPropertyMask.ApplyColorBL; else unknownFlags &= ~CastPropertyMask.ApplyColorBL;
-                if (!flag11Active) unknownFlags |= CastPropertyMask.ApplyColorTR; else unknownFlags &= ~CastPropertyMask.ApplyColorTR;
-                if (!flag12Active) unknownFlags |= CastPropertyMask.ApplyColorBR; else unknownFlags &= ~CastPropertyMask.ApplyColorBR;
+                if (!flag9Active) unknownFlags |= CastPropertyMask.ApplyColorTl; else unknownFlags &= ~CastPropertyMask.ApplyColorTl;
+                if (!flag10Active) unknownFlags |= CastPropertyMask.ApplyColorBl; else unknownFlags &= ~CastPropertyMask.ApplyColorBl;
+                if (!flag11Active) unknownFlags |= CastPropertyMask.ApplyColorTr; else unknownFlags &= ~CastPropertyMask.ApplyColorTr;
+                if (!flag12Active) unknownFlags |= CastPropertyMask.ApplyColorBr; else unknownFlags &= ~CastPropertyMask.ApplyColorBr;
                 if (!flag13Active) unknownFlags |= CastPropertyMask.Flag13; else unknownFlags &= ~CastPropertyMask.Flag13;
                 if (!flag14Active) unknownFlags |= CastPropertyMask.Flag14; else unknownFlags &= ~CastPropertyMask.Flag14;
                 if (!flag15Active) unknownFlags |= CastPropertyMask.Flag15; else unknownFlags &= ~CastPropertyMask.Flag15;

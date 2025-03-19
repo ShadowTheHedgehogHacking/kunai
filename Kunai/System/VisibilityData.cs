@@ -82,10 +82,10 @@ namespace Kunai
                 }
                 return null;
             }
-            public bool FindCastByName(string castName)
+            public bool FindCastByName(string in_CastName)
             {
-                if(string.IsNullOrEmpty(castName)) return true;
-                return Casts.Any(cast => cast.Cast.Name.ToLower().Contains(castName));
+                if(string.IsNullOrEmpty(in_CastName)) return true;
+                return Casts.Any(in_Cast => in_Cast.Cast.Name.ToLower().Contains(in_CastName));
             }
             public void Rename(string in_NewName)
             {

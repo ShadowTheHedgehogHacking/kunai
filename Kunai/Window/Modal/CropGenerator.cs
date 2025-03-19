@@ -11,39 +11,39 @@ namespace Kunai.Modal
 {
     public static class CropGenerator
     {
-        static bool m_CutMenuOpen = false;
-        static int m_CutType;
-        static Vector2 m_CutParam;
-        static Vector2 m_WindowSize = new Vector2(500, 160);
+        static bool ms_MCutMenuOpen = false;
+        static int ms_MCutType;
+        static Vector2 ms_MCutParam;
+        static Vector2 ms_MWindowSize = new Vector2(500, 160);
 
         public static void Activate()
         {
-            m_CutMenuOpen = true;
+            ms_MCutMenuOpen = true;
         }
         public static void Draw(int in_TextureIndex)
         {
-            if (m_CutMenuOpen)
+            if (ms_MCutMenuOpen)
             {
                 ImGui.OpenPopup("##generatecrops");
 
                 // Calculate centered position
                 var viewport = ImGui.GetMainViewport();
                 Vector2 centerPos = new Vector2(
-                    viewport.WorkPos.X + (viewport.WorkSize.X - m_WindowSize.X) * 0.5f,
-                    viewport.WorkPos.Y + (viewport.WorkSize.Y - m_WindowSize.Y) * 0.5f
+                    viewport.WorkPos.X + (viewport.WorkSize.X - ms_MWindowSize.X) * 0.5f,
+                    viewport.WorkPos.Y + (viewport.WorkSize.Y - ms_MWindowSize.Y) * 0.5f
                 );
                 ImGui.SetNextWindowPos(centerPos);
-                ImGui.SetNextWindowSize(m_WindowSize);
-                if (ImGui.BeginPopupModal("##generatecrops", ref m_CutMenuOpen, ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize))
+                ImGui.SetNextWindowSize(ms_MWindowSize);
+                if (ImGui.BeginPopupModal("##generatecrops", ref ms_MCutMenuOpen, ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize))
                 {
                     var texture = SpriteHelper.Textures[in_TextureIndex];
-                    ImGui.Combo("Type", ref m_CutType, ["Size", "Count"], 2);
+                    ImGui.Combo("Type", ref ms_MCutType, ["Size", "Count"], 2);
 
-                    ImGui.InputFloat2(m_CutType == 0 ? "Individual Size" : "Grid Count", ref m_CutParam);
+                    ImGui.InputFloat2(ms_MCutType == 0 ? "Individual Size" : "Grid Count", ref ms_MCutParam);
                     ImGui.Separator();
 
                     //Calculate estimated crop count
-                    Vector2 estimate = m_CutType == 0 ? texture.Size / m_CutParam : m_CutParam;
+                    Vector2 estimate = ms_MCutType == 0 ? texture.Size / ms_MCutParam : ms_MCutParam;
                     float estimateCount = (int)(estimate.Y * estimate.X);
                     if (estimateCount < 0 || estimateCount > 256)
                         estimateCount = 0;
@@ -52,26 +52,26 @@ namespace Kunai.Modal
                     ImGui.Separator();
                     if (ImGui.Button("Execute"))
                     {
-                        switch (m_CutType)
+                        switch (ms_MCutType)
                         {
                             case 0:
                                 {
-                                    CreateCropGrid(in_TextureIndex, m_CutParam);
+                                    CreateCropGrid(in_TextureIndex, ms_MCutParam);
                                     break;
                                 }
                             case 1:
                                 {
-                                    CreateCropGrid(in_TextureIndex, texture.Size / m_CutParam);
+                                    CreateCropGrid(in_TextureIndex, texture.Size / ms_MCutParam);
                                     break;
                                 }
                         }
-                        m_CutMenuOpen = false;
+                        ms_MCutMenuOpen = false;
                         ImGui.CloseCurrentPopup();
                     }
                     ImGui.SameLine();
                     if (ImGui.Button("Cancel"))
                     {
-                        m_CutMenuOpen = false;
+                        ms_MCutMenuOpen = false;
                         ImGui.CloseCurrentPopup();
                     }
                     ImGui.EndPopup();

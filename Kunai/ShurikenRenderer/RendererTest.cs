@@ -14,30 +14,30 @@ namespace Shuriken.Rendering
     {
         public readonly string ShadersDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Shaders");
 
-        private uint _vao;
-        private uint _vbo;
-        private uint _ebo;
-        private uint[] _indices;
+        private uint m_Vao;
+        private uint m_Vbo;
+        private uint m_Ebo;
+        private uint[] m_Indices;
         public Dictionary<string, ShaderProgram> ShaderDictionary;
 
-        private Vertex[] _buffer;
-        private List<Quad> _quads;
+        private Vertex[] m_Buffer;
+        private List<Quad> m_Quads;
         public List<Quad> Quads
         {
-            get { return _quads; }
+            get { return m_Quads; }
         }
 
-        private bool _additive;
-        private bool _linearFiltering = true;
-        private int _textureId = -1;
-        private ShaderProgram _shader;
+        private bool m_Additive;
+        private bool m_LinearFiltering = true;
+        private int m_TextureId = -1;
+        private ShaderProgram m_Shader;
 
         public readonly int MaxVertices = 10000;
         public int MaxQuads => MaxVertices / 4;
         public int MaxIndices => MaxQuads * 6;
 
         public int NumVertices { get; private set; }
-        public int NumQuads => _quads.Count;
+        public int NumQuads => m_Quads.Count;
         public int NumIndices { get; private set; }
         public int BufferPos { get; private set; }
         public bool BatchStarted { get; private set; }
@@ -46,37 +46,37 @@ namespace Shuriken.Rendering
 
         public bool Additive
         {
-            get => _additive;
+            get => m_Additive;
             set
             {
-                _additive = value;
-                GL.BlendFunc(BlendingFactor.SrcAlpha, _additive ? BlendingFactor.One : BlendingFactor.OneMinusSrcAlpha);
+                m_Additive = value;
+                GL.BlendFunc(BlendingFactor.SrcAlpha, m_Additive ? BlendingFactor.One : BlendingFactor.OneMinusSrcAlpha);
             }
         }
 
         public bool LinearFiltering
         {
-            get => _linearFiltering;
+            get => m_LinearFiltering;
             set
             {
-                _linearFiltering = value;
+                m_LinearFiltering = value;
 
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
-                    _linearFiltering ? (int)TextureMinFilter.Linear : (int)TextureMinFilter.Nearest);
+                    m_LinearFiltering ? (int)TextureMinFilter.Linear : (int)TextureMinFilter.Nearest);
 
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter,
-                    _linearFiltering ? (int)TextureMagFilter.Linear : (int)TextureMagFilter.Nearest);
+                    m_LinearFiltering ? (int)TextureMagFilter.Linear : (int)TextureMagFilter.Nearest);
             }
         }
 
 
         public int TextureId
         {
-            get => _textureId;
+            get => m_TextureId;
             set
             {
-                _textureId = value;
-                _shader.SetBool("hasTexture", _textureId != -1);
+                m_TextureId = value;
+                m_Shader.SetBool("hasTexture", m_TextureId != -1);
             }
         }
 
@@ -88,23 +88,23 @@ namespace Shuriken.Rendering
             ShaderDictionary.Add(basicShader.Name, basicShader);
 
             // setup vertex indices
-            _indices = new uint[MaxIndices];
+            m_Indices = new uint[MaxIndices];
             uint offset = 0;
             for (uint index = 0; index < MaxIndices; index += 6)
             {
-                _indices[index + 0] = offset + 0;
-                _indices[index + 1] = offset + 1;
-                _indices[index + 2] = offset + 2;
+                m_Indices[index + 0] = offset + 0;
+                m_Indices[index + 1] = offset + 1;
+                m_Indices[index + 2] = offset + 2;
 
-                _indices[index + 3] = offset + 1;
-                _indices[index + 4] = offset + 2;
-                _indices[index + 5] = offset + 3;
+                m_Indices[index + 3] = offset + 1;
+                m_Indices[index + 4] = offset + 2;
+                m_Indices[index + 5] = offset + 3;
 
                 offset += 4;
             }
 
-            _buffer = new Vertex[MaxVertices];
-            _quads = new List<Quad>(MaxQuads);
+            m_Buffer = new Vertex[MaxVertices];
+            m_Quads = new List<Quad>(MaxQuads);
             Init();
 
             Width = in_Width;
@@ -112,7 +112,7 @@ namespace Shuriken.Rendering
         }
         public List<Quad> GetQuads()
         {
-            return _quads;
+            return m_Quads;
         }
 
         private void Init()
@@ -120,17 +120,17 @@ namespace Shuriken.Rendering
             // 2 floats for pos, 2 floats for UVs, 4 floats for color
             int stride = Unsafe.SizeOf<Vertex>();
 
-            GL.GenVertexArrays(1, out _vao);
-            GL.BindVertexArray(_vao);
+            GL.GenVertexArrays(1, out m_Vao);
+            GL.BindVertexArray(m_Vao);
 
-            GL.GenBuffers(1, out _vbo);
-            GL.GenBuffers(1, out _ebo);
+            GL.GenBuffers(1, out m_Vbo);
+            GL.GenBuffers(1, out m_Ebo);
 
-            GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, m_Vbo);
             GL.BufferData(BufferTarget.ArrayBuffer, MaxVertices, nint.Zero, BufferUsageHint.DynamicDraw);
 
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, _ebo);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, MaxIndices, _indices, BufferUsageHint.StaticDraw);
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, m_Ebo);
+            GL.BufferData(BufferTarget.ElementArrayBuffer, MaxIndices, m_Indices, BufferUsageHint.StaticDraw);
 
             // position
             GL.EnableVertexAttribArray(0);
@@ -175,10 +175,10 @@ namespace Shuriken.Rendering
         {
             if (BufferPos > 0)
             {
-                GL.BindVertexArray(_vao);
-                GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);
-                GL.BindBuffer(BufferTarget.ElementArrayBuffer, _ebo);
-                GL.BufferSubData(BufferTarget.ArrayBuffer, nint.Zero, BufferPos * Unsafe.SizeOf<Vertex>(), _buffer);
+                GL.BindVertexArray(m_Vao);
+                GL.BindBuffer(BufferTarget.ArrayBuffer, m_Vbo);
+                GL.BindBuffer(BufferTarget.ElementArrayBuffer, m_Ebo);
+                GL.BufferSubData(BufferTarget.ArrayBuffer, nint.Zero, BufferPos * Unsafe.SizeOf<Vertex>(), m_Buffer);
                 Flush();
             }
 
@@ -197,10 +197,10 @@ namespace Shuriken.Rendering
         public void PushQuad(Quad in_Quad)
         {
             /// SharpNeedle uses ARGB color, this inverts it so that colors look right
-            _buffer[BufferPos++] = in_Quad.TopLeft.WithInvertedColor();
-            _buffer[BufferPos++] = in_Quad.BottomLeft.WithInvertedColor();
-            _buffer[BufferPos++] = in_Quad.TopRight.WithInvertedColor();
-            _buffer[BufferPos++] = in_Quad.BottomRight.WithInvertedColor();
+            m_Buffer[BufferPos++] = in_Quad.TopLeft.WithInvertedColor();
+            m_Buffer[BufferPos++] = in_Quad.BottomLeft.WithInvertedColor();
+            m_Buffer[BufferPos++] = in_Quad.TopRight.WithInvertedColor();
+            m_Buffer[BufferPos++] = in_Quad.BottomRight.WithInvertedColor();
             NumIndices += 6;
         }
         public void DrawEmptyQuad(SSpriteDrawData in_DrawData)
@@ -221,7 +221,7 @@ namespace Shuriken.Rendering
             quad.BottomRight.Position = in_DrawData.Position + ((bottomRight * scale * aspect) / aspect);
             quad.OriginalData = in_DrawData;
 
-            _quads.Add(quad);
+            m_Quads.Add(quad);
         }
         public void DrawSprite(SSpriteDrawData in_DrawData)
         {
@@ -280,7 +280,7 @@ namespace Shuriken.Rendering
             quad.LinearFiltering = (in_DrawData.Flags & ElementMaterialFlags.LinearFiltering) != 0;
             quad.OriginalData = in_DrawData;
 
-            _quads.Add(quad);
+            m_Quads.Add(quad);
         }
         public void DrawFullscreenQuad(KunaiSprite in_Spr, float in_Transparency)
         {
@@ -320,12 +320,12 @@ namespace Shuriken.Rendering
             quad.LinearFiltering = true;
             quad.OriginalData.Unselectable = true;
 
-            _quads.Add(quad);
+            m_Quads.Add(quad);
         }
         public void SetShader(ShaderProgram in_Param)
         {
-            _shader = in_Param;
-            _shader.Use();
+            m_Shader = in_Param;
+            m_Shader.Use();
         }
 
         /// <summary>
@@ -333,7 +333,7 @@ namespace Shuriken.Rendering
         /// </summary>
         public void Start()
         {
-            _quads.Clear();
+            m_Quads.Clear();
 
             GL.ActiveTexture(TextureUnit.Texture0);
             BeginBatch();
@@ -345,7 +345,7 @@ namespace Shuriken.Rendering
         public void End()
         {
 
-            foreach (var quad in _quads)
+            foreach (var quad in m_Quads)
             {
                 int id = quad.Texture?.GlTex?.Id ?? -1;
 

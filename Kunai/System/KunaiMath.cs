@@ -29,15 +29,15 @@ namespace Kunai
         /// Checks if a point is within a rect made up of 4 Vector2s.
         /// </summary>
         /// <param name="in_Point">Point to check</param>
-        /// <param name="in_rTopLeft">Top left of rect</param>
-        /// <param name="in_rTopRight">Top right of rect</param>
-        /// <param name="in_rBtmRight">Bottom right of rect</param>
-        /// <param name="in_rBtmLeft">Bottom left of rect</param>
+        /// <param name="in_RTopLeft">Top left of rect</param>
+        /// <param name="in_RTopRight">Top right of rect</param>
+        /// <param name="in_RBtmRight">Bottom right of rect</param>
+        /// <param name="in_RBtmLeft">Bottom left of rect</param>
         /// <returns></returns>
-        public static bool IsPointInRect(Vector2 in_Point, Vector2 in_rTopLeft, Vector2 in_rTopRight, Vector2 in_rBtmRight, Vector2 in_rBtmLeft)
+        public static bool IsPointInRect(Vector2 in_Point, Vector2 in_RTopLeft, Vector2 in_RTopRight, Vector2 in_RBtmRight, Vector2 in_RBtmLeft)
         {
-            return SameSide(in_rTopLeft, in_rTopRight, in_rBtmRight, in_Point) && SameSide(in_rTopRight, in_rBtmRight, in_rBtmLeft, in_Point) &&
-                   SameSide(in_rBtmRight, in_rBtmLeft, in_rTopLeft, in_Point) && SameSide(in_rBtmLeft, in_rTopLeft, in_rTopRight, in_Point);
+            return SameSide(in_RTopLeft, in_RTopRight, in_RBtmRight, in_Point) && SameSide(in_RTopRight, in_RBtmRight, in_RBtmLeft, in_Point) &&
+                   SameSide(in_RBtmRight, in_RBtmLeft, in_RTopLeft, in_Point) && SameSide(in_RBtmLeft, in_RTopLeft, in_RTopRight, in_Point);
         }
     }
 }

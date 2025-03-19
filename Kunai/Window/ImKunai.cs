@@ -39,12 +39,12 @@ namespace Kunai.Window
         public Vector2 ImageSize;
         public Vector2 ImagePosition;
 
-        public SCenteredImageData(Vector2 cursorPos2, Vector2 windowPos, Vector2 scaledViewportSize, Vector2 fixedViewportPosition)
+        public SCenteredImageData(Vector2 in_CursorPos2, Vector2 in_WindowPos, Vector2 in_ScaledViewportSize, Vector2 in_FixedViewportPosition)
         {
-            Position = cursorPos2;
-            WindowPosition = windowPos;
-            ImageSize = scaledViewportSize;
-            ImagePosition = fixedViewportPosition;
+            Position = in_CursorPos2;
+            WindowPosition = in_WindowPos;
+            ImageSize = in_ScaledViewportSize;
+            ImagePosition = in_FixedViewportPosition;
         }
     }
     public static class ImKunai

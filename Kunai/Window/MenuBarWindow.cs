@@ -145,19 +145,19 @@ namespace Kunai.Window
                             if (dialog.IsOk)
                             {
                                 renderer.LoadReferenceImage(dialog.Path);
-                                renderer.referenceImageData.opacity = 1;
+                                renderer.ReferenceImageData.Opacity = 1;
                             }
                         }
                         if (ImGui.MenuItem("Remove"))
                         {
-                            renderer.referenceImageData.enabled = false;
+                            renderer.ReferenceImageData.Enabled = false;
                         }
                         ImGui.Separator();
                         if (ImGui.BeginMenu("Opacity"))
                         {
-                            float transparency = renderer.referenceImageData.opacity;
+                            float transparency = renderer.ReferenceImageData.Opacity;
                             ImGui.SliderFloat("##referenceopacity", ref transparency, 0, 1);
-                            renderer.referenceImageData.opacity = transparency;
+                            renderer.ReferenceImageData.Opacity = transparency;
                             ImGui.EndMenu();
                         }
                         ImGui.EndMenu();
@@ -178,7 +178,7 @@ namespace Kunai.Window
                         if (e.IsOk)
                         {
                             var files = Directory.EnumerateFiles(e.Path, "*.*", SearchOption.AllDirectories).ToList();
-                            var textureNames = new HashSet<string>(SpriteHelper.Textures.Select(t => t.Name));
+                            var textureNames = new HashSet<string>(SpriteHelper.Textures.Select(in_T => in_T.Name));
 
                             foreach (string file in files)
                             {

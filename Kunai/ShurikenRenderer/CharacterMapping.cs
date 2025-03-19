@@ -3,14 +3,14 @@ namespace Kunai.ShurikenRenderer
 {
     public class CharacterMapping
     {
-        private char _character;
+        private char m_Character;
         public char Character
         {
-            get => _character;
+            get => m_Character;
             set
             {
                 if (!string.IsNullOrEmpty(value.ToString()))
-                    _character = value;
+                    m_Character = value;
             }
         }
 

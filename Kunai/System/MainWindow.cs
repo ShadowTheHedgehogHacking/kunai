@@ -20,7 +20,7 @@ namespace Kunai
         private KunaiProject KunaiProject => (KunaiProject)Project;
         public static ImGuiWindowFlags WindowFlags = ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse;
 
-        public MainWindow(Version in_OpenGLVersion, Vector2 in_WindowSize) : base(in_OpenGLVersion, in_WindowSize)
+        public MainWindow(Version in_OpenGlVersion, Vector2 in_WindowSize) : base(in_OpenGlVersion, in_WindowSize)
         {
             ApplicationName = "Kunai";
             Title = ApplicationName;
@@ -54,9 +54,9 @@ namespace Kunai
             Windows.Add(new SettingsWindow());
         }
 
-        private void LoadFromArgs(string[] args)
+        private void LoadFromArgs(string[] in_Args)
         {
-            KunaiProject.LoadFile(args[0]);
+            KunaiProject.LoadFile(in_Args[0]);
         }
 
         protected override void OnResize(ResizeEventArgs in_E)

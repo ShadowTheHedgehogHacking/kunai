@@ -16,7 +16,7 @@ namespace Kunai.Window
     public class SettingsWindow : Singleton<CropEditor>, IWindow
     {
         public static bool Enabled = false;
-        bool _themeIsDark = SettingsManager.GetBool("IsDarkThemeEnabled");
+        bool m_ThemeIsDark = SettingsManager.GetBool("IsDarkThemeEnabled");
         public static string AddQuotesIfRequired(string in_Path)
         {
             return !string.IsNullOrWhiteSpace(in_Path) ?
@@ -55,13 +55,13 @@ namespace Kunai.Window
                 ImGui.SetNextWindowSize(new Vector2(300, 300), ImGuiCond.FirstUseEver);
                 if (ImGui.Begin("Settings", ref Enabled))
                 {
-                    int currentTheme = _themeIsDark ? 1 : 0;
+                    int currentTheme = m_ThemeIsDark ? 1 : 0;
                     var color = renderer.ViewportColor;
                     if (ImGui.Combo("Theme", ref currentTheme, ["Light", "Dark"], 2))
                     {
-                        _themeIsDark = currentTheme == 1;
-                        SettingsManager.SetBool("IsDarkThemeEnabled", _themeIsDark);
-                        ImGuiThemeManager.SetTheme(_themeIsDark);
+                        m_ThemeIsDark = currentTheme == 1;
+                        SettingsManager.SetBool("IsDarkThemeEnabled", m_ThemeIsDark);
+                        ImGuiThemeManager.SetTheme(m_ThemeIsDark);
                     }
                     if (ImGui.ColorEdit3("Viewport Color", ref color))
                     {

@@ -92,7 +92,7 @@ namespace Shuriken.Rendering.Gvr
         public bool HasPalette => (DataFlags & GvrDataFlags.Palette) != 0;
         public bool HasMipmaps => (DataFlags & GvrDataFlags.Mipmaps) != 0;
 
-        private bool _isLoaded;
+        private bool m_IsLoaded;
 
         private const uint GcixMagic = 0x58494347;
         private const uint GvrtMagic = 0x54525647;
@@ -102,7 +102,7 @@ namespace Shuriken.Rendering.Gvr
 
         public GvrFile()
         {
-            _isLoaded = false;
+            m_IsLoaded = false;
         }
 
         public void LoadFromGvrFile(string in_GvrPath)
@@ -186,7 +186,7 @@ namespace Shuriken.Rendering.Gvr
                 }
             }
 
-            _isLoaded = true;
+            m_IsLoaded = true;
         }
     }
 }

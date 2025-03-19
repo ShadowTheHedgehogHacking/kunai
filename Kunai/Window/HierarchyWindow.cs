@@ -14,7 +14,7 @@ namespace Kunai.Window
     public class HierarchyWindow : Singleton<HierarchyWindow>, IWindow
     {
         private static TempSearchBox ms_SearchBox = new TempSearchBox();
-        private static bool CastControl(SVisibilityData.SCast vis, Cast in_Cast, bool in_IsLeaf)
+        private static bool CastControl(SVisibilityData.SCast in_Vis, Cast in_Cast, bool in_IsLeaf)
         {
             SIconData icon = new();
             switch (in_Cast.GetDrawType())
@@ -36,11 +36,11 @@ namespace Kunai.Window
                     }
             }
             bool selectedCast = false;
-            bool returnVal = ImKunai.VisibilityNode(in_Cast.Name, ref vis.Active, ref selectedCast, CastRightClickAction(vis), in_ShowArrow: in_IsLeaf, in_Icon: icon, in_Id: $"##{in_Cast.Name}_{vis.Id}");
+            bool returnVal = ImKunai.VisibilityNode(in_Cast.Name, ref in_Vis.Active, ref selectedCast, CastRightClickAction(in_Vis), in_ShowArrow: in_IsLeaf, in_Icon: icon, in_Id: $"##{in_Cast.Name}_{in_Vis.Id}");
 
             if (selectedCast)
             {
-                InspectorWindow.SelectScene(vis.Parent.Scene);
+                InspectorWindow.SelectScene(in_Vis.Parent.Scene);
                 InspectorWindow.SelectCast(in_Cast);
             }
             return returnVal;

@@ -145,16 +145,16 @@ namespace Kunai.Window
                     var selectedScene = KunaiProject.Instance.SelectionData.SelectedScene;
                     ImPlot.SetupAxisLimits(ImAxis.X1, 0, 60);
                     ImPlot.SetupAxisLimits(ImAxis.Y1, 0, 10);
-                    if (selectedScene.Value != null)
+                    if (selectedScene != null)
                     {
                         if (in_Renderer.SelectionData.TrackAnimation != null)
                         {
-                            double time = in_Renderer.Config.Time * selectedScene.Value.FrameRate;
+                            double time = in_Renderer.Config.Time * selectedScene.Value.Value.FrameRate;
                             ms_Points.Clear();
                             //Line for the anim time
                             if (ImPlot.DragLineX(0, &time, new Vector4(1, 1, 1, 1), 1))
                             {
-                                in_Renderer.Config.Time = (float)(time / selectedScene.Value.FrameRate);
+                                in_Renderer.Config.Time = (float)(time / selectedScene.Value.Value.FrameRate);
                             }
 
                             bool isFloatValue = in_Renderer.SelectionData.TrackAnimation.Property != KeyProperty.Color
@@ -198,7 +198,7 @@ namespace Kunai.Window
                 if (ImGui.BeginPopupContextItem())
                 {
                     var selectedScene = KunaiProject.Instance.SelectionData.SelectedScene;
-                    if (selectedScene.Value != null)
+                    if (selectedScene != null)
                     {
                         if (in_Renderer.SelectionData.TrackAnimation != null)
                         {
@@ -333,15 +333,11 @@ namespace Kunai.Window
                 if (ImGui.BeginListBox("##animlist", new System.Numerics.Vector2(ImGui.GetWindowSize().X / 5, -1)))
                 {
                     var selectedScene = KunaiProject.Instance.SelectionData.SelectedScene;
-                    if (selectedScene.Value != null)
+                    if (selectedScene != null)
                     {
-                        CsdVisData.Scene sceneVisData = renderer.VisibilityData.GetScene(selectedScene.Value);
-                        if (sceneVisData != null)
+                        foreach (CsdVisData.Animation sceneMotion in selectedScene.Animation)
                         {
-                            foreach (CsdVisData.Animation sceneMotion in sceneVisData.Animation)
-                            {
-                                DrawMotionElement(sceneMotion);
-                            }
+                            DrawMotionElement(sceneMotion);
                         }
                     }
                     ImGui.EndListBox();

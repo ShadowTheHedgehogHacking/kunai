@@ -101,7 +101,7 @@ namespace Kunai.Window
                 //ImGui.GetWindowDrawList().AddCircle(pcenter, 10, ImGui.ColorConvertFloat4ToU32(new Vector4(1, 1, 1, 1)));
 
                 //Null cast indicator
-                if (cast.Field04 == 0 && SettingsWindow.ShowNullCasts)
+                if (cast.Type == Cast.EType.Null && SettingsWindow.ShowNullCasts)
                 {
                     Vector2 center = KunaiMath.CenterOfRect(pTopLeft, pTopRight, pBotRight, pBotLeft);
                     float extents = 10 * m_ZoomFactor;
@@ -167,9 +167,11 @@ namespace Kunai.Window
 
             if (possibleSelections.Count > 0)
             {
-                List<Cast> selections = possibleSelections.OrderBy(in_X => in_X.Field04).ThenByDescending(in_X => in_X.Priority)
+                List<Cast> selections = possibleSelections.OrderBy(in_X => in_X.Type).ThenByDescending(in_X => in_X.Priority)
                     .ToList();
-                InspectorWindow.SelectCast(selections[0]);
+
+                //TODO: FIX!
+                InspectorWindow.SelectCast(KunaiProject.Instance.VisibilityData.GetCast(selections[0]));
             }
         }
     }

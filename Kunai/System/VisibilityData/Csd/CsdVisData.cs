@@ -55,5 +55,29 @@ namespace Kunai
             }
             return null;
         }
+        private Cast RecursiveGetCast(Node in_Node, SharpNeedle.Framework.Ninja.Csd.Cast in_Cast)
+        {
+            foreach (var s in in_Node.Scene)
+            {
+                Cast t = s.Casts.Find(x => x.Value == in_Cast);
+                if (t != default)
+                    return t;
+            }
+            foreach (var node in in_Node.Children)
+            {
+                var scene = RecursiveGetCast(node, in_Cast);
+                if (scene != null)
+                    return scene;
+            }
+            return null;
+        }
+        public Cast GetCast(SharpNeedle.Framework.Ninja.Csd.Cast in_Scene)
+        {
+            foreach (var node in Nodes)
+            {
+                return RecursiveGetCast(node, in_Scene);
+            }
+            return null;
+        }
     }
 }

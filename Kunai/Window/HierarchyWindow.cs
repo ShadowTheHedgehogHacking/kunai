@@ -19,8 +19,8 @@ namespace Kunai.Window
             TVisHierarchyResult control = in_Vis.DrawHierarchy();
             if (control.selected)
             {
-                InspectorWindow.SelectScene(in_Vis.Parent.Value);
-                InspectorWindow.SelectCast(in_Cast);
+                InspectorWindow.SelectScene(in_Vis.Parent);
+                InspectorWindow.SelectCast(in_Vis);
             }
             return control.open;
 
@@ -88,7 +88,7 @@ namespace Kunai.Window
                         }
                         if (sceneControl.selected)
                         {
-                            InspectorWindow.SelectScene(scene.Value);
+                            InspectorWindow.SelectScene(scene);
                         }
                     }
                     

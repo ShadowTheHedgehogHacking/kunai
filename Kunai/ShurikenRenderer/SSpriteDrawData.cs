@@ -42,7 +42,7 @@ namespace Shuriken.Rendering
             ZIndex = (int)in_Scene.Priority + in_Cast.Priority;
             OriginCast = in_Cast;
             AspectRatio = in_Scene.AspectRatio;
-            Flags = (ElementMaterialFlags)in_Cast.Field38;
+            Flags = (ElementMaterialFlags)in_Cast.MaterialFlags.Value;
         }
 
     }

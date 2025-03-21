@@ -11,8 +11,8 @@ namespace Kunai.ShurikenRenderer
         {
             public KeyFrameList TrackAnimation;
             public KeyFrame KeyframeSelected;
-            public Cast SelectedCast;
-            public KeyValuePair<string, Scene> SelectedScene;
+            public CsdVisData.Cast SelectedCast;
+            public CsdVisData.Scene SelectedScene;
         }
     }
 }

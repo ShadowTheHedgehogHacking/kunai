@@ -581,72 +581,78 @@ namespace Kunai.ShurikenRenderer
 
             sSpriteDrawData.Position += in_UiElement.Origin;
             ApplyInheritance(ref sSpriteDrawData, (ElementInheritanceFlags)in_UiElement.InheritanceFlags.Value, in_Transform);
-            ApplyPropertyMask(ref sSpriteDrawData, (CastPropertyMask)in_UiElement.Field2C);
-            var type = (DrawType)in_UiElement.Field04;
+            ApplyPropertyMask(ref sSpriteDrawData, (CastPropertyMask)in_UiElement.Field2C.Value);
+            var type = in_UiElement.Type;
 
             if (visibilityDataCast.Active && in_UiElement.Enabled)
             {
                 sSpriteDrawData.Rotation *= MathF.PI / 180.0f;
-                if (type == DrawType.Sprite)
+                switch(type)
                 {
-                    int spriteIdx1 = Math.Min(in_UiElement.SpriteIndices.Length - 1, (int)sprId);
-                    int spriteIdx2 = Math.Min(in_UiElement.SpriteIndices.Length - 1, (int)sprId + 1);
-                    KunaiSprite spr = sprId >= 0 ? SpriteHelper.TryGetSprite(in_UiElement.SpriteIndices[spriteIdx1]) : null;
-                    KunaiSprite nextSpr = sprId >= 0 ? SpriteHelper.TryGetSprite(in_UiElement.SpriteIndices[spriteIdx2]) : null;
-
-                    spr ??= nextSpr;
-                    nextSpr ??= spr;
-                    sSpriteDrawData.NextSprite = nextSpr;
-                    sSpriteDrawData.SpriteFactor = sprId % 1;
-                    sSpriteDrawData.Sprite = spr;
-                    Renderer.DrawSprite(sSpriteDrawData);
-                }
-                else if (type == DrawType.Font)
-                {
-                    float xOffset = 0.0f;
-                    if (string.IsNullOrEmpty(in_UiElement.Text)) in_UiElement.Text = "";
-                    foreach (char character in in_UiElement.Text)
-                    {
-
-                        var font = WorkProjectCsd.Project.Fonts[in_UiElement.FontName];
-                        if (font == null)
-                            continue;
-
-                        KunaiSprite spr = null;
-
-                        foreach (var mapping in font)
+                    case Cast.EType.Sprite:
                         {
-                            if (mapping.SourceIndex != character)
-                                continue;
+                            int spriteIdx1 = Math.Min(in_UiElement.SpriteIndices.Length - 1, (int)sprId);
+                            int spriteIdx2 = Math.Min(in_UiElement.SpriteIndices.Length - 1, (int)sprId + 1);
+                            KunaiSprite spr = sprId >= 0 ? SpriteHelper.TryGetSprite(in_UiElement.SpriteIndices[spriteIdx1]) : null;
+                            KunaiSprite nextSpr = sprId >= 0 ? SpriteHelper.TryGetSprite(in_UiElement.SpriteIndices[spriteIdx2]) : null;
 
-                            spr = SpriteHelper.TryGetSprite(mapping.DestinationIndex);
+                            spr ??= nextSpr;
+                            nextSpr ??= spr;
+                            sSpriteDrawData.NextSprite = nextSpr;
+                            sSpriteDrawData.SpriteFactor = sprId % 1;
+                            sSpriteDrawData.Sprite = spr;
+                            Renderer.DrawSprite(sSpriteDrawData);
                             break;
                         }
+                    case Cast.EType.Font:
+                        {
+                            float xOffset = 0.0f;
+                            if (string.IsNullOrEmpty(in_UiElement.Text)) in_UiElement.Text = "";
+                            foreach (char character in in_UiElement.Text)
+                            {
 
-                        if (spr == null)
-                            continue;
+                                var font = WorkProjectCsd.Project.Fonts[in_UiElement.FontName];
+                                if (font == null)
+                                    continue;
 
-                        float width = spr.Dimensions.X / Renderer.Width;
-                        float height = spr.Dimensions.Y / Renderer.Height;
+                                KunaiSprite spr = null;
 
-                        var begin = (Vector2)in_UiElement.TopLeft;
-                        var end = begin + new Vector2(width, height);
+                                foreach (var mapping in font)
+                                {
+                                    if (mapping.SourceIndex != character)
+                                        continue;
 
-                        sSpriteDrawData.OverrideUvCoords = true;
-                        sSpriteDrawData.TopLeft = new Vector2(begin.X + xOffset, begin.Y);
-                        sSpriteDrawData.BottomLeft = new Vector2(begin.X + xOffset, end.Y);
-                        sSpriteDrawData.TopRight = new Vector2(end.X + xOffset, begin.Y);
-                        sSpriteDrawData.BottomRight = new Vector2(end.X + xOffset, end.Y);
+                                    spr = SpriteHelper.TryGetSprite(mapping.DestinationIndex);
+                                    break;
+                                }
 
-                        sSpriteDrawData.Sprite = spr;
-                        sSpriteDrawData.NextSprite = spr;
-                        Renderer.DrawSprite(sSpriteDrawData);
-                        xOffset += width + BitConverter.ToSingle(BitConverter.GetBytes(in_UiElement.Field4C));
-                    }
-                }
-                if(type == DrawType.None)
-                {
-                    Renderer.DrawEmptyQuad(sSpriteDrawData);
+                                if (spr == null)
+                                    continue;
+
+                                float width = spr.Dimensions.X / Renderer.Width;
+                                float height = spr.Dimensions.Y / Renderer.Height;
+
+                                var begin = (Vector2)in_UiElement.TopLeft;
+                                var end = begin + new Vector2(width, height);
+
+                                sSpriteDrawData.OverrideUvCoords = true;
+                                sSpriteDrawData.TopLeft = new Vector2(begin.X + xOffset, begin.Y);
+                                sSpriteDrawData.BottomLeft = new Vector2(begin.X + xOffset, end.Y);
+                                sSpriteDrawData.TopRight = new Vector2(end.X + xOffset, begin.Y);
+                                sSpriteDrawData.BottomRight = new Vector2(end.X + xOffset, end.Y);
+
+                                sSpriteDrawData.Sprite = spr;
+                                sSpriteDrawData.NextSprite = spr;
+                                Renderer.DrawSprite(sSpriteDrawData);
+                                xOffset += width + in_UiElement.FontKerning;
+                            }
+                            break;
+                        }
+                    default:
+                        {
+                            Renderer.DrawEmptyQuad(sSpriteDrawData);
+                            break;
+                        }
                 }
                 var childTransform = new CastTransform(sSpriteDrawData.Position, sSpriteDrawData.Rotation, sSpriteDrawData.Scale, sSpriteDrawData.Color);
 

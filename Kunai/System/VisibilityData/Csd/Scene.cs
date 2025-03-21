@@ -4,6 +4,7 @@ using Shuriken.Rendering;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using static Kunai.Window.ImKunai;
 
 namespace Kunai
@@ -15,30 +16,93 @@ namespace Kunai
             public List<Animation> Animation = new List<Animation>();
             public List<Cast> Casts = new List<Cast>();
             public Node Parent;
+            public Scene() { }
             public override TVisHierarchyResult DrawHierarchy()
             {
                 bool selectedScene = false;
                 bool open = VisibilityNode(Value.Key, ref Active, ref selectedScene, SceneRightClickAction, in_Icon: NodeIconResource.Scene);
                 return new TVisHierarchyResult(open, selectedScene);
             }
+            public override void DrawInspector()
+            {
+                ImGui.SeparatorText("Scene");
+                string name = Value.Key;
+                int vers = Value.Value.Version;
+                int priority = (int)Value.Value.Priority;
+                float aspectRatio = Value.Value.AspectRatio;
+                float fps = Value.Value.FrameRate;
 
+                //Show aspect ratio as (width:height) by using greatest common divisor
+                int width = 1280;
+                int height = (int)(1280 / aspectRatio);
+                double decimalRatio = (double)width / height;
+                int gcdValue = KunaiMath.Gcd(width, height);
+                int simplifiedWidth = width / gcdValue;
+                int simplifiedHeight = height / gcdValue;
+
+                if (ImGui.InputText("Name", ref name, 256))
+                {
+                    Rename(name);
+                }
+                ImGui.InputFloat("Framerate", ref fps);
+                ImGui.InputFloat("Aspect Ratio", ref aspectRatio);
+                ImGui.InputInt("Version", ref vers);
+                ImGui.InputInt("Priority", ref priority);
+                ImGui.Text($"Ratio: ({simplifiedWidth}:{simplifiedHeight})");
+                ImGui.SeparatorText("Info");
+                var space = ImGui.GetContentRegionAvail();
+                if (ImGui.BeginListBox("##crops", new Vector2(-1, space.Y / 2 - 5)))
+                {
+                    int idx = 0;
+                    foreach (var s in Value.Value.Sprites)
+                    {
+                        if (ImGui.TreeNode($"Crop ({idx})"))
+                        {
+                            ImGui.Text($"Texture Index: {s.TextureIndex.ToString()}");
+                            ImGui.Text($"Top-Left: {s.TopLeft.ToString()}");
+                            ImGui.Text($"Bottom-Right: {s.BottomRight.ToString()}");
+                            ImGui.TreePop();
+                        }
+                        idx++;
+                    }
+                    ImGui.EndListBox();
+                }
+                ImGui.Separator();
+                if (ImGui.BeginListBox("##textures", new Vector2(-1, space.Y / 2 - 5)))
+                {
+                    int idx = 0;
+                    foreach (var s in Value.Value.Textures)
+                    {
+                        if (ImGui.TreeNode($"Texture ({idx})"))
+                        {
+                            ImGui.Text($"Size: {s.ToString()}");
+                            ImGui.TreePop();
+                        }
+                        idx++;
+                    }
+                    ImGui.EndListBox();
+                }
+                Value.Value.AspectRatio = aspectRatio;
+                Value.Value.AspectRatio = aspectRatio;
+                Value.Value.FrameRate = fps;
+            }
             private void SceneRightClickAction()
             {
                 if (ImGui.BeginMenu("New Cast..."))
                 {
                     if (ImGui.MenuItem("Null Cast"))
                     {
-                        CreationHelper.CreateNewCast(this, DrawType.None);
+                        CreationHelper.CreateNewCast(this, SharpNeedle.Framework.Ninja.Csd.Cast.EType.Null);
                     }
 
                     if (ImGui.MenuItem("Sprite Cast"))
                     {
-                        CreationHelper.CreateNewCast(this, DrawType.Sprite);
+                        CreationHelper.CreateNewCast(this, SharpNeedle.Framework.Ninja.Csd.Cast.EType.Sprite);
                     }
 
                     if (ImGui.MenuItem("Font Cast"))
                     {
-                        CreationHelper.CreateNewCast(this, DrawType.Font);
+                        CreationHelper.CreateNewCast(this, SharpNeedle.Framework.Ninja.Csd.Cast.EType.Font);
                     }
 
                     ImGui.EndMenu();

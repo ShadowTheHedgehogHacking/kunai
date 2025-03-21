@@ -2,12 +2,6 @@
 
 namespace Shuriken.Rendering
 {
-    public enum DrawType : uint
-    {
-        None,
-        Sprite,
-        Font
-    }
     [Flags]
     public enum AnimationType : uint
     {

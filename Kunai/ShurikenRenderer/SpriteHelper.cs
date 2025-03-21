@@ -14,6 +14,7 @@ namespace Kunai.ShurikenRenderer
         public static List<Texture> Textures { get; set; } = new List<Texture>();
         public static List<Vector2> TextureSizesOriginal;
 
+        public static List<string> FontNames = new List<string>();
         /// <summary>
         /// Adds a new texture with a single crop.
         /// </summary>

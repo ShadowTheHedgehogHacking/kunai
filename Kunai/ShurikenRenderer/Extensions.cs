@@ -126,10 +126,6 @@ public static class AnimationTypeMethods
                 return keyframe.Value.Float;
         }
     }
-    public static DrawType GetDrawType(this Cast in_Cast)
-    {
-        return (DrawType)in_Cast.Field04;
-    }
     public static Vector4 GetColor(this SharpNeedle.Framework.Ninja.Csd.Motions.KeyFrameList in_List, float in_Frame)
     {
         if (in_List.Count == 0)

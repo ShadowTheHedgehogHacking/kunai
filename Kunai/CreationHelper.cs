@@ -13,7 +13,7 @@ namespace Kunai
 {
     public static class CreationHelper
     {
-        static Cast CreateNewCastFromDefault(string in_Name, Cast in_Parent, DrawType in_Type)
+        static Cast CreateNewCastFromDefault(string in_Name, Cast in_Parent, Cast.EType in_Type)
         {
             Cast newCast = new Cast();
             newCast.Field2C = 32767;
@@ -22,7 +22,7 @@ namespace Kunai
                 newCast.SpriteIndices[i] = -1;
             newCast.Parent = in_Parent;
             var info = newCast.Info;
-            newCast.Field04 = (uint)in_Type;
+            newCast.Type = in_Type;
             newCast.Name = in_Name;
             info.Scale = new Vector2(1, 1);
             info.SpriteIndex = -1;
@@ -45,7 +45,7 @@ namespace Kunai
             newFamily.Scene = in_Parent;
             return newFamily;
         }
-        public static void CreateNewCast(CsdVisData.Scene in_Scene, DrawType in_Type)
+        public static void CreateNewCast(CsdVisData.Scene in_Scene, Cast.EType in_Type)
         {
             Family newFam = CreateNewFamily(in_Scene.Value.Value);
             Cast newCast = CreateNewCastFromDefault($"Cast_{in_Scene.Casts.Count}", null, in_Type);
@@ -53,7 +53,7 @@ namespace Kunai
             in_Scene.Value.Value.Families.Add(newFam);
             in_Scene.Casts.Add(new CsdVisData.Cast(newCast, in_Scene));
         }
-        public static void CreateNewCast(CsdVisData.Cast in_Cast, DrawType in_Type)
+        public static void CreateNewCast(CsdVisData.Cast in_Cast, Cast.EType in_Type)
         {
             Cast newCast = CreateNewCastFromDefault($"Cast_{in_Cast.Parent.Casts.Count}", null, in_Type);
             in_Cast.Value.Add(newCast);

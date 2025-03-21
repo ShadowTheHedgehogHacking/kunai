@@ -29,7 +29,7 @@ namespace Kunai.Window
         }
         public int GetSpriteIndex()
         {
-            return SpriteHelper.Textures[TextureIndex].Sprites[SpriteIndex] - 1;
+            return SpriteHelper.Textures[TextureIndex].CropIndices[SpriteIndex] - 1;
         }
     }
     public struct SCenteredImageData
@@ -82,11 +82,11 @@ namespace Kunai.Window
                     if (in_EditMode)
                         ImGui.Indent();
                     int idx2 = 0;
-                    var spritesList = SpriteHelper.Textures[idx].Sprites;
+                    var spritesList = SpriteHelper.Textures[idx].CropIndices;
                     for (int i = 0; i < spritesList.Count; i++)
                     {
                         int spriteIdx = spritesList[i];
-                        Shuriken.Rendering.KunaiSprite spr = SpriteHelper.Sprites[spriteIdx];
+                        Shuriken.Rendering.KunaiSprite spr = SpriteHelper.Crops[spriteIdx];
                         ImGui.BeginGroup();
                         if (spr != null)
                         {

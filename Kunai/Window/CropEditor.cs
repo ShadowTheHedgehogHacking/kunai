@@ -40,10 +40,10 @@ namespace Kunai.Window
 
             var viewSize = in_Data.ImageSize;
 
-            for (int i = 0; i < SpriteHelper.Textures[m_SelectedIndex].Sprites.Count; i++)
+            for (int i = 0; i < SpriteHelper.Textures[m_SelectedIndex].CropIndices.Count; i++)
             {
-                int spriteIdx = SpriteHelper.Textures[m_SelectedIndex].Sprites[i];
-                var sprite = SpriteHelper.Sprites[spriteIdx];
+                int spriteIdx = SpriteHelper.Textures[m_SelectedIndex].CropIndices[i];
+                var sprite = SpriteHelper.Crops[spriteIdx];
                 var qTopLeft = sprite.Crop.TopLeft;
                 var qTopRight = new Vector2(sprite.Crop.BottomRight.X, sprite.Crop.TopLeft.Y);
                 var qBotLeft = new Vector2(sprite.Crop.TopLeft.X, sprite.Crop.BottomRight.Y);
@@ -122,7 +122,7 @@ namespace Kunai.Window
                     if (ImGui.BeginListBox("##texturelist2", new Vector2(size1, -1)))
                     {
                         var texture = SpriteHelper.Textures[m_SelectedIndex];
-                        var sprite = SpriteHelper.Sprites[texture.Sprites[m_SelectedSpriteIndex]];
+                        var sprite = SpriteHelper.Crops[texture.CropIndices[m_SelectedSpriteIndex]];
                         Vector2 spriteStart = sprite.Start;
                         Vector2 spriteSize = sprite.Dimensions;
                         ImGui.SeparatorText("Texture Info");
@@ -222,10 +222,10 @@ namespace Kunai.Window
             ;
             Color color = new Color(new Abgr32(255, 0, 0, 100));
             Color color2 = new Color(new Abgr32(0, 255, 0, 100));
-            for (int i = 0; i < SpriteHelper.Textures[m_SelectedIndex].Sprites.Count; i++)
+            for (int i = 0; i < SpriteHelper.Textures[m_SelectedIndex].CropIndices.Count; i++)
             {
-                int spriteIdx = SpriteHelper.Textures[m_SelectedIndex].Sprites[i];
-                var sprite = SpriteHelper.Sprites[spriteIdx];
+                int spriteIdx = SpriteHelper.Textures[m_SelectedIndex].CropIndices[i];
+                var sprite = SpriteHelper.Crops[spriteIdx];
                 
                 
                 // Stroke width

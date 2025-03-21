@@ -9,7 +9,7 @@ namespace Kunai.ShurikenRenderer
 {
     public static class SpriteHelper
     {
-        public static Dictionary<int, KunaiSprite> Sprites { get; set; } = new Dictionary<int, KunaiSprite>();
+        public static Dictionary<int, KunaiSprite> Crops { get; set; } = new Dictionary<int, KunaiSprite>();
         private static int ms_NextCropId = 1;
         public static List<Texture> Textures { get; set; } = new List<Texture>();
         public static List<Vector2> TextureSizesOriginal;
@@ -44,7 +44,7 @@ namespace Kunai.ShurikenRenderer
                 }
 
             }
-            foreach (var entry in Sprites)
+            foreach (var entry in Crops)
             {
                 KunaiSprite sprite = entry.Value;
                 int textureIndex = Textures.IndexOf(sprite.Texture);
@@ -66,12 +66,12 @@ namespace Kunai.ShurikenRenderer
         /// <returns></returns>
         public static KunaiSprite TryGetSprite(int in_CropId)
         {
-            Sprites.TryGetValue(in_CropId + 1, out KunaiSprite sprite);
+            Crops.TryGetValue(in_CropId + 1, out KunaiSprite sprite);
             return sprite;
         }
         private static int AppendSprite(KunaiSprite in_Spr)
         {
-            Sprites.Add(ms_NextCropId, in_Spr);
+            Crops.Add(ms_NextCropId, in_Spr);
             return ms_NextCropId++;
         }
 
@@ -79,14 +79,14 @@ namespace Kunai.ShurikenRenderer
         {
             KunaiSprite spr = new KunaiSprite(in_Tex, in_Top, in_Left, in_Bottom, in_Right);
             int newId = AppendSprite(spr);
-            in_Tex.Sprites.Add(newId);
+            in_Tex.CropIndices.Add(newId);
             return newId;
         }
         public static void DeleteSprite(int in_SprIndex)
         {
-            Sprites.TryGetValue(in_SprIndex, out KunaiSprite sprite);
-            sprite.Texture.Sprites.Remove(in_SprIndex);
-            Sprites.Remove(in_SprIndex);
+            Crops.TryGetValue(in_SprIndex, out KunaiSprite sprite);
+            sprite.Texture.CropIndices.Remove(in_SprIndex);
+            Crops.Remove(in_SprIndex);
             ms_NextCropId--;
         }
         public static int CreateSprite(Texture in_Tex, Vector2 in_Start, Vector2 in_Dimensions)
@@ -120,7 +120,7 @@ namespace Kunai.ShurikenRenderer
             RecurFindFirstTextureListFromFile(in_CsdProject.Project.Root);
             GetSubImages(in_CsdProject.Project.Root);
         }
-        public static void GetSubImages(SharpNeedle.Framework.Ninja.Csd.SceneNode in_Node)
+        public static void GetSubImages(SceneNode in_Node)
         {
             bool end = false;
             //Go through all scenes and find one that has sprites
@@ -160,7 +160,7 @@ namespace Kunai.ShurikenRenderer
                 tex.Destroy();
             }
             Textures.Clear();
-            Sprites.Clear();
+            Crops.Clear();
             ms_NextCropId = 1;
         }
 

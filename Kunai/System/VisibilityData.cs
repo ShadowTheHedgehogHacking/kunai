@@ -9,8 +9,6 @@ using System.Threading.Tasks;
 
 namespace Kunai
 {
-
-
     public class SVisibilityData
     {
         public class SCast

@@ -25,7 +25,7 @@ namespace Shuriken.Rendering
         public bool IsLoaded => GlTex != null;
         public BitmapSource ImageSource { get; private set; }
         internal GlTexture GlTex { get; private set; }
-        public List<int> Sprites { get; set; }
+        public List<int> CropIndices { get; set; }
 
         private void CreateTexture(ScratchImage in_Img)
         {
@@ -208,7 +208,7 @@ namespace Shuriken.Rendering
             ImageSource = null;
             GlTex = null;
 
-            Sprites = new List<int>();
+            CropIndices = new List<int>();
         }
     }
 }

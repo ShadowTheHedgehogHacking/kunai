@@ -45,29 +45,29 @@ namespace Kunai
             newFamily.Scene = in_Parent;
             return newFamily;
         }
-        public static void CreateNewCast(SVisibilityData.SScene in_Scene, DrawType in_Type)
+        public static void CreateNewCast(CsdVisData.Scene in_Scene, DrawType in_Type)
         {
-            Family newFam = CreateNewFamily(in_Scene.Scene.Value);
+            Family newFam = CreateNewFamily(in_Scene.Value.Value);
             Cast newCast = CreateNewCastFromDefault($"Cast_{in_Scene.Casts.Count}", null, in_Type);
             newFam.Add(newCast);
-            in_Scene.Scene.Value.Families.Add(newFam);
-            in_Scene.Casts.Add(new SVisibilityData.SCast(newCast, in_Scene));
+            in_Scene.Value.Value.Families.Add(newFam);
+            in_Scene.Casts.Add(new CsdVisData.Cast(newCast, in_Scene));
         }
-        public static void CreateNewCast(SVisibilityData.SCast in_Cast, DrawType in_Type)
+        public static void CreateNewCast(CsdVisData.Cast in_Cast, DrawType in_Type)
         {
             Cast newCast = CreateNewCastFromDefault($"Cast_{in_Cast.Parent.Casts.Count}", null, in_Type);
-            in_Cast.Cast.Add(newCast);
-            in_Cast.Parent.Casts.Add(new SVisibilityData.SCast(newCast, in_Cast.Parent));
+            in_Cast.Value.Add(newCast);
+            in_Cast.Parent.Casts.Add(new CsdVisData.Cast(newCast, in_Cast.Parent));
         }
 
-        public static void CreateNewScene(SVisibilityData.SNode in_Node)
+        public static void CreateNewScene(CsdVisData.Node in_Node)
         {
             List<SharpNeedle.Framework.Ninja.Csd.Sprite> sprites = new List<SharpNeedle.Framework.Ninja.Csd.Sprite>();
             List<Vector2> textures = new List<Vector2>();
             if(in_Node.Scene.Count > 0)
             {
-                sprites = in_Node.Scene[0].Scene.Value.Sprites;
-                textures = in_Node.Scene[0].Scene.Value.Textures;
+                sprites = in_Node.Scene[0].Value.Value.Sprites;
+                textures = in_Node.Scene[0].Value.Value.Textures;
             }
             Scene scene = new Scene();
             scene.Sprites = sprites;
@@ -78,8 +78,8 @@ namespace Kunai
             scene.Families = new List<Family>();
             scene.FrameRate = 60;
             var pair = new KeyValuePair<string, Scene>($"New Scene{in_Node.Scene.Count}", scene);
-            in_Node.Node.Value.Scenes.Add(pair);
-            in_Node.Scene.Add(new SVisibilityData.SScene(pair, in_Node));
+            in_Node.Value.Value.Scenes.Add(pair);
+            in_Node.Scene.Add(new CsdVisData.Scene(pair, in_Node));
         }
     }
 }

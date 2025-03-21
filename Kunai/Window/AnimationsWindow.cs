@@ -28,12 +28,12 @@ namespace Kunai.Window
         }
         private static List<ImPlotPoint> ms_Points = new List<ImPlotPoint>();
 
-        private void DrawMotionElement(SVisibilityData.SAnimation in_SceneMotion)
+        private void DrawMotionElement(CsdVisData.Animation in_SceneMotion)
         {
             bool selected = false;
-            if (ImKunai.VisibilityNode(in_SceneMotion.Motion.Key, ref in_SceneMotion.Active, ref selected, in_ShowArrow: true))
+            if (ImKunai.VisibilityNode(in_SceneMotion.Value.Key, ref in_SceneMotion.Active, ref selected, in_ShowArrow: true))
             {
-                foreach (FamilyMotion familyMotion in in_SceneMotion.Motion.Value.FamilyMotions)
+                foreach (FamilyMotion familyMotion in in_SceneMotion.Value.Value.FamilyMotions)
                 {
                     DrawFamilyMotionElement(familyMotion);
                 }
@@ -335,10 +335,10 @@ namespace Kunai.Window
                     var selectedScene = KunaiProject.Instance.SelectionData.SelectedScene;
                     if (selectedScene.Value != null)
                     {
-                        SVisibilityData.SScene sceneVisData = renderer.VisibilityData.GetScene(selectedScene.Value);
+                        CsdVisData.Scene sceneVisData = renderer.VisibilityData.GetScene(selectedScene.Value);
                         if (sceneVisData != null)
                         {
-                            foreach (SVisibilityData.SAnimation sceneMotion in sceneVisData.Animation)
+                            foreach (CsdVisData.Animation sceneMotion in sceneVisData.Animation)
                             {
                                 DrawMotionElement(sceneMotion);
                             }

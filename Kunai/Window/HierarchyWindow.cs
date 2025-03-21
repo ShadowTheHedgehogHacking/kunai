@@ -14,39 +14,18 @@ namespace Kunai.Window
     public class HierarchyWindow : Singleton<HierarchyWindow>, IWindow
     {
         private static TempSearchBox ms_SearchBox = new TempSearchBox();
-        private static bool CastControl(SVisibilityData.SCast in_Vis, Cast in_Cast, bool in_IsLeaf)
+        private static bool CastControl(CsdVisData.Cast in_Vis, Cast in_Cast, bool in_IsLeaf)
         {
-            SIconData icon = new();
-            switch (in_Cast.GetDrawType())
+            TVisHierarchyResult control = in_Vis.DrawHierarchy();
+            if (control.selected)
             {
-                case DrawType.Sprite:
-                    {
-                        icon = NodeIconResource.CastSprite;
-                        break;
-                    }
-                case DrawType.None:
-                    {
-                        icon = NodeIconResource.CastNull;
-                        break;
-                    }
-                case DrawType.Font:
-                    {
-                        icon = NodeIconResource.CastFont;
-                        break;
-                    }
-            }
-            bool selectedCast = false;
-            bool returnVal = VisibilityNode(in_Cast.Name, ref in_Vis.Active, ref selectedCast, CastRightClickAction(in_Vis), in_ShowArrow: in_IsLeaf, in_Icon: icon, in_Id: $"##{in_Cast.Name}_{in_Vis.Id}");
-
-            if (selectedCast)
-            {
-                InspectorWindow.SelectScene(in_Vis.Parent.Scene);
+                InspectorWindow.SelectScene(in_Vis.Parent.Value);
                 InspectorWindow.SelectCast(in_Cast);
             }
-            return returnVal;
+            return control.open;
 
         }
-        private static void RecursiveCastWidget(SVisibilityData.SScene in_Scene, Cast in_Cast)
+        private static void RecursiveCastWidget(CsdVisData.Scene in_Scene, Cast in_Cast)
         {
             var vis = in_Scene.GetVisibility(in_Cast);
             if (vis == null)
@@ -62,95 +41,19 @@ namespace Kunai.Window
                 ImGui.TreePop();
             }
         }
-
-        private static Action SceneNodeRightClickAction(SVisibilityData.SNode in_Cast)
+        private static void DrawSceneNode(CsdVisData.Node in_VisNode)
         {
-            void RightClick()
-            {
-                if (ImGui.Selectable("New Scene"))
-                {
-                    CreationHelper.CreateNewScene(in_Cast);
-                }
-                //if (ImGui.Selectable("Delete"))
-                //    in_Cast.Parent.Remove(in_Cast);
-            }
-
-            return RightClick;
-        }
-
-        private static Action CastRightClickAction(SVisibilityData.SCast in_Cast)
-        {
-            void RightClick()
-            {
-                if (ImGui.BeginMenu("New Cast..."))
-                {
-                    if (ImGui.MenuItem("Null Cast"))
-                    {
-                        CreationHelper.CreateNewCast(in_Cast, DrawType.None);
-                    }
-
-                    if (ImGui.MenuItem("Sprite Cast"))
-                    {
-                        CreationHelper.CreateNewCast(in_Cast, DrawType.Sprite);
-                    }
-
-                    if (ImGui.MenuItem("Font Cast"))
-                    {
-                        CreationHelper.CreateNewCast(in_Cast, DrawType.Font);
-                    }
-
-                    ImGui.EndMenu();
-                }
-
-                if (ImGui.Selectable("Delete")) in_Cast.Parent.Remove(in_Cast);
-            }
-
-            return RightClick;
-        }
-
-        private static Action SceneRightClickAction(SVisibilityData.SScene in_Scene)
-        {
-            void RightClick()
-            {
-                if (ImGui.BeginMenu("New Cast..."))
-                {
-                    if (ImGui.MenuItem("Null Cast"))
-                    {
-                        CreationHelper.CreateNewCast(in_Scene, DrawType.None);
-                    }
-
-                    if (ImGui.MenuItem("Sprite Cast"))
-                    {
-                        CreationHelper.CreateNewCast(in_Scene, DrawType.Sprite);
-                    }
-
-                    if (ImGui.MenuItem("Font Cast"))
-                    {
-                        CreationHelper.CreateNewCast(in_Scene, DrawType.Font);
-                    }
-
-                    ImGui.EndMenu();
-                }
-
-                if (ImGui.Selectable("Delete")) in_Scene.Parent.Remove(in_Scene);
-            }
-
-            return RightClick;
-        }
-        private static void DrawSceneNode(SVisibilityData.SNode in_VisNode)
-        {
-            bool selectedNode = false;
-            bool selectedScene = false;
+            TVisHierarchyResult result = in_VisNode.DrawHierarchy();
             //Scene Node
-            if (VisibilityNode($"{in_VisNode.Node.Key}", ref in_VisNode.Active, ref selectedNode, SceneNodeRightClickAction(in_VisNode), in_Icon: NodeIconResource.SceneNode))
+            if (result.open)
             {
-                foreach (var inNode in in_VisNode.Nodes)
+                foreach (var inNode in in_VisNode.Children)
                 {
                     DrawSceneNode(inNode);
                 }
                 for (int i = 0; i < in_VisNode.Scene.Count; i++)
                 {
-                    SVisibilityData.SScene scene = in_VisNode.Scene[i];
+                    CsdVisData.Scene scene = in_VisNode.Scene[i];
 
                     // If the user is searching, show only the casts with the searched name
                     // if the user isn't searching, show a tree view of the scene
@@ -160,10 +63,10 @@ namespace Kunai.Window
                         // If there's no cast in the scene with the name, skip the scene
                         foreach (var cast in scene.Casts)
                         {
-                            ms_SearchBox.Update(cast.Cast.Name);
+                            ms_SearchBox.Update(cast.Value.Name);
                             if (ms_SearchBox.MatchResult())
                             {
-                                if (CastControl(cast, cast.Cast, false))
+                                if (CastControl(cast, cast.Value, false))
                                     ImGui.TreePop();
                             }
                         }
@@ -171,20 +74,21 @@ namespace Kunai.Window
                     }
                     else
                     {
+                        TVisHierarchyResult sceneControl = scene.DrawHierarchy();
                         //Scene
-                        if (VisibilityNode(scene.Scene.Key, ref scene.Active, ref selectedScene, SceneRightClickAction(scene), in_Icon: NodeIconResource.Scene))
+                        if (sceneControl.open)
                         {
-                            for (int x = 0; x < scene.Scene.Value.Families.Count; x++)
+                            for (int x = 0; x < scene.Value.Value.Families.Count; x++)
                             {
-                                var family = scene.Scene.Value.Families[x];
+                                var family = scene.Value.Value.Families[x];
                                 var castFamilyRoot = family.Casts[0];
                                 RecursiveCastWidget(scene, castFamilyRoot);
                             }
                             ImGui.TreePop();
                         }
-                        if (selectedScene)
+                        if (sceneControl.selected)
                         {
-                            InspectorWindow.SelectScene(scene.Scene);
+                            InspectorWindow.SelectScene(scene.Value);
                         }
                     }
                     

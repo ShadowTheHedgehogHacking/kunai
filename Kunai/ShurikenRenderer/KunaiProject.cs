@@ -39,7 +39,7 @@ namespace Kunai.ShurikenRenderer
         public Renderer Renderer;
         public Vector2 ViewportSize;
         public Vector2 ScreenSize;
-        public SVisibilityData VisibilityData;
+        public CsdVisData VisibilityData;
         public SSelectionData SelectionData;
         public CsdProject WorkProjectCsd;
         public SProjectConfig Config;
@@ -161,7 +161,7 @@ namespace Kunai.ShurikenRenderer
                     }
                 }
                 SpriteHelper.LoadTextures(WorkProjectCsd);
-                VisibilityData = new SVisibilityData(WorkProjectCsd);
+                VisibilityData = new CsdVisData(WorkProjectCsd);
 
             }
             catch (Exception ex)
@@ -427,7 +427,7 @@ namespace Kunai.ShurikenRenderer
 
         public void RenderNode(SceneNode in_Node, double in_DeltaTime)
         {
-            SVisibilityData.SNode vis = VisibilityData.GetVisibility(in_Node);
+            CsdVisData.Node vis = VisibilityData.GetVisibility(in_Node);
             int idx = 0;
             foreach (var scene in in_Node.Scenes)
             {
@@ -436,7 +436,7 @@ namespace Kunai.ShurikenRenderer
                 // = true;
             }
         }
-        public void RenderScenes(Scene in_Scene, SVisibilityData.SNode in_Vis, ref int in_Priority, double in_DeltaTime)
+        public void RenderScenes(Scene in_Scene, CsdVisData.Node in_Vis, ref int in_Priority, double in_DeltaTime)
         {
             var vis = in_Vis.GetVisibility(in_Scene);
             foreach (var family in in_Scene.Families)
@@ -451,14 +451,14 @@ namespace Kunai.ShurikenRenderer
                 in_Priority += cast.Children.Count + 1;
             }
         }
-        private void ApplyAnimationValues(ref SSpriteDrawData in_SpriteDraw, ref SVisibilityData.SScene in_Vis, ref float in_OutSpriteIndex, Cast in_UiElement, float in_Time)
+        private void ApplyAnimationValues(ref SSpriteDrawData in_SpriteDraw, ref CsdVisData.Scene in_Vis, ref float in_OutSpriteIndex, Cast in_UiElement, float in_Time)
         {
             //Redo this at some point
-            foreach (SVisibilityData.SAnimation animation in in_Vis.Animation)
+            foreach (CsdVisData.Animation animation in in_Vis.Animation)
             {
                 if (!animation.Active)
                     continue;
-                foreach (var familyMotion in animation.Motion.Value.FamilyMotions)
+                foreach (var familyMotion in animation.Value.Value.FamilyMotions)
                 {
                     foreach (CastMotion castMotion in familyMotion.CastMotions)
                     {
@@ -550,7 +550,7 @@ namespace Kunai.ShurikenRenderer
                 in_SpriteDraw.Color *= in_Transform.Color;
             }
         }
-        private void UpdateCast(Scene in_Scene, Cast in_UiElement, CastTransform in_Transform, int in_Priority, float in_Time, SVisibilityData.SScene in_Vis)
+        private void UpdateCast(Scene in_Scene, Cast in_UiElement, CastTransform in_Transform, int in_Priority, float in_Time, CsdVisData.Scene in_Vis)
         {
             float sprId = in_UiElement.Info.SpriteIndex;
             SSpriteDrawData sSpriteDrawData = new SSpriteDrawData(in_UiElement, in_Scene);

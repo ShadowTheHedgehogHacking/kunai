@@ -91,7 +91,7 @@ namespace Kunai.Window
             if (selectedScene.Value == null)
                 return;
             ImGui.SeparatorText("Scene");
-            string name = vis.Scene.Key;
+            string name = vis.Value.Key;
             int vers = selectedScene.Value.Version;
             int priority = (int)selectedScene.Value.Priority;
             float aspectRatio = selectedScene.Value.AspectRatio;

@@ -38,14 +38,20 @@ namespace Kunai.ShurikenRenderer
 
     public partial class KunaiProject : Singleton<KunaiProject>, IProgramProject
     {
-        public Renderer Renderer;
-        public Vector2 ViewportSize;
-        public Vector2 ScreenSize;
-        public CsdVisData VisibilityData;
-        public SSelectionData SelectionData;
-        public CsdProject WorkProjectCsd;
         public SProjectConfig Config;
+        public SSelectionData SelectionData;
+        public SReferenceImageData ReferenceImageData;
+        public Vector2 ViewportSize;
+        public Vector3 ViewportColor = new Vector3(-1, -1, -1);
+        public Vector2 ScreenSize;
+        public Renderer Renderer;
+        public CsdVisData VisibilityData;
+        public CsdProject WorkProjectCsd;
+        public List<WindowBase> Windows = new List<WindowBase>();
         private SViewportData m_ViewportData;
+        private HekonrayWindow m_Window;
+        private bool m_SaveScreenshotWhenRendered;
+
         public KeyboardState KeyboardState
         {
             get
@@ -53,11 +59,6 @@ namespace Kunai.ShurikenRenderer
                 return m_Window.KeyboardState;
             }
         }
-        private HekonrayWindow m_Window;
-        public SReferenceImageData ReferenceImageData;
-        public List<WindowBase> Windows = new List<WindowBase>();
-        bool m_SaveScreenshotWhenRendered;
-        public Vector3 ViewportColor = new Vector3(-1, -1, -1);
         public bool IsFileLoaded
         {
             get
@@ -65,7 +66,6 @@ namespace Kunai.ShurikenRenderer
                 return !string.IsNullOrEmpty(Config.WorkFilePath);
             }
         }
-
 
         public KunaiProject()
         {
@@ -112,21 +112,25 @@ namespace Kunai.ShurikenRenderer
                 bool isSplitFile = IsPathSplitFile(in_Path);
                 //Reset what needs to be reset
                 string root = Path.GetDirectoryName(Path.GetFullPath(@in_Path));
-                SpriteHelper.ClearTextures();
+                SpriteHelper.ClearTextures();              
                 Config.WorkFilePath = in_Path;
                 SelectionData.SelectedCast = null;
                 SelectionData.SelectedScene = new();
+
+                //Dispose the old file
                 WorkProjectCsd?.BaseFile?.Dispose();
                 WorkProjectCsd?.Dispose();
                 WorkProjectCsd = null;
+                //Reset vis data
                 VisibilityData = null;
+                //Clear quads (shouldnt be necessary)
                 Renderer.Quads.Clear();
 
                 if (isSplitFile)
                 {
                     // There's probably a better way to detect if a tls or dxl file exists, but 
                     // this should work.
-                    bool isTlsFilePresent = File.Exists(Path.ChangeExtension(in_Path, "tls"));
+                    bool isTlsFilePresent = File.Exists(Path.ChangeExtension(in_Path, "tls")) || File.Exists(Path.ChangeExtension(in_Path, ".tls.tpl"));
                     bool isDxlFilePresent = File.Exists(Path.ChangeExtension(in_Path, "dxl"));
 
                     if (isTlsFilePresent || isDxlFilePresent)
@@ -158,13 +162,15 @@ namespace Kunai.ShurikenRenderer
                 var csdFontList = WorkProjectCsd.Project.Fonts;
                 List<string> missingTextures = new List<string>();
 
+                //If the texture list isnt null, add the textures to SpriteHelper
                 if (csdTextureList != null)
                 {
                     foreach (ITexture texture in csdTextureList)
                     {
                         string texPath = Path.Combine(@root, texture.Name);
-
                         SpriteHelper.Textures.Add(new Texture(texPath));
+
+                        //This is used to warn the user about missing textures
                         if (!File.Exists(texPath))
                         {
                             missingTextures.Add(texture.Name);
@@ -178,12 +184,17 @@ namespace Kunai.ShurikenRenderer
                         Application.ShowMessageBoxCross("Warning", $"The file uses textures that could not be found, they will be replaced with squares.\n\nMissing Textures:\n{textureNames}", 1);
                     }
                 }
-                SpriteHelper.LoadTextures(WorkProjectCsd);
+
+                //Create all necessary crops for Kunai
+                SpriteHelper.LoadCrops(WorkProjectCsd);
+
+                //Create vis data (necessary for UI)
                 VisibilityData = new CsdVisData(WorkProjectCsd);
 
             }
             catch (Exception ex)
             {
+                //In case of any errors, dont handle it in debug, so that it can be debugged
 #if !DEBUG
                 Application.ShowMessageBoxCross("Error", $"An error occured whilst trying to load a file.\n{ex.Message}", 2);
 
@@ -191,9 +202,13 @@ namespace Kunai.ShurikenRenderer
                 throw;
 #endif
             }
+            //Send the OnReset message to all active windows.
             SendResetSignal();
         }
 
+        /// <summary>
+        /// Resets all windows.
+        /// </summary>
         private void SendResetSignal()
         {
             m_Window.ResetWindows(this);
@@ -211,6 +226,12 @@ namespace Kunai.ShurikenRenderer
             reader.Dispose();
             return sig != BinaryPrimitives.ReverseEndianness(CsdPackage.Signature) && sig != CsdPackage.Signature;
         }
+        /// <summary>
+        /// Reads a split *ncp file, which is usually just the Project chunk.
+        /// </summary>
+        /// <param name="in_Path"></param>
+        /// <param name="in_Endianness"></param>
+        /// <returns></returns>
         private ProjectChunk GetProjectChunkSplit(string in_Path, Endianness in_Endianness)
         {
             using var reader = new BinaryObjectReader(@in_Path, in_Endianness, Encoding.UTF8);
@@ -226,45 +247,49 @@ namespace Kunai.ShurikenRenderer
             return null;
         }
 
+        /// <summary>
+        /// Combines dxl file if its SCU, extracts tls textures if its Colors Wii.
+        /// </summary>
+        /// <param name="in_Path">Path to the Csd file</param>
+        /// <param name="in_IsDxlFilePresent"></param>
+        /// <param name="in_IsTlsFilePresent"></param>
         private void HandleSplitCsdColors(string in_Path, bool in_IsDxlFilePresent, bool in_IsTlsFilePresent)
         {
             string pathExtra = in_IsDxlFilePresent ? Path.ChangeExtension(in_Path, "dxl") : Path.ChangeExtension(in_Path, "tls");
             byte[] csdFile = File.ReadAllBytes(in_Path);
             byte[] textureList = File.ReadAllBytes(pathExtra);
 
-            //File.WriteAllBytes(in_Path + "_Test", output);
-
+            // TLS files on the Wii are files that contain textures
+            // AFAIK, these textures have no names whatsoever,
+            // they are just stored as 0,1,2,3,4,5 etc.
+            // This extracts the TLS file (which is TPL) and
+            // converts the TGA images to DDS, so that Kunai can read them.
             if (in_IsTlsFilePresent)
             {
-                var tlsFile = TPL.Load(pathExtra);
+                TPL tlsFile = TPL.Load(pathExtra);
                 TextureListNN newTexList = new TextureListNN();
+
                 string csdName = Path.GetFileNameWithoutExtension(in_Path);
                 string parentDir = Directory.GetParent(in_Path).FullName;
 
-                bool showWarning = false;
                 for (var i = 0; i < tlsFile.NumOfTextures; i++)
                 {
                     string filePath = Path.Combine(parentDir, $"{csdName}_tex{i}.dds");
                     if (!File.Exists(filePath))
                     {
-                        if (!showWarning)
-                        {
-                            showWarning = true;
-                        }
+                        byte[] iPixelData = tlsFile.ExtractTextureBytes(i);
+                        using Image<Bgra32> imgDds = Image.LoadPixelData<Bgra32>(iPixelData, tlsFile.GetTexture(i).TextureWidth, tlsFile.GetTexture(i).TextureHeight);
 
-                        var image = tlsFile.ExtractTextureBytes(i);
-
-                        using Image<Bgra32> newDds = Image.LoadPixelData<Bgra32>(image, tlsFile.GetTexture(i).TextureWidth, tlsFile.GetTexture(i).TextureHeight);
-
+                        //This is an encoder for Bc DDS, don't touch
                         BcEncoder encoder = new BcEncoder();
-
                         encoder.OutputOptions.GenerateMipMaps = true;
                         encoder.OutputOptions.Quality = CompressionQuality.BestQuality;
                         encoder.OutputOptions.Format = CompressionFormat.Bc3;
-                        encoder.OutputOptions.FileFormat = OutputFileFormat.Dds; //Change to Dds for a dds file.
+                        encoder.OutputOptions.FileFormat = OutputFileFormat.Dds;
 
+                        //Write
                         using FileStream fs = File.OpenWrite(filePath);
-                        encoder.EncodeToStream(newDds.CloneAs<Rgba32>(), fs);
+                        encoder.EncodeToStream(imgDds.CloneAs<Rgba32>(), fs);
                     }
 
                     newTexList.Add(new TextureNN($"{csdName}_tex{i}.dds"));
@@ -274,6 +299,11 @@ namespace Kunai.ShurikenRenderer
                 WorkProjectCsd.Project = GetProjectChunkSplit(in_Path, Endianness.Big);
                 WorkProjectCsd.Textures = newTexList;
             }
+
+            // SCU is the only case where split XNCPs exist
+            // They are far simpler than split GNCPs, as they
+            // only have a separated TextureList.
+            // All of this is based on ColoursXncpGen by PTKay
             if (in_IsDxlFilePresent)
             {
                 //Merge both files using the same method as ColoursXncpGen
@@ -288,7 +318,8 @@ namespace Kunai.ShurikenRenderer
         }
 
         /// <summary>
-        /// Renders contents of a CsdProject to a GL texture for use in ImGui
+        /// Renders contents of a CsdProject to a GL texture for use in ImGui.
+        /// (NOTE: if anyone wants to improve this, feel free to do so, it sucks.)
         /// </summary>
         /// <param name="in_CsdProject"></param>
         /// <param name="in_DeltaTime"></param>
@@ -390,16 +421,6 @@ namespace Kunai.ShurikenRenderer
                     //Flip vertically to fix orientation
                     screenshot.Mutate(in_X => in_X.Flip(FlipMode.Vertical));
 
-                    //screenshot.Mutate(ctx =>
-                    //{
-                    //    ctx.ProcessPixelRowsAsVector4(rows =>
-                    //    {
-                    //        for (int y = 0; y < rows.Length; y++)
-                    //        {
-                    //            rows[y].W = 1.0f - rows[y].W;
-                    //        }
-                    //    });
-                    //});
                     var fileDialog = NativeFileDialogSharp.Dialog.FileSave("png");
                     if (fileDialog.IsOk)
                     {
@@ -434,27 +455,27 @@ namespace Kunai.ShurikenRenderer
                 Renderer.DrawFullscreenQuad(ReferenceImageData.Sprite, ReferenceImageData.Opacity);
             }
 
-            RenderNode(in_CsdProject.Project.Root, Config.Time);
+            DrawNode(in_CsdProject.Project.Root, Config.Time);
             foreach (KeyValuePair<string, SceneNode> node in in_CsdProject.Project.Root.Children)
             {
                 if (!VisibilityData.GetVisibility(node.Value).Active) continue;
-                RenderNode(node.Value, Config.Time);
+                DrawNode(node.Value, Config.Time);
             }
             Renderer.End();
         }
 
-        public void RenderNode(SceneNode in_Node, double in_DeltaTime)
+        public void DrawNode(SceneNode in_Node, double in_DeltaTime)
         {
             CsdVisData.Node vis = VisibilityData.GetVisibility(in_Node);
             int idx = 0;
             foreach (var scene in in_Node.Scenes)
             {
                 if (!vis.GetVisibility(scene.Value).Active) continue;
-                RenderScenes(scene.Value, vis, ref idx, in_DeltaTime);
+                DrawScene(scene.Value, vis, ref idx, in_DeltaTime);
                 // = true;
             }
         }
-        public void RenderScenes(Scene in_Scene, CsdVisData.Node in_Vis, ref int in_Priority, double in_DeltaTime)
+        public void DrawScene(Scene in_Scene, CsdVisData.Node in_Vis, ref int in_Priority, double in_DeltaTime)
         {
             var vis = in_Vis.GetVisibility(in_Scene);
             foreach (var family in in_Scene.Families)
@@ -465,76 +486,84 @@ namespace Kunai.ShurikenRenderer
                     continue;
                 Cast cast = family.Casts[0];
 
-                UpdateCast(in_Scene, cast, transform, in_Priority, (float)(in_DeltaTime * in_Scene.FrameRate), vis);
+                DrawCast(in_Scene, cast, transform, in_Priority, (float)(in_DeltaTime * in_Scene.FrameRate), vis);
                 in_Priority += cast.Children.Count + 1;
             }
         }
+        /// <summary>
+        /// Applies animation values to casts.
+        /// </summary>
+        /// <param name="in_SpriteDraw"></param>
+        /// <param name="in_Vis"></param>
+        /// <param name="in_OutSpriteIndex"></param>
+        /// <param name="in_UiElement"></param>
+        /// <param name="in_Time"></param>
         private void ApplyAnimationValues(ref SSpriteDrawData in_SpriteDraw, ref CsdVisData.Scene in_Vis, ref float in_OutSpriteIndex, Cast in_UiElement, float in_Time)
         {
             //Redo this at some point
             foreach (CsdVisData.Animation animation in in_Vis.Animation)
             {
-                if (!animation.Active)
-                    continue;
-                foreach (var familyMotion in animation.Value.Value.FamilyMotions)
+                if (!animation.Active) continue;
+
+                foreach (FamilyMotion familyMotion in animation.Value.Value.FamilyMotions)
                 {
                     foreach (CastMotion castMotion in familyMotion.CastMotions)
                     {
                         if (castMotion.Cast != in_UiElement || castMotion.Capacity == 0) continue;
                         foreach (KeyFrameList track in castMotion)
                         {
-                            if (track.Count != 0)
+                            if (track.Count == 0)                          
+                                continue;
+                            
+                            switch (track.Property)
                             {
-                                switch (track.Property)
-                                {
-                                    case KeyProperty.HideFlag:
-                                        in_SpriteDraw.Hidden = track.GetSingle(in_Time) != 0;
-                                        break;
+                                case KeyProperty.HideFlag:
+                                    in_SpriteDraw.Hidden = track.GetSingle(in_Time) != 0;
+                                    break;
 
-                                    case KeyProperty.PositionX:
-                                        in_SpriteDraw.Position.X = track.GetSingle(in_Time);
-                                        break;
+                                case KeyProperty.PositionX:
+                                    in_SpriteDraw.Position.X = track.GetSingle(in_Time);
+                                    break;
 
-                                    case KeyProperty.PositionY:
-                                        in_SpriteDraw.Position.Y = track.GetSingle(in_Time);
-                                        break;
+                                case KeyProperty.PositionY:
+                                    in_SpriteDraw.Position.Y = track.GetSingle(in_Time);
+                                    break;
 
-                                    case KeyProperty.Rotation:
-                                        in_SpriteDraw.Rotation = track.GetSingle(in_Time);
-                                        break;
+                                case KeyProperty.Rotation:
+                                    in_SpriteDraw.Rotation = track.GetSingle(in_Time);
+                                    break;
 
-                                    case KeyProperty.ScaleX:
-                                        in_SpriteDraw.Scale.X = track.GetSingle(in_Time);
-                                        break;
+                                case KeyProperty.ScaleX:
+                                    in_SpriteDraw.Scale.X = track.GetSingle(in_Time);
+                                    break;
 
-                                    case KeyProperty.ScaleY:
-                                        in_SpriteDraw.Scale.Y = track.GetSingle(in_Time);
-                                        break;
+                                case KeyProperty.ScaleY:
+                                    in_SpriteDraw.Scale.Y = track.GetSingle(in_Time);
+                                    break;
 
-                                    case KeyProperty.SpriteIndex:
-                                        in_OutSpriteIndex = track.GetSingle(in_Time);
-                                        break;
+                                case KeyProperty.SpriteIndex:
+                                    in_OutSpriteIndex = track.GetSingle(in_Time);
+                                    break;
 
-                                    case KeyProperty.Color:
-                                        in_SpriteDraw.Color = track.GetColor(in_Time);
-                                        break;
+                                case KeyProperty.Color:
+                                    in_SpriteDraw.Color = track.GetColor(in_Time);
+                                    break;
 
-                                    case KeyProperty.GradientTopLeft:
-                                        in_SpriteDraw.GradientTopLeft = track.GetColor(in_Time);
-                                        break;
+                                case KeyProperty.GradientTopLeft:
+                                    in_SpriteDraw.GradientTopLeft = track.GetColor(in_Time);
+                                    break;
 
-                                    case KeyProperty.GradientBottomLeft:
-                                        in_SpriteDraw.GradientBottomLeft = track.GetColor(in_Time);
-                                        break;
+                                case KeyProperty.GradientBottomLeft:
+                                    in_SpriteDraw.GradientBottomLeft = track.GetColor(in_Time);
+                                    break;
 
-                                    case KeyProperty.GradientTopRight:
-                                        in_SpriteDraw.GradientTopRight = track.GetColor(in_Time);
-                                        break;
+                                case KeyProperty.GradientTopRight:
+                                    in_SpriteDraw.GradientTopRight = track.GetColor(in_Time);
+                                    break;
 
-                                    case KeyProperty.GradientBottomRight:
-                                        in_SpriteDraw.GradientBottomRight = track.GetColor(in_Time);
-                                        break;
-                                }
+                                case KeyProperty.GradientBottomRight:
+                                    in_SpriteDraw.GradientBottomRight = track.GetColor(in_Time);
+                                    break;
                             }
                         }
                     }
@@ -542,6 +571,12 @@ namespace Kunai.ShurikenRenderer
             }
         }
 
+        /// <summary>
+        /// Applies inheritance flags to casts.
+        /// </summary>
+        /// <param name="in_SpriteDraw"></param>
+        /// <param name="in_Inheritance"></param>
+        /// <param name="in_Transform"></param>
         private void ApplyInheritance(ref SSpriteDrawData in_SpriteDraw, ElementInheritanceFlags in_Inheritance, CastTransform in_Transform)
         {
             // Inherit position
@@ -568,7 +603,7 @@ namespace Kunai.ShurikenRenderer
                 in_SpriteDraw.Color *= in_Transform.Color;
             }
         }
-        private void UpdateCast(Scene in_Scene, Cast in_UiElement, CastTransform in_Transform, int in_Priority, float in_Time, CsdVisData.Scene in_Vis)
+        private void DrawCast(Scene in_Scene, Cast in_UiElement, CastTransform in_Transform, int in_Priority, float in_Time, CsdVisData.Scene in_Vis)
         {
             float sprId = in_UiElement.Info.SpriteIndex;
             SSpriteDrawData sSpriteDrawData = new SSpriteDrawData(in_UiElement, in_Scene);
@@ -675,7 +710,7 @@ namespace Kunai.ShurikenRenderer
                 var childTransform = new CastTransform(sSpriteDrawData.Position, sSpriteDrawData.Rotation, sSpriteDrawData.Scale, sSpriteDrawData.Color);
 
                 foreach (var child in in_UiElement.Children)
-                    UpdateCast(in_Scene, child, childTransform, in_Priority++, in_Time, in_Vis);
+                    DrawCast(in_Scene, child, childTransform, in_Priority++, in_Time, in_Vis);
             }
 
         }

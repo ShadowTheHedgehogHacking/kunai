@@ -30,6 +30,8 @@ using System.Text;
 using SharpNeedle.Framework.Ninja.Csd.Motions;
 using TeamSpettro.SettingsSystem;
 using PixelFormat = OpenTK.Graphics.OpenGL.PixelFormat;
+using OpenTK.Windowing.GraphicsLibraryFramework;
+using Image = SixLabors.ImageSharp.Image;
 
 namespace Kunai.ShurikenRenderer
 {
@@ -44,11 +46,25 @@ namespace Kunai.ShurikenRenderer
         public CsdProject WorkProjectCsd;
         public SProjectConfig Config;
         private SViewportData m_ViewportData;
+        public KeyboardState KeyboardState
+        {
+            get
+            {
+                return m_Window.KeyboardState;
+            }
+        }
         private HekonrayWindow m_Window;
         public SReferenceImageData ReferenceImageData;
         public List<WindowBase> Windows = new List<WindowBase>();
         bool m_SaveScreenshotWhenRendered;
         public Vector3 ViewportColor = new Vector3(-1,-1,-1);
+        public bool IsFileLoaded
+        {
+            get
+            {
+                return !string.IsNullOrEmpty(Config.WorkFilePath);
+            }
+        }
 
 
         public KunaiProject()
@@ -735,13 +751,40 @@ namespace Kunai.ShurikenRenderer
                 RecursiveSetCropListNode(c.Value, in_Sprites, in_TexSizes);
             }
         }
+        public EFileType GetFileType(string in_Path)
+        {
+            switch (Path.GetExtension(in_Path))
+            {
+                case ".xncp": return EFileType.CsdXncp;
+                case ".yncp": return EFileType.CsdYncp;
+                case ".gncp": return EFileType.CsdGncp;
+                case ".sncp": return EFileType.CsdSncp;
+            }
+            return EFileType.CsdXncp;
+        }
         public void SaveCurrentFile(string in_Path)
         {
             List<Sprite> subImageList = new();
             List<Vector2> sizes = new List<Vector2>();
             SpriteHelper.BuildCropList(ref subImageList, ref sizes);
             RecursiveSetCropListNode(WorkProjectCsd.Project.Root, subImageList, sizes);
-            
+            switch (GetFileType(in_Path))
+            {
+                case EFileType.CsdXncp:
+                case EFileType.CsdSncp:
+                    {
+                        WorkProjectCsd.Endianness = Endianness.Little;
+                        break;
+                    }
+                case EFileType.CsdYncp:
+                case EFileType.CsdGncp:
+                    {
+                        WorkProjectCsd.Endianness = Endianness.Big;
+                        break;
+
+                    }
+            }
+
             WorkProjectCsd.Write(string.IsNullOrEmpty(in_Path) ? Config.WorkFilePath : in_Path);
         }
 

@@ -69,13 +69,13 @@ namespace Kunai.Window
                         ImGuiThemeManager.SetTheme(m_ThemeIsDark);
                     }
                     ImGui.SetItemTooltip("Sets the theme of the interface.");
-                    if(ImGui.Checkbox("Show coordinates in screen-space", ref ScreenCoordinates))
+                    if(ImGui.Checkbox("Show Coordinates as Pixels", ref ScreenCoordinates))
                     {
                         SettingsManager.SetBool("UseScreenCoordinates", ScreenCoordinates);
                     }
                     ImGui.SetItemTooltip("If this is enabled, values for translations and offsets\nwill be converted to pixel coordinates.\nIf this is disabled, the raw values from the file\nwill be shown instead.\n(This setting doesn't affect animations.)");
                     ImGui.SeparatorText("Viewport");
-                    if (ImGui.Checkbox("Show null casts", ref ShowNullCasts))
+                    if (ImGui.Checkbox("Show Null Casts", ref ShowNullCasts))
                     {
                         SettingsManager.SetBool("ShowNullCasts", ShowNullCasts);
                     }

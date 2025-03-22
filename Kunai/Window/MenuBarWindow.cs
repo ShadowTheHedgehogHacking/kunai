@@ -2,6 +2,7 @@
 using HekonrayBase.Base;
 using Hexa.NET.ImGui;
 using Kunai.ShurikenRenderer;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -53,47 +54,28 @@ namespace Kunai.Window
         public void Render(IProgramProject in_Renderer)
         {
             var renderer = (KunaiProject)in_Renderer;
+            ProcessShortcuts(renderer);
             if (ImGui.BeginMainMenuBar())
             {
                 MenuBarWindow.MenuBarHeight = ImGui.GetWindowSize().Y;
                 if (ImGui.BeginMenu($"File"))
                 {
-                    if (ImGui.MenuItem("Open File..."))
+                    if (ImGui.MenuItem("Open File...", "Ctrl + O"))
                     {
-                        var dialog = NativeFileDialogSharp.Dialog.FileOpen(FiltersOpen);
-                        if (dialog.IsOk)
-                        {
-                            renderer.LoadFile(dialog.Path);
-                        }
+                        OpenFile(renderer);
                     }
-                    if (ImGui.MenuItem("Reload File"))
+                    if (ImGui.MenuItem("Reload File", false, renderer.IsFileLoaded))
                     {
-                        renderer.WorkProjectCsd = null;
-                        renderer.LoadFile(renderer.Config.WorkFilePath);
+                        ReloadFile(renderer);
                     }
                     ImGui.Separator();
-                    if (ImGui.BeginMenu("Save"))
+                    if (ImGui.MenuItem("Save", "Ctrl + S", false, renderer.IsFileLoaded))
                     {
-                        if (ImGui.MenuItem("Csd Project...", "Ctrl + S"))
-                        {
-                            renderer.SaveCurrentFile(null);
-                        }
-                        ImGui.BeginDisabled();
-                        if (ImGui.MenuItem("Colors GNCP"))
-                        {
-                            renderer.ExportProjectChunk(null, false);
-                        }
-                        ImGui.EndDisabled();
-                        if (ImGui.MenuItem("Colors Ultimate XNCP"))
-                        {
-                            renderer.ExportProjectChunk(null, true);
-
-                        }
-                        ImGui.EndMenu();
+                        SaveFile(renderer);
                     }
-                    if (ImGui.BeginMenu("Save as..."))
+                    if (ImGui.BeginMenu("Save as...", renderer.IsFileLoaded))
                     {
-                        if (ImGui.MenuItem("Csd Project...", "Ctrl + S"))
+                        if (ImGui.MenuItem("Csd Project..."))
                         {
                             var dialog = NativeFileDialogSharp.Dialog.FileSave(Filters);
                             if (dialog.IsOk)
@@ -163,7 +145,7 @@ namespace Kunai.Window
                         ImGui.EndMenu();
                     }
                     ImGui.Separator();
-                    if (ImGui.MenuItem("Preferences", SettingsWindow.Enabled))
+                    if (ImGui.MenuItem("Settings", SettingsWindow.Enabled))
                     {
                         SettingsWindow.Enabled = !SettingsWindow.Enabled;
                     }
@@ -172,7 +154,7 @@ namespace Kunai.Window
                 }
                 if (ImGui.BeginMenu("Tools"))
                 {
-                    if (ImGui.MenuItem("Scan folder for textures"))
+                    if (ImGui.MenuItem("Scan folder for textures", false, renderer.IsFileLoaded))
                     {
                         var e = NativeFileDialogSharp.Dialog.FolderPicker("");
                         if (e.IsOk)
@@ -203,6 +185,7 @@ namespace Kunai.Window
                         }
                         ImGui.EndMenu();
                     }
+                    ImGui.Separator();
                     if (ImGui.MenuItem("Show Cast quads", renderer.Config.ShowQuads))
                         renderer.Config.ShowQuads = !renderer.Config.ShowQuads;
                     ImGui.EndMenu();
@@ -235,6 +218,50 @@ namespace Kunai.Window
             }
 
             ImGui.EndMainMenuBar();
+        }
+
+        private static void ReloadFile(KunaiProject renderer)
+        {
+            renderer.WorkProjectCsd.BaseFile?.Dispose();
+            renderer.WorkProjectCsd.Dispose();
+            renderer.WorkProjectCsd = null;
+            renderer.LoadFile(renderer.Config.WorkFilePath);
+        }
+
+        private static void OpenFile(KunaiProject renderer)
+        {
+            var dialog = NativeFileDialogSharp.Dialog.FileOpen(FiltersOpen);
+            if (dialog.IsOk)
+            {
+                renderer.LoadFile(dialog.Path);
+            }
+        }
+
+        private static void SaveFile(KunaiProject renderer)
+        {
+            renderer.SaveCurrentFile(null);
+        }
+
+        private void ProcessShortcuts(KunaiProject renderer)
+        {
+            var io = ImGui.GetIO();
+            io.KeyCtrl = ImGuiE.IsKeyDown(Keys.LeftControl);
+            if(ImGui.GetIO().KeyCtrl)
+            {
+                if (ImGuiE.IsKeyTapped(Keys.S) && renderer.IsFileLoaded)
+                {
+                    SaveFile(renderer);
+                }
+                if (ImGuiE.IsKeyTapped(Keys.O))
+                {
+                    OpenFile(renderer);
+                }
+
+                if (ImGuiE.IsKeyTapped(Keys.R))
+                {
+                    ReloadFile(renderer);
+                }
+            }
         }
     }
 }

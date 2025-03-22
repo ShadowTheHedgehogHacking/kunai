@@ -22,7 +22,7 @@ namespace Kunai.Window
         public static bool Enabled = false;
         int m_SelectedIndex = 0;
         int m_SelectedSpriteIndex = 0;
-        bool MShowAllCoords 
+        private bool m_ShowAllCoords 
         {
             get { return SettingsManager.GetBool("ShowAllCoordsCrop"); }
             set { SettingsManager.SetBool("ShowAllCoordsCrop", value); }
@@ -55,13 +55,13 @@ namespace Kunai.Window
 
                 Vector2 mousePos = ImGui.GetMousePos();
 
-                if (MShowAllCoords)
+                if (m_ShowAllCoords)
                     ImGui.GetWindowDrawList().AddQuad(pTopLeft, pTopRight, pBotRight, pBotLeft, ImGui.ColorConvertFloat4ToU32(new Vector4(1, 1, 1, 1)), 1.5f);
                 if (KunaiMath.IsPointInRect(mousePos, pTopLeft, pTopRight, pBotRight, pBotLeft) || i == m_SelectedSpriteIndex)
                 {
                     //Add selection box
                     ImGui.GetWindowDrawList().AddQuad(pTopLeft, pTopRight, pBotRight, pBotLeft, ImGui.ColorConvertFloat4ToU32(new Vector4(1, 0.3f, 0, 1)), 3);
-                    if (MainWindow.IsMouseLeftDown)
+                    if (ImGuiE.IsMouseClicked(0))
                     {
                         m_SelectedSpriteIndex = i;
                     }
@@ -80,74 +80,90 @@ namespace Kunai.Window
         public void Render(IProgramProject in_Renderer)
         {
             var renderer = (KunaiProject)in_Renderer;
-            if (renderer.WorkProjectCsd == null)
-                return;
             if (Enabled)
             {
                 if (ImGui.Begin("Crop", ref Enabled, ImGuiWindowFlags.MenuBar))
                 {
+                    var padding = ImGui.GetStyle().ItemSpacing;
+                    var avgSizeWin = (ImGui.GetWindowSize().X / 4) - padding.X;
                     DrawMenuBar();
                     ZoomFactor = Math.Clamp(ZoomFactor, 0.5f, 5);
-                    var padding = ImGui.GetStyle().ItemSpacing;
-                    var size1 = (ImGui.GetWindowSize().X / 4) - padding.X;
-                    if (ImGui.BeginListBox("##texturelist", new Vector2(size1, -1)))
-                    {
-                        int idx = 0;
-                        var result = ImKunai.TextureSelector(renderer, true);
-                        if (result.TextureIndex != -2)
-                            m_SelectedIndex = result.TextureIndex;
-                        if (result.SpriteIndex != -2)
-                            m_SelectedSpriteIndex = result.SpriteIndex;
-                        ImGui.EndListBox();
-                    }
+                    CropListLeft(renderer, avgSizeWin);
                     ImGui.SameLine();
-                    Vector2 availableSize = new Vector2(ImGui.GetWindowSize().X / 2, ImGui.GetContentRegionAvail().Y);
-                    Vector2 viewportPos = ImGui.GetWindowPos() + ImGui.GetCursorPos();
-                    var textureSize = SpriteHelper.Textures[m_SelectedIndex].Size;
-
-                    Vector2 imageSize;
-                    if (textureSize.X > textureSize.Y)
-                        imageSize = new Vector2(availableSize.Y, (textureSize.Y / textureSize.X) * availableSize.Y);
-                    else
-                        imageSize = new Vector2(availableSize.X, (textureSize.X / textureSize.Y) * availableSize.X);
-
-                    //Texture Image
-                    var size2 = ImGui.GetContentRegionAvail().X - size1;
-                    ImKunai.ImageViewport("##cropEdit", new Vector2(size2, -1), SpriteHelper.Textures[m_SelectedIndex].Size.Y / SpriteHelper.Textures[m_SelectedIndex].Size.X, ZoomFactor, new ImTextureID(SpriteHelper.Textures[m_SelectedIndex].GlTex.Id), DrawQuadList, new Vector4(0.5f, 0.5f, 0.5f, 1));
-
-                    bool windowHovered = ImGui.IsWindowHovered(ImGuiHoveredFlags.ChildWindows) && ImGui.IsItemHovered();
-                    if (windowHovered)
-                        ZoomFactor += ImGui.GetIO().MouseWheel / 5;
+                    ImageViewportTexture(renderer, avgSizeWin);
                     ImGui.SameLine();
-                    if (ImGui.BeginListBox("##texturelist2", new Vector2(size1, -1)))
-                    {
-                        var texture = SpriteHelper.Textures[m_SelectedIndex];
-                        var sprite = SpriteHelper.Crops[texture.CropIndices[m_SelectedSpriteIndex]];
-                        Vector2 spriteStart = sprite.Start;
-                        Vector2 spriteSize = sprite.Dimensions;
-                        ImGui.SeparatorText("Texture Info");
-                        ImGui.Text($"Name: {texture.Name}");
-                        ImGui.Text($"Width: {texture.Width}");
-                        ImGui.Text($"Height: {texture.Height}");
-                        ImGui.SeparatorText("Crop");
-                        ImGui.Text($"Currently editing: Crop ({m_SelectedSpriteIndex})");
-                        ImGui.DragFloat2("Position", ref spriteStart, "%.0f");
-                        ImGui.DragFloat2("Dimension", ref spriteSize, "%.0f");
-                        spriteStart.X = Math.Clamp(spriteStart.X, 0, texture.Size.X);
-                        spriteStart.Y = Math.Clamp(spriteStart.Y, 0, texture.Size.Y);
-
-                        spriteSize.X = Math.Clamp(spriteSize.X, 1, texture.Size.X);
-                        spriteSize.Y = Math.Clamp(spriteSize.Y, 1, texture.Size.Y);
-                        sprite.Start = spriteStart;
-                        sprite.Dimensions = spriteSize;
-                        sprite.Recalculate();
-                        ImGui.EndListBox();
-                    }
-
+                    CropRegionEditor(renderer, avgSizeWin);
                 }
                 ImGui.End();
-
                 CropGenerator.Draw(m_SelectedIndex);
+            }
+        }
+
+        private void CropRegionEditor(KunaiProject renderer, float in_AvgSizeWin)
+        {
+            if (ImGui.BeginListBox("##texturelist2", new Vector2(in_AvgSizeWin, -1)))
+            {
+                if (SpriteHelper.Textures.Count > m_SelectedIndex)
+                {
+                    var texture = SpriteHelper.Textures[m_SelectedIndex];
+                    var sprite = SpriteHelper.Crops[texture.CropIndices[m_SelectedSpriteIndex]];
+                    Vector2 spriteStart = sprite.Start;
+                    Vector2 spriteSize = sprite.Dimensions;
+                    ImGui.SeparatorText("Texture Info");
+                    ImGui.Text($"Name: {texture.Name}");
+                    ImGui.Text($"Width: {texture.Width}");
+                    ImGui.Text($"Height: {texture.Height}");
+                    ImGui.SeparatorText("Crop");
+                    ImGui.Text($"Currently editing: Crop ({m_SelectedSpriteIndex})");
+                    ImGui.DragFloat2("Position", ref spriteStart, "%.0f");
+                    ImGui.DragFloat2("Dimension", ref spriteSize, "%.0f");
+                    spriteStart.X = Math.Clamp(spriteStart.X, 0, texture.Size.X);
+                    spriteStart.Y = Math.Clamp(spriteStart.Y, 0, texture.Size.Y);
+
+                    spriteSize.X = Math.Clamp(spriteSize.X, 1, texture.Size.X);
+                    spriteSize.Y = Math.Clamp(spriteSize.Y, 1, texture.Size.Y);
+                    sprite.Start = spriteStart;
+                    sprite.Dimensions = spriteSize;
+                    sprite.Recalculate();
+                }
+                ImGui.EndListBox();
+            }
+        }
+        private void ImageViewportTexture(KunaiProject in_Renderer, float in_AvgSizeWin)
+        {
+            if (!in_Renderer.IsFileLoaded)
+                return;
+            Vector2 availableSize = new Vector2(ImGui.GetWindowSize().X / 2, ImGui.GetContentRegionAvail().Y);
+            Vector2 viewportPos = ImGui.GetWindowPos() + ImGui.GetCursorPos();
+
+            var textureSize = SpriteHelper.Textures[m_SelectedIndex].Size;
+
+            Vector2 imageSize;
+            if (textureSize.X > textureSize.Y)
+                imageSize = new Vector2(availableSize.Y, (textureSize.Y / textureSize.X) * availableSize.Y);
+            else
+                imageSize = new Vector2(availableSize.X, (textureSize.X / textureSize.Y) * availableSize.X);
+
+            //Texture Image
+            var size2 = ImGui.GetContentRegionAvail().X - in_AvgSizeWin;
+            ImKunai.ImageViewport("##cropEdit", new Vector2(size2, -1), SpriteHelper.Textures[m_SelectedIndex].Size.Y / SpriteHelper.Textures[m_SelectedIndex].Size.X, ZoomFactor, new ImTextureID(SpriteHelper.Textures[m_SelectedIndex].GlTex.Id), DrawQuadList, new Vector4(0.5f, 0.5f, 0.5f, 1));
+
+            bool windowHovered = ImGui.IsWindowHovered(ImGuiHoveredFlags.ChildWindows) && ImGui.IsItemHovered();
+            if (windowHovered)
+                ZoomFactor += ImGui.GetIO().MouseWheel / 5;
+        }
+
+        private void CropListLeft(KunaiProject in_Renderer, float in_AvgSizeWin)
+        {
+            if (ImGui.BeginListBox("##texturelist", new Vector2(in_AvgSizeWin, -1)))
+            {
+                int idx = 0;
+                var result = ImKunai.TextureSelector(in_Renderer, true);
+                if (result.TextureIndex != -2)
+                    m_SelectedIndex = result.TextureIndex;
+                if (result.SpriteIndex != -2)
+                    m_SelectedSpriteIndex = result.SpriteIndex;
+                ImGui.EndListBox();
             }
         }
 
@@ -191,8 +207,8 @@ namespace Kunai.Window
                         CropGenerator.Activate();
                     }
                     ImGui.Separator();
-                    if (ImGui.MenuItem("Show all crops on texture", MShowAllCoords))
-                        MShowAllCoords = !MShowAllCoords;
+                    if (ImGui.MenuItem("Show all crops on texture", m_ShowAllCoords))
+                        m_ShowAllCoords = !m_ShowAllCoords;
 
                     ImGui.EndMenu();
                 }

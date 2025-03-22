@@ -170,7 +170,6 @@ namespace Kunai.Window
                 List<Cast> selections = possibleSelections.OrderBy(in_X => in_X.Type).ThenByDescending(in_X => in_X.Priority)
                     .ToList();
 
-                //TODO: FIX!
                 InspectorWindow.SelectCast(KunaiProject.Instance.VisibilityData.GetCast(selections[0]));
             }
         }

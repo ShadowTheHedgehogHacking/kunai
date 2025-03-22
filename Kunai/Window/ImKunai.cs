@@ -75,68 +75,71 @@ namespace Kunai.Window
             int selectedIndex = -2;
             int selectedSpriteIndex = -2;
             int idx = 0;
-            foreach (var texture in in_Renderer.WorkProjectCsd.Textures)
+            if (in_Renderer.IsFileLoaded)
             {
-                if (ImGui.CollapsingHeader(texture.Name))
+                foreach (var texture in in_Renderer.WorkProjectCsd.Textures)
                 {
-                    if (in_EditMode)
-                        ImGui.Indent();
-                    int idx2 = 0;
-                    var spritesList = SpriteHelper.Textures[idx].CropIndices;
-                    for (int i = 0; i < spritesList.Count; i++)
+                    if (ImGui.CollapsingHeader(texture.Name))
                     {
-                        int spriteIdx = spritesList[i];
-                        Shuriken.Rendering.KunaiSprite spr = SpriteHelper.Crops[spriteIdx];
-                        ImGui.BeginGroup();
-                        if (spr != null)
+                        if (in_EditMode)
+                            ImGui.Indent();
+                        int idx2 = 0;
+                        var spritesList = SpriteHelper.Textures[idx].CropIndices;
+                        for (int i = 0; i < spritesList.Count; i++)
                         {
-                            if (spr.Texture.GlTex == null)
+                            int spriteIdx = spritesList[i];
+                            Shuriken.Rendering.KunaiSprite spr = SpriteHelper.Crops[spriteIdx];
+                            ImGui.BeginGroup();
+                            if (spr != null)
                             {
-                                ImKunai.EmptyTextureButton(idx2);
+                                if (spr.Texture.GlTex == null)
+                                {
+                                    ImKunai.EmptyTextureButton(idx2);
+                                }
+                                else
+                                {
+                                    if (ImKunai.SpriteImageButton($"##{texture.Name}_crop{idx2}", spr))
+                                    {
+                                        selectedIndex = idx;
+                                        selectedSpriteIndex = idx2;
+                                    }
+                                }
                             }
                             else
                             {
-                                if (ImKunai.SpriteImageButton($"##{texture.Name}_crop{idx2}", spr))
+                                ImKunai.EmptyTextureButton(idx2);
+                            }
+                            if (in_EditMode)
+                            {
+                                if (ImGui.BeginPopupContextItem())
                                 {
-                                    selectedIndex = idx;
-                                    selectedSpriteIndex = idx2;
+                                    if (ImGui.MenuItem("Add"))
+                                    {
+                                        SpriteHelper.CreateSprite(SpriteHelper.Textures[idx]);
+                                    }
+                                    ImGui.BeginDisabled(spritesList.Count <= 1);
+                                    if (ImGui.MenuItem("Delete"))
+                                    {
+                                        SpriteHelper.DeleteSprite(spriteIdx);
+                                    }
+                                    ImGui.EndDisabled();
+                                    ImGui.EndPopup();
                                 }
                             }
-                        }
-                        else
-                        {
-                            ImKunai.EmptyTextureButton(idx2);
+                            ImGui.SameLine();
+                            ImGui.PushID($"##{texture.Name}_crop{idx2}txt");
+                            ImGui.Text($"Crop ({idx2})");
+                            ImGui.PopID();
+                            ImGui.EndGroup();
+
+                            idx2++;
                         }
                         if (in_EditMode)
-                        {
-                            if (ImGui.BeginPopupContextItem())
-                            {
-                                if (ImGui.MenuItem("Add"))
-                                {
-                                    SpriteHelper.CreateSprite(SpriteHelper.Textures[idx]);
-                                }
-                                ImGui.BeginDisabled(spritesList.Count <= 1);
-                                if (ImGui.MenuItem("Delete"))
-                                {
-                                    SpriteHelper.DeleteSprite(spriteIdx);
-                                }
-                                ImGui.EndDisabled();
-                                ImGui.EndPopup();
-                            }
-                        }
-                        ImGui.SameLine();
-                        ImGui.PushID($"##{texture.Name}_crop{idx2}txt");
-                        ImGui.Text($"Crop ({idx2})");
-                        ImGui.PopID();
-                        ImGui.EndGroup();
-                        
-                        idx2++;
-                    }
-                    if (in_EditMode)
-                        ImGui.Unindent();
+                            ImGui.Unindent();
 
+                    }
+                    idx++;
                 }
-                idx++;
             }
             return new STextureSelectorResult(selectedIndex, selectedSpriteIndex);
         }

@@ -18,7 +18,7 @@ namespace Kunai.Window
         private static readonly string FiltersOpen = "xncp,yncp,gncp,sncp";
         private static readonly string Filters = "xncp;yncp;gncp;sncp";
 
-        
+
         //https://stackoverflow.com/questions/4580263/how-to-open-in-default-browser-in-c-sharp
         private void OpenUrl(string in_Url)
         {
@@ -121,7 +121,7 @@ namespace Kunai.Window
                 {
                     if (ImGui.BeginMenu("Reference Image"))
                     {
-                        if(ImGui.MenuItem("Load"))
+                        if (ImGui.MenuItem("Load"))
                         {
                             var dialog = NativeFileDialogSharp.Dialog.FileOpen("png,jpg,jpeg,dds");
                             if (dialog.IsOk)
@@ -243,21 +243,23 @@ namespace Kunai.Window
         {
             var io = ImGui.GetIO();
             io.KeyCtrl = ImGuiE.IsKeyDown(Keys.LeftControl);
-            if(ImGui.GetIO().KeyCtrl)
+            if (ImGui.GetIO().KeyCtrl)
             {
-                if (ImGuiE.IsKeyTapped(Keys.S) && renderer.IsFileLoaded)
+                if (renderer.IsFileLoaded)
                 {
-                    SaveFile(renderer);
+                    if (ImGuiE.IsKeyTapped(Keys.R))
+                        ReloadFile(renderer);
+
+                    if (ImGuiE.IsKeyTapped(Keys.S))
+                        SaveFile(renderer);
                 }
                 if (ImGuiE.IsKeyTapped(Keys.O))
-                {
                     OpenFile(renderer);
-                }
-
-                if (ImGuiE.IsKeyTapped(Keys.R))
-                {
-                    ReloadFile(renderer);
-                }
+                //if (io.KeyShift)
+                //{
+                //    if (ImGuiE.IsKeyTapped(Keys.S))
+                //        SaveFile(renderer);
+                //}
             }
         }
     }

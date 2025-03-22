@@ -116,7 +116,7 @@ namespace Kunai.ShurikenRenderer
                 RecurFindFirstTextureListFromFile(n.Value);
             }
         }
-        public static void LoadTextures(CsdProject in_CsdProject)
+        public static void LoadCrops(CsdProject in_CsdProject)
         {
             RecurFindFirstTextureListFromFile(in_CsdProject.Project.Root);
             GetSubImages(in_CsdProject.Project.Root);

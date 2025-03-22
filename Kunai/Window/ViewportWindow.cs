@@ -56,8 +56,6 @@ namespace Kunai.Window
                     else
                         renderer.ViewportSize = new Vector2(640, 480);
                 }
-                if (renderer.WorkProjectCsd == null)
-                    ImGui.Text("Open a XNCP, YNCP, GNCP or SNCP file to edit it.");
 
                 ImKunai.ImageViewport("##viewportcenter", 
                     new Vector2(-1, -1),
@@ -73,8 +71,14 @@ namespace Kunai.Window
         private void DrawQuadList(SCenteredImageData in_Data)
         {
             var renderer = KunaiProject.Instance;
-            var cursorpos = ImGui.GetItemRectMin();
+            var viewSize = in_Data.ImageSize;
             Vector2 screenPos = in_Data.Position + in_Data.ImagePosition - new Vector2(3, 2);
+            if (!renderer.IsFileLoaded)
+            {
+                var size = ImGui.CalcTextSize("Open a XNCP, YNCP, GNCP or SNCP file to edit it.");
+                ImGui.GetWindowDrawList().AddText((screenPos + new Vector2(0.5f * viewSize.X, 0.5f * viewSize.Y)) - (size/2), 0xFFFFFFFF, "Open a XNCP, YNCP, GNCP or SNCP file to edit it.");                
+            }
+            var cursorpos = ImGui.GetItemRectMin();
 
             List<Cast> possibleSelections = new List<Cast>();
 
@@ -88,7 +92,6 @@ namespace Kunai.Window
                 var qBotRight = quad.BottomRight.Position;
                 var qTopRight = quad.TopRight.Position;
                 var qBotLeft = quad.BottomLeft.Position;
-                var viewSize = in_Data.ImageSize;
                 Vector2 pTopLeft = screenPos + new Vector2(qTopLeft.X * viewSize.X, qTopLeft.Y * viewSize.Y);
                 Vector2 pBotRight = screenPos + new Vector2(qBotRight.X * viewSize.X, qBotRight.Y * viewSize.Y);
                 Vector2 pTopRight = screenPos + new Vector2(qTopRight.X * viewSize.X, qTopRight.Y * viewSize.Y);

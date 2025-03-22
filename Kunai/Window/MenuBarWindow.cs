@@ -68,6 +68,10 @@ namespace Kunai.Window
                     {
                         ReloadFile(renderer);
                     }
+                    if(ImGui.MenuItem("Close File", false, renderer.IsFileLoaded))
+                    {
+                        renderer.ResetCsd();
+                    }
                     ImGui.Separator();
                     if (ImGui.MenuItem("Save", "Ctrl + S", false, renderer.IsFileLoaded))
                     {

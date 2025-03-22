@@ -1,5 +1,7 @@
-﻿using SharpNeedle.Framework.Ninja.Csd;
+﻿using Kunai.ShurikenRenderer;
+using SharpNeedle.Framework.Ninja.Csd;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,7 +13,10 @@ namespace Kunai
 
         public CsdVisData(CsdProject in_Proj)
         {
-            Nodes.Add(new Node(new KeyValuePair<string, SceneNode>(in_Proj.Name, in_Proj.Project.Root)));
+            string name = in_Proj.Name;
+            if (string.IsNullOrEmpty(in_Proj.Name))
+                name = Path.GetFileName(KunaiProject.Instance.Config.WorkFilePath);
+            Nodes.Add(new Node(new KeyValuePair<string, SceneNode>(name, in_Proj.Project.Root)));
         }
         private Node RecursiveGetNode(Node in_Node, SceneNode in_SceneNode)
         {

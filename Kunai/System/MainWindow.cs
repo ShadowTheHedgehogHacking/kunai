@@ -76,8 +76,10 @@ namespace Kunai
                 float deltaTime = (float)(in_E.Time);
                 KunaiProject.Render(KunaiProject.WorkProjectCsd, (float)deltaTime);
 
-                if (KunaiProject.WorkProjectCsd != null)
+                if (KunaiProject.IsFileLoaded)
                     Title = ApplicationName + $" - [{KunaiProject.Config.WorkFilePath}]";
+                else
+                    Title = ApplicationName;
             }
         }
     }

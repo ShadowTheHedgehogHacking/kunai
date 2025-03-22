@@ -57,7 +57,7 @@ namespace Kunai.ShurikenRenderer
         public SReferenceImageData ReferenceImageData;
         public List<WindowBase> Windows = new List<WindowBase>();
         bool m_SaveScreenshotWhenRendered;
-        public Vector3 ViewportColor = new Vector3(-1,-1,-1);
+        public Vector3 ViewportColor = new Vector3(-1, -1, -1);
         public bool IsFileLoaded
         {
             get
@@ -116,6 +116,8 @@ namespace Kunai.ShurikenRenderer
                 Config.WorkFilePath = in_Path;
                 SelectionData.SelectedCast = null;
                 SelectionData.SelectedScene = new();
+                WorkProjectCsd?.BaseFile?.Dispose();
+                WorkProjectCsd?.Dispose();
                 WorkProjectCsd = null;
                 VisibilityData = null;
                 Renderer.Quads.Clear();
@@ -293,7 +295,7 @@ namespace Kunai.ShurikenRenderer
         /// <exception cref="Exception"></exception>
         public void Render(CsdProject in_CsdProject, float in_DeltaTime)
         {
-            if(ViewportColor.X == -1)
+            if (ViewportColor.X == -1)
             {
                 ViewportColor.X = SettingsManager.GetFloat("ViewColor_X", 0.6627450980f);
                 ViewportColor.Y = SettingsManager.GetFloat("ViewColor_Y", 0.6627450980f);
@@ -427,7 +429,7 @@ namespace Kunai.ShurikenRenderer
             if (Config.PlayingAnimations)
                 Config.Time += in_DeltaTime;
 
-            if(ReferenceImageData.Enabled)
+            if (ReferenceImageData.Enabled)
             {
                 Renderer.DrawFullscreenQuad(ReferenceImageData.Sprite, ReferenceImageData.Opacity);
             }
@@ -603,7 +605,7 @@ namespace Kunai.ShurikenRenderer
             if (visibilityDataCast.Active && in_UiElement.Enabled)
             {
                 sSpriteDrawData.Rotation *= MathF.PI / 180.0f;
-                switch(type)
+                switch (type)
                 {
                     case Cast.EType.Sprite:
                         {
@@ -680,7 +682,7 @@ namespace Kunai.ShurikenRenderer
 
         private void ApplyPropertyMask(ref SSpriteDrawData in_SSpriteDrawData, CastPropertyMask in_Field2C)
         {
-            if((in_Field2C & CastPropertyMask.ApplyTransform) == 0)
+            if ((in_Field2C & CastPropertyMask.ApplyTransform) == 0)
             {
                 in_SSpriteDrawData.Position = Vector2.Zero;
             }
@@ -736,9 +738,9 @@ namespace Kunai.ShurikenRenderer
                             .SelectMany(in_Cm => in_Cm)
                             .SelectMany(in_Kfl => in_Kfl.Frames)
                             .Max(in_Kf => in_Kf.Frame);
-                        
-                    if(a.Value.EndFrame < maxFrame)
-                        a.Value.EndFrame = maxFrame;
+
+                        if (a.Value.EndFrame < maxFrame)
+                            a.Value.EndFrame = maxFrame;
                     }
                     catch (InvalidOperationException e)
                     {

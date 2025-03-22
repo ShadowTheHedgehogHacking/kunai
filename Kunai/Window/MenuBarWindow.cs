@@ -222,9 +222,6 @@ namespace Kunai.Window
 
         private static void ReloadFile(KunaiProject renderer)
         {
-            renderer.WorkProjectCsd.BaseFile?.Dispose();
-            renderer.WorkProjectCsd.Dispose();
-            renderer.WorkProjectCsd = null;
             renderer.LoadFile(renderer.Config.WorkFilePath);
         }
 

@@ -73,9 +73,21 @@ namespace Kunai.Window
                         renderer.ResetCsd();
                     }
                     ImGui.Separator();
-                    if (ImGui.MenuItem("Save", "Ctrl + S", false, renderer.IsFileLoaded))
+                    if (ImGui.BeginMenu("Save", renderer.IsFileLoaded))
                     {
-                        SaveFile(renderer);
+                        if (ImGui.MenuItem("Csd Project...", "Ctrl + S"))
+                        {
+                            SaveFile(renderer);
+                        }
+                        if (ImGui.MenuItem("Colors GNCP"))
+                        {
+                            renderer.ExportProjectChunk(null, false);
+                        }
+                        if (ImGui.MenuItem("Colors Ultimate XNCP"))
+                        {
+                            renderer.ExportProjectChunk(null, true);
+                        }
+                        ImGui.EndMenu();
                     }
                     if (ImGui.BeginMenu("Save as...", renderer.IsFileLoaded))
                     {
@@ -89,7 +101,6 @@ namespace Kunai.Window
                                 renderer.SaveCurrentFile(path);
                             }
                         }
-                        ImGui.BeginDisabled();
                         if (ImGui.MenuItem("Colors GNCP"))
                         {
                             var dialog = NativeFileDialogSharp.Dialog.FileSave("gncp");
@@ -100,7 +111,6 @@ namespace Kunai.Window
                                 renderer.ExportProjectChunk(path, false);
                             }
                         }
-                        ImGui.EndDisabled();
                         if (ImGui.MenuItem("Colors Ultimate XNCP"))
                         {
                             var dialog = NativeFileDialogSharp.Dialog.FileSave("xncp");
@@ -241,6 +251,10 @@ namespace Kunai.Window
         private static void SaveFile(KunaiProject renderer)
         {
             renderer.SaveCurrentFile(null);
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                System.Media.SystemSounds.Asterisk.Play();
+            }
         }
 
         private void ProcessShortcuts(KunaiProject renderer)

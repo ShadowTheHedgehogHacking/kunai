@@ -821,7 +821,8 @@ namespace Kunai.ShurikenRenderer
             List<Vector2> sizes = new List<Vector2>();
             SpriteHelper.BuildCropList(ref subImageList, ref sizes);
             RecursiveSetCropListNode(WorkProjectCsd.Project.Root, subImageList, sizes);
-            switch (GetFileType(in_Path))
+            string filePath = string.IsNullOrEmpty(in_Path) ? Config.WorkFilePath : in_Path;
+            switch (GetFileType(filePath))
             {
                 case EFileType.CsdXncp:
                 case EFileType.CsdSncp:
@@ -838,7 +839,7 @@ namespace Kunai.ShurikenRenderer
                     }
             }
 
-            WorkProjectCsd.Write(string.IsNullOrEmpty(in_Path) ? Config.WorkFilePath : in_Path);
+            WorkProjectCsd.Write(filePath);
         }
 
         internal void UpdateWindows()

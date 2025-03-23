@@ -2,6 +2,7 @@
 using Kunai.ShurikenRenderer;
 using Kunai.Window;
 using SharpNeedle.Framework.Ninja.Csd;
+using SharpNeedle.Framework.Ninja.Csd.Motions;
 using SharpNeedle.Structs;
 using Shuriken.Rendering;
 using System;
@@ -25,7 +26,6 @@ namespace Kunai
                 Value = in_Cast;
                 Parent = in_Parent;
             }
-            
             public override void DrawInspector()
             {
                 Vector2 screenMultiplier = (SettingsWindow.ScreenCoordinates ? KunaiProject.Instance.ViewportSize : Vector2.One);
@@ -38,7 +38,11 @@ namespace Kunai
                 ElementMaterialFlags materialFlags = (ElementMaterialFlags)Value.MaterialFlags.Value;
                 CastInfo info = Value.Info;
                 ElementInheritanceFlags inheritanceFlags = (ElementInheritanceFlags)Value.InheritanceFlags.Value;
-
+                
+                int field58 = (int)Value.Field58;
+                int field5c = (int)Value.Field5C;
+                int field70 = (int)Value.Field70;
+                Vector2 aspectRatioCorrection = (Vector2)Value.Position;
                 string name = Value.Name;
                 int field00 = (int)Value.Field00;
                 int type = (int)Value.Type;
@@ -73,8 +77,7 @@ namespace Kunai
 
                 int indexFont = SpriteHelper.FontNames.IndexOf(fontname);
 
-                ImGui.InputText("Room Name", ref name, 100, ImGuiInputTextFlags.AutoSelectAll);
-                ImGui.InputInt("Field00", ref field00);
+                ImGui.InputText("Name", ref name, 100, ImGuiInputTextFlags.AutoSelectAll);
                 ImGui.Combo("Type", ref type, typeStrings, 3);
                 ImGui.SeparatorText("Status");
                 ImGui.Checkbox("Enabled", ref enabled);
@@ -223,6 +226,15 @@ namespace Kunai
                     Value.Field2C = (uint)unknownFlags;
                     //}
                 }
+                if(ImGui.CollapsingHeader("Aspect Ratio Correction"))
+                {
+                    ImGui.TextWrapped("All of these fields are unknown, if you can figure them out, tell me.");
+                    ImGui.InputInt("Field00", ref field00);
+                    ImGui.InputInt("Field5c", ref field5c);
+                    ImGui.InputInt("Field58", ref field58);
+                    ImGui.InputInt("Field70", ref field70);
+                    ImGui.InputFloat2("Field68/6C", ref aspectRatioCorrection);
+                }
                 if (type != 0)
                 {
 
@@ -322,6 +334,9 @@ namespace Kunai
                         ImGui.EndDisabled();
                     }
                 }
+                Value.Field58 = (uint)field58;
+                Value.Field5C = (uint)field5c;
+                Value.Field70 = (uint)field70;
                 Value.Name = name;
                 Value.Field00 = (uint)field00;
                 Value.Type = (CsdCast.EType)type;
@@ -336,8 +351,9 @@ namespace Kunai
                 Value.TopRight = topRightVert / KunaiProject.Instance.ViewportSize;
                 Value.BottomLeft = bottomLeftVert / KunaiProject.Instance.ViewportSize;
                 Value.BottomRight = bottomRightVert / KunaiProject.Instance.ViewportSize;
-                info.Rotation = rotation;
+                Value.Position = aspectRatioCorrection;
                 Value.Origin = origin / screenMultiplier;
+                info.Rotation = rotation;
                 info.Translation = translation / screenMultiplier;
                 info.Color = color.Invert().ToSharpNeedleColor();
                 info.GradientTopLeft = colorTl.Invert().ToSharpNeedleColor();

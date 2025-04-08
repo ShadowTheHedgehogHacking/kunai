@@ -7,7 +7,7 @@ using SharpNeedle.Structs;
 using Shuriken.Rendering;
 using System;
 using System.Numerics;
-using static Kunai.Window.ImKunai;
+
 using CsdCast = SharpNeedle.Framework.Ninja.Csd.Cast;
 
 namespace Kunai
@@ -398,7 +398,7 @@ namespace Kunai
                         }
                 }
                 bool selectedCast = false;
-                bool returnVal = VisibilityNode(Value.Name, ref Active, ref selectedCast, CastRightClickAction, in_ShowArrow: Value.Children.Count > 0, in_Icon: icon, in_Id: $"##{Value.Name}_{Id}");
+                bool returnVal = ImKunai.VisibilityNode(Value.Name, ref Active, ref selectedCast, CastRightClickAction, in_ShowArrow: Value.Children.Count > 0, in_Icon: icon, in_Id: $"##{Value.Name}_{Id}");
                 return new TVisHierarchyResult(returnVal, selectedCast);
             }
 

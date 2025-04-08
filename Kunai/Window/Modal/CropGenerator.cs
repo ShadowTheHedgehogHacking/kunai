@@ -9,73 +9,56 @@ using System.Threading.Tasks;
 
 namespace Kunai.Modal
 {
-    public static class CropGenerator
+    public class CropGenerator : ModalWindow
     {
-        static bool ms_MCutMenuOpen = false;
-        static int ms_MCutType;
-        static Vector2 ms_MCutParam;
-        static Vector2 ms_MWindowSize = new Vector2(500, 160);
-
-        public static void Activate()
+        int m_CutType;
+        Vector2 m_CutParam;
+        Vector2 m_ModalSize = new Vector2(500, 160);
+        public int in_TextureIndex;
+        public override void Setup()
         {
-            ms_MCutMenuOpen = true;
+            name = "##cropgenerator";
+            size = m_ModalSize;
         }
-        public static void Draw(int in_TextureIndex)
+        public override void DrawContents()
         {
-            if (ms_MCutMenuOpen)
+            var texture = SpriteHelper.Textures[in_TextureIndex];
+            ImGui.Combo("Type", ref m_CutType, ["Size", "Count"], 2);
+
+            ImGui.InputFloat2(m_CutType == 0 ? "Individual Size" : "Grid Count", ref m_CutParam);
+            ImGui.Separator();
+
+            //Calculate estimated crop count
+            Vector2 estimate = m_CutType == 0 ? texture.Size / m_CutParam : m_CutParam;
+            float estimateCount = (int)(estimate.Y * estimate.X);
+            if (estimateCount < 0 || estimateCount > 256)
+                estimateCount = 0;
+
+            ImGui.Text($"{estimateCount} crops will be generated");
+            ImGui.Separator();
+            if (ImGui.Button("Execute"))
             {
-                ImGui.OpenPopup("##generatecrops");
-
-                // Calculate centered position
-                var viewport = ImGui.GetMainViewport();
-                Vector2 centerPos = new Vector2(
-                    viewport.WorkPos.X + (viewport.WorkSize.X - ms_MWindowSize.X) * 0.5f,
-                    viewport.WorkPos.Y + (viewport.WorkSize.Y - ms_MWindowSize.Y) * 0.5f
-                );
-                ImGui.SetNextWindowPos(centerPos);
-                ImGui.SetNextWindowSize(ms_MWindowSize);
-                if (ImGui.BeginPopupModal("##generatecrops", ref ms_MCutMenuOpen, ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize))
+                switch (m_CutType)
                 {
-                    var texture = SpriteHelper.Textures[in_TextureIndex];
-                    ImGui.Combo("Type", ref ms_MCutType, ["Size", "Count"], 2);
-
-                    ImGui.InputFloat2(ms_MCutType == 0 ? "Individual Size" : "Grid Count", ref ms_MCutParam);
-                    ImGui.Separator();
-
-                    //Calculate estimated crop count
-                    Vector2 estimate = ms_MCutType == 0 ? texture.Size / ms_MCutParam : ms_MCutParam;
-                    float estimateCount = (int)(estimate.Y * estimate.X);
-                    if (estimateCount < 0 || estimateCount > 256)
-                        estimateCount = 0;
-
-                    ImGui.Text($"{estimateCount} crops will be generated");
-                    ImGui.Separator();
-                    if (ImGui.Button("Execute"))
-                    {
-                        switch (ms_MCutType)
+                    case 0:
                         {
-                            case 0:
-                                {
-                                    CreateCropGrid(in_TextureIndex, ms_MCutParam);
-                                    break;
-                                }
-                            case 1:
-                                {
-                                    CreateCropGrid(in_TextureIndex, texture.Size / ms_MCutParam);
-                                    break;
-                                }
+                            CreateCropGrid(in_TextureIndex, m_CutParam);
+                            break;
                         }
-                        ms_MCutMenuOpen = false;
-                        ImGui.CloseCurrentPopup();
-                    }
-                    ImGui.SameLine();
-                    if (ImGui.Button("Cancel"))
-                    {
-                        ms_MCutMenuOpen = false;
-                        ImGui.CloseCurrentPopup();
-                    }
-                    ImGui.EndPopup();
+                    case 1:
+                        {
+                            CreateCropGrid(in_TextureIndex, texture.Size / m_CutParam);
+                            break;
+                        }
                 }
+                SetEnabled(false);
+                ImGui.CloseCurrentPopup();
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Cancel"))
+            {
+                SetEnabled(false);
+                ImGui.CloseCurrentPopup();
             }
         }
 

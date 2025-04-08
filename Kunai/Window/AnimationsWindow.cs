@@ -8,6 +8,8 @@ using System.Numerics;
 using IconFonts;
 using HekonrayBase.Base;
 using HekonrayBase;
+using Kunai.Window.Modal;
+using System;
 
 namespace Kunai.Window
 {
@@ -27,105 +29,128 @@ namespace Kunai.Window
             }
         }
         private static List<ImPlotPoint> ms_Points = new List<ImPlotPoint>();
-
+        private KeyframeAddMenu keyframeAddMenu = new KeyframeAddMenu();
+        private CastMotionAddMenu castMotionAddMenu = new CastMotionAddMenu();
+        private CsdVisData.Animation currentMot;
+        bool notCreatingNewCast;
         private void DrawMotionElement(CsdVisData.Animation in_SceneMotion)
         {
             bool selected = false;
-            if (ImKunai.VisibilityNode(in_SceneMotion.Value.Key, ref in_SceneMotion.Active, ref selected, in_ShowArrow: true))
+            bool node = ImKunai.VisibilityNode(in_SceneMotion.Value.Key, ref in_SceneMotion.Active, ref selected, in_ShowArrow: true, in_RightClickAction: delegate { MotionAddCast(in_SceneMotion); });
+            
+            if (node)
             {
-                foreach (FamilyMotion familyMotion in in_SceneMotion.Value.Value.FamilyMotions)
+                for (int i = 0; i < in_SceneMotion.Value.Value.FamilyMotions.Count; i++)
                 {
-                    DrawFamilyMotionElement(familyMotion);
+                    FamilyMotion familyMotion = in_SceneMotion.Value.Value.FamilyMotions[i];
+                    DrawFamilyMotionElement(familyMotion, i);
                 }
                 ImGui.TreePop();
             }
         }
-        public SKeyframePropertyInfo GetDisplayNameAndIcon(KeyProperty in_Property)
+
+        private void MotionAddCast(CsdVisData.Animation in_SceneMotion)
+        {
+            if (ImGui.MenuItem("Add cast"))
+            {
+                var scene = KunaiProject.Instance.SelectionData.SelectedScene;
+                castMotionAddMenu.motionKey = scene.Animation.IndexOf(in_SceneMotion);
+                castMotionAddMenu.SetEnabled(true);
+            }
+        }
+
+        public static SIconData GetDisplayNameAndIcon(KeyProperty in_Property)
         {
             switch (in_Property)
             {
                 case KeyProperty.HideFlag:
-                    return new SKeyframePropertyInfo() { Icon = FontAwesome6.Square, Name = "Hide Flag", Color = ColorResource.HideFlag };
+                    return NodeIconResource.HideFlag;
                 case KeyProperty.PositionX:
-                    return new SKeyframePropertyInfo() { Icon = FontAwesome6.LeftRight, Name = "X Translation", Color = ColorResource.PositionX };
+                    return NodeIconResource.PositionX;
                 case KeyProperty.PositionY:
-                    return new SKeyframePropertyInfo() { Icon = FontAwesome6.UpDown, Name = "Y Translation", Color = ColorResource.PositionY };
+                    return NodeIconResource.PositionY;
                 case KeyProperty.Rotation:
-                    return new SKeyframePropertyInfo() { Icon = FontAwesome6.ArrowsRotate, Name = "Rotation", Color = ColorResource.Rotation };
+                    return NodeIconResource.Rotation;
                 case KeyProperty.ScaleX:
-                    return new SKeyframePropertyInfo() { Icon = FontAwesome6.Expand, Name = "X Scale", Color = ColorResource.ScaleX };
+                    return NodeIconResource.ScaleX;
                 case KeyProperty.ScaleY:
-                    return new SKeyframePropertyInfo() { Icon = FontAwesome6.UpRightAndDownLeftFromCenter, Name = "Y Scale", Color = ColorResource.ScaleY };
+                    return NodeIconResource.ScaleY;
                 case KeyProperty.SpriteIndex:
-                    return new SKeyframePropertyInfo() { Icon = FontAwesome6.PhotoFilm, Name = "Crop", Color = ColorResource.SpriteIndex };
+                    return NodeIconResource.SpriteIndex;
                 case KeyProperty.Color:
-                    return new SKeyframePropertyInfo() { Icon = FontAwesome6.Palette, Name = "Color", Color = ColorResource.Color };
+                    return NodeIconResource.Color;
                 case KeyProperty.GradientTopLeft:
-                    return new SKeyframePropertyInfo() { Icon = FontAwesome6.Palette, Name = "TL Color", Color = ColorResource.GradientTopLeft };
+                    return NodeIconResource.GradientTopLeft;
                 case KeyProperty.GradientBottomLeft:
-                    return new SKeyframePropertyInfo() { Icon = FontAwesome6.Palette, Name = "BL Color", Color = ColorResource.GradientBottomLeft };
+                    return NodeIconResource.GradientBottomLeft;
                 case KeyProperty.GradientTopRight:
-                    return new SKeyframePropertyInfo() { Icon = FontAwesome6.Palette, Name = "TR Color", Color = ColorResource.GradientTopRight };
+                    return NodeIconResource.GradientTopRight;
                 case KeyProperty.GradientBottomRight:
-                    return new SKeyframePropertyInfo() { Icon = FontAwesome6.Palette, Name = "BR Color", Color = ColorResource.GradientBottomRight };
+                    return NodeIconResource.GradientBottomRight;
             }
 
-            return new SKeyframePropertyInfo();
+            return NodeIconResource.HideFlag;
         }
-        private void DrawFamilyMotionElement(FamilyMotion in_FamilyMotion)
+        private void DrawFamilyMotionElement(FamilyMotion in_FamilyMotion, int in_FamIndex)
         {
             for (int i = 0; i < in_FamilyMotion.CastMotions.Count; i++)
             {
                 CastMotion castMotion = in_FamilyMotion.CastMotions[i];
                 if (castMotion.Count == 0) continue;
-                ImGui.PushID($"##{castMotion.Cast.Name}anim_{i}");
-                if (ImGui.TreeNode(castMotion.Cast.Name))
+                ImGui.PushID($"##{castMotion.Cast.Name}_{in_FamIndex}_anim_{i}");
+                bool treeNodeOpen = ImGui.TreeNode(castMotion.Cast.Name);
+                if(ImGui.IsItemHovered())
+                {
+                    if (ImGui.BeginTooltip())
+                    {
+                        ImGui.Text($"Fam Idx {in_FamIndex}");
+                        ImGui.EndTooltip();
+                    }
+                }
+
+                if (ImGui.BeginPopupContextItem())
+                {
+                    ImGui.SeparatorText(castMotion.Cast.Name);
+                    if (ImGui.MenuItem("Add track"))
+                    {
+                        keyframeAddMenu.motion = castMotion;
+                        keyframeAddMenu.SetEnabled(true);
+                    }
+                    if (ImGui.MenuItem("Delete"))
+                    {
+                        castMotion.Clear();
+                        in_FamilyMotion.CastMotions[i] = castMotion;
+                    }
+                    ImGui.EndPopup();
+                }
+                if (treeNodeOpen)
                 {
                     for (int t = 0; t < castMotion.Count; t++)
                     {
                         ImGui.PushID($"##{castMotion.Cast.Name}anim_{i}_{t}");
                         KeyFrameList track = castMotion[t];
                         var info = GetDisplayNameAndIcon(track.Property);
-
-                        var pos = ImGui.GetCursorPosX();
-                        ImGui.PushStyleColor(ImGuiCol.Text, ImGui.ColorConvertFloat4ToU32(info.Color));
-                        ImKunai.TextFontAwesome(info.Icon);
-                        ImGui.PopStyleColor();
-                        ImGui.SameLine();
-                        ImGui.SetCursorPosX(pos + 20);
-                        ImGui.Text(info.Name);
-                        ImGui.SameLine();
-                        ImGui.SetCursorPosX(pos);
-                        if (ImKunai.InvisibleSelectable($"{info.Icon} {info.Name}"))
+                        if (ImKunai.AnimationTreeNode(info))
                         {
                             KunaiProject.Instance.SelectionData.TrackAnimation = track;
                         }
-                        ImGui.PopID();
-
                         if (ImGui.BeginPopupContextItem())
                         {
-                            ImGui.SeparatorText("Track");
-
+                            ImGui.SeparatorText(info.Name);
                             if (ImGui.MenuItem("Delete"))
                             {
                                 castMotion.Remove(track);
                             }
                             ImGui.EndPopup();
                         }
+                        ImGui.PopID();
+
+                        
                     }
                     ImGui.TreePop();
                 }
                 ImGui.PopID();
-                if (ImGui.BeginPopupContextItem())
-                {
-                    ImGui.SeparatorText("Cast Anim");
-
-                    if (ImGui.MenuItem("Delete"))
-                    {
-                        in_FamilyMotion.CastMotions.Remove(castMotion);
-                    }
-                    ImGui.EndPopup();
-                }
+                
             }
         }
 
@@ -172,7 +197,7 @@ namespace Kunai.Window
                                 {
                                     if (isFloatValue)
                                         in_Renderer.SelectionData.TrackAnimation.Frames[i].Value = new SharpNeedle.Framework.Ninja.Csd.Motions.KeyFrame.Union((float)point.Y);
-                                    in_Renderer.SelectionData.TrackAnimation.Frames[i].Frame = (uint)point.X;
+                                    in_Renderer.SelectionData.TrackAnimation.Frames[i].Frame = (int)point.X;
                                 }
                                 if (isClicked)
                                     in_Renderer.SelectionData.KeyframeSelected = in_Renderer.SelectionData.TrackAnimation.Frames[i];
@@ -210,7 +235,7 @@ namespace Kunai.Window
                                     && in_Renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientBottomLeft
                                     && in_Renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientTopLeft
                                     && in_Renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientTopRight;
-                                frame.Frame = (uint)mousePosPlot.X;
+                                frame.Frame = (int)mousePosPlot.X;
                                 if (isFloatValue)
                                     frame.Value = (KeyFrame.Union)mousePosPlot.Y;
                                 in_Renderer.SelectionData.TrackAnimation.Add(frame);
@@ -242,8 +267,9 @@ namespace Kunai.Window
                     var keyframe = renderer.SelectionData.KeyframeSelected;
                     int frame = (int)keyframe.Frame;
                     var val = keyframe.Value;
-                    var valColor = keyframe.Value.Color.ToVec4();
+                    var valColor = keyframe.Value.Color.ToVec4().Invert();
                     var interp = (int)keyframe.Interpolation;
+                    bool correctionExists = keyframe.Correction != null;
                     ImGui.InputInt("Frame", ref frame);
                     bool isFloatValue = renderer.SelectionData.TrackAnimation.Property != KeyProperty.Color
                        && renderer.SelectionData.TrackAnimation.Property != KeyProperty.GradientBottomRight
@@ -259,14 +285,25 @@ namespace Kunai.Window
                     else
                     {
                         if (ImGui.ColorEdit4("Value", ref valColor))
-                            keyframe.Value = valColor.ToSharpNeedleColor();
+                            keyframe.Value = valColor.Invert().ToSharpNeedleColor();
                     }
 
                     if (ImGui.Combo("Interpolation", ref interp, ["Const", "Linear", "Hermite"], 3))
                         keyframe.Interpolation = (InterpolationType)interp;
 
+                    if (correctionExists)
+                    {
+                        var correction = keyframe.Correction.Value;
+                        var centerCor = correction.Center;
+                        var offsetCor = correction.Offset;
+                        ImGui.InputFloat2("Asp Center", ref centerCor);
+                        ImGui.InputFloat2("Asp Offset", ref offsetCor);
+                        correction.Center = centerCor;
+                        correction.Offset = offsetCor;
+                        keyframe.Correction = correction;
+                    }
 
-                    keyframe.Frame = (uint)frame;
+                    keyframe.Frame = frame;
                 }
                 ImGui.EndListBox();
             }
@@ -326,28 +363,31 @@ namespace Kunai.Window
                 }
                 ImGui.PopFont();
                 ImGui.EndGroup();
-
-
-
-                //The list of anims, anim tracks and cast animations
-                if (ImGui.BeginListBox("##animlist", new System.Numerics.Vector2(ImGui.GetWindowSize().X / 5, -1)))
-                {
-                    var selectedScene = KunaiProject.Instance.SelectionData.SelectedScene;
-                    if (selectedScene != null)
-                    {
-                        foreach (CsdVisData.Animation sceneMotion in selectedScene.Animation)
-                        {
-                            DrawMotionElement(sceneMotion);
-                        }
-                    }
-                    ImGui.EndListBox();
-                }
+                AnimList();
                 ImGui.SameLine();
                 DrawPlot(renderer);
                 ImGui.SameLine();
                 DrawKeyframeInspector();
-
+                keyframeAddMenu.Draw();
+                castMotionAddMenu.Draw();
                 ImGui.End();
+            }
+        }
+
+        private void AnimList()
+        {
+            //The list of anims, anim tracks and cast animations
+            if (ImGui.BeginListBox("##animlist", new System.Numerics.Vector2(ImGui.GetWindowSize().X / 5, -1)))
+            {
+                var selectedScene = KunaiProject.Instance.SelectionData.SelectedScene;
+                if (selectedScene != null)
+                {
+                    foreach (CsdVisData.Animation sceneMotion in selectedScene.Animation)
+                    {
+                        DrawMotionElement(sceneMotion);
+                    }
+                }
+                ImGui.EndListBox();
             }
         }
     }

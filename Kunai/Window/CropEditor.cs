@@ -22,6 +22,7 @@ namespace Kunai.Window
         public static bool Enabled = false;
         int m_SelectedIndex = 0;
         int m_SelectedSpriteIndex = 0;
+        private CropGenerator cropGenerator = new CropGenerator();
         private bool m_ShowAllCoords 
         {
             get { return SettingsManager.GetBool("ShowAllCoordsCrop"); }
@@ -36,8 +37,6 @@ namespace Kunai.Window
         {
             var cursorpos = ImGui.GetItemRectMin();
             Vector2 screenPos = in_Data.Position + in_Data.ImagePosition - new Vector2(3, 2);
-
-
             var viewSize = in_Data.ImageSize;
 
             for (int i = 0; i < SpriteHelper.Textures[m_SelectedIndex].CropIndices.Count; i++)
@@ -57,6 +56,7 @@ namespace Kunai.Window
 
                 if (m_ShowAllCoords)
                     ImGui.GetWindowDrawList().AddQuad(pTopLeft, pTopRight, pBotRight, pBotLeft, ImGui.ColorConvertFloat4ToU32(new Vector4(1, 1, 1, 1)), 1.5f);
+
                 if (KunaiMath.IsPointInRect(mousePos, pTopLeft, pTopRight, pBotRight, pBotLeft) || i == m_SelectedSpriteIndex)
                 {
                     //Add selection box
@@ -95,7 +95,8 @@ namespace Kunai.Window
                     CropRegionEditor(renderer, avgSizeWin);
                 }
                 ImGui.End();
-                CropGenerator.Draw(m_SelectedIndex);
+                cropGenerator.in_TextureIndex = m_SelectedIndex;
+                cropGenerator.Draw();
             }
         }
 
@@ -204,7 +205,7 @@ namespace Kunai.Window
                     if (ImGui.MenuItem("Generate Crops"))
                     {
                         ImGui.OpenPopup("##generatecrops");
-                        CropGenerator.Activate();
+                        cropGenerator.SetEnabled(true);
                     }
                     ImGui.Separator();
                     if (ImGui.MenuItem("Show all crops on texture", m_ShowAllCoords))

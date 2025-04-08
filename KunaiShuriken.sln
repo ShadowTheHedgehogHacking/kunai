@@ -9,8 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileTypeRegisterService", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpNeedle", "SharpNeedle\Source\SharpNeedle\SharpNeedle.csproj", "{BAF1397D-5982-421F-9A71-010BEA2A9550}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Amicitia.IO", "SharpNeedle\Source\Dependencies\Amicitia.IO\src\Amicitia.IO\Amicitia.IO.csproj", "{FAB5C125-55BB-454C-A591-7C2A8F6E65BA}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "libWiiSharp", "libWiiSharp\libWiiSharp.csproj", "{39DE8587-A96C-4798-A0CA-B99575E57F13}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpettroSettings", "settings-system\SpettroSettings.csproj", "{3EE46DA1-91ED-4A37-A385-103390154423}"
@@ -63,18 +61,6 @@ Global
 		{BAF1397D-5982-421F-9A71-010BEA2A9550}.Release|x64.Build.0 = Release|Any CPU
 		{BAF1397D-5982-421F-9A71-010BEA2A9550}.Release|x86.ActiveCfg = Release|x86
 		{BAF1397D-5982-421F-9A71-010BEA2A9550}.Release|x86.Build.0 = Release|x86
-		{FAB5C125-55BB-454C-A591-7C2A8F6E65BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FAB5C125-55BB-454C-A591-7C2A8F6E65BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FAB5C125-55BB-454C-A591-7C2A8F6E65BA}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{FAB5C125-55BB-454C-A591-7C2A8F6E65BA}.Debug|x64.Build.0 = Debug|Any CPU
-		{FAB5C125-55BB-454C-A591-7C2A8F6E65BA}.Debug|x86.ActiveCfg = Debug|x86
-		{FAB5C125-55BB-454C-A591-7C2A8F6E65BA}.Debug|x86.Build.0 = Debug|x86
-		{FAB5C125-55BB-454C-A591-7C2A8F6E65BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FAB5C125-55BB-454C-A591-7C2A8F6E65BA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FAB5C125-55BB-454C-A591-7C2A8F6E65BA}.Release|x64.ActiveCfg = Release|Any CPU
-		{FAB5C125-55BB-454C-A591-7C2A8F6E65BA}.Release|x64.Build.0 = Release|Any CPU
-		{FAB5C125-55BB-454C-A591-7C2A8F6E65BA}.Release|x86.ActiveCfg = Release|x86
-		{FAB5C125-55BB-454C-A591-7C2A8F6E65BA}.Release|x86.Build.0 = Release|x86
 		{39DE8587-A96C-4798-A0CA-B99575E57F13}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{39DE8587-A96C-4798-A0CA-B99575E57F13}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{39DE8587-A96C-4798-A0CA-B99575E57F13}.Debug|x64.ActiveCfg = Debug|Any CPU

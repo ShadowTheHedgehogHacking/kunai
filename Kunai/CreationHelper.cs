@@ -52,6 +52,10 @@ namespace Kunai
             newFam.Add(newCast);
             in_Scene.Value.Value.Families.Add(newFam);
             in_Scene.Casts.Add(new CsdVisData.Cast(newCast, in_Scene));
+            foreach(var test in in_Scene.Value.Value.Motions)
+            {
+                test.Value.FamilyMotions.Add(new SharpNeedle.Framework.Ninja.Csd.Motions.FamilyMotion(newFam));
+            }
         }
         public static void CreateNewCast(CsdVisData.Cast in_Cast, Cast.EType in_Type)
         {

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Kunai
 {
-    public partial class CsdVisData
+    public partial class CsdVisData : TVisData
     {
         public List<Node> Nodes = new List<Node>();
 
@@ -22,6 +22,7 @@ namespace Kunai
         {
             if (in_Node.Value.Value == in_SceneNode)
                 return in_Node;
+
             foreach (var node in in_Node.Children)
             {
                 if (node.Value.Value == in_SceneNode)
@@ -83,6 +84,18 @@ namespace Kunai
                 return RecursiveGetCast(node, in_Scene);
             }
             return null;
+        }
+
+        public void Apply()
+        {
+            //Apparently motions really dont like to stay alive
+            foreach(var n in Nodes)
+            {
+                foreach (var s in n.Scene)
+                {
+                    s.ApplyAnimsToScene();
+                }
+            }
         }
     }
 }

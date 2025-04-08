@@ -1,11 +1,11 @@
 ﻿using Hexa.NET.ImGui;
 using SharpNeedle.Framework.Ninja.Csd;
+using SharpNeedle.Framework.Ninja.Csd.Motions;
 using Shuriken.Rendering;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using static Kunai.Window.ImKunai;
 
 namespace Kunai
 {
@@ -17,10 +17,22 @@ namespace Kunai
             public List<Cast> Casts = new List<Cast>();
             public Node Parent;
             public Scene() { }
+
+            public void ApplyAnimsToScene()
+            {
+                foreach (var anim2 in Animation)
+                {
+                    Value.Value.Motions.TryGetValue(anim2.Value.Key, out Motion motion);
+                    if(motion != null)
+                    {
+                        Value.Value.Motions[anim2.Value.Key] = anim2.Value.Value;
+                    }
+                }
+            }
             public override TVisHierarchyResult DrawHierarchy()
             {
                 bool selectedScene = false;
-                bool open = VisibilityNode(Value.Key, ref Active, ref selectedScene, SceneRightClickAction, in_Icon: NodeIconResource.Scene);
+                bool open = ImKunai.VisibilityNode(Value.Key, ref Active, ref selectedScene, SceneRightClickAction, in_Icon: NodeIconResource.Scene);
                 return new TVisHierarchyResult(open, selectedScene);
             }
             public override void DrawInspector()

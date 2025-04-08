@@ -109,11 +109,11 @@ namespace Kunai.ShurikenRenderer
         {
             try
             {
+                ResetCsd();
                 bool isSplitFile = IsPathSplitFile(in_Path);
                 //Reset what needs to be reset
                 string root = Path.GetDirectoryName(Path.GetFullPath(@in_Path));
                 SpriteHelper.ClearTextures();
-                ResetCsd();
                 Config.WorkFilePath = in_Path;
 
                 if (isSplitFile)
@@ -785,10 +785,24 @@ namespace Kunai.ShurikenRenderer
 
                     try
                     {
-                        var maxFrame = a.Value.FamilyMotions.SelectMany(in_Fm => in_Fm.CastMotions)
-                            .SelectMany(in_Cm => in_Cm)
-                            .SelectMany(in_Kfl => in_Kfl.Frames)
-                            .Max(in_Kf => in_Kf.Frame);
+                        float maxFrame = int.MinValue;
+
+                        foreach (var familyMotion in a.Value.FamilyMotions)
+                        {
+                            foreach (var castMotionList in familyMotion.CastMotions)
+                            {
+                                foreach (var keyframeList in castMotionList)
+                                {
+                                    foreach (var keyframe in keyframeList.Frames)
+                                    {
+                                        if (keyframe.Frame > maxFrame)
+                                        {
+                                            maxFrame = keyframe.Frame;
+                                        }
+                                    }
+                                }
+                            }
+                        }
 
                         if (a.Value.EndFrame < maxFrame)
                             a.Value.EndFrame = maxFrame;
@@ -835,10 +849,10 @@ namespace Kunai.ShurikenRenderer
                     {
                         WorkProjectCsd.Endianness = Endianness.Big;
                         break;
-
+            
                     }
             }
-
+            VisibilityData.Apply();
             WorkProjectCsd.Write(filePath);
         }
 

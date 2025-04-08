@@ -7,7 +7,6 @@ using SharpNeedle.Framework.Ninja.Csd;
 using Shuriken.Rendering;
 using System;
 using System.Numerics;
-using static Kunai.Window.ImKunai;
 
 namespace Kunai.Window
 {
@@ -142,8 +141,8 @@ namespace Kunai.Window
                 }
                 ImGui.PopFont();
                 ImGui.EndDisabled();
-                ItemRowsBackground(new Vector4(20, 20, 20, 64));
-                if(BeginListBoxCustom("##hierarchylist", new Vector2(-1,-1)))
+                ImKunai.ItemRowsBackground(new Vector4(20, 20, 20, 64));
+                if(ImKunai.BeginListBoxCustom("##hierarchylist", new Vector2(-1,-1)))
                 {
                     if (renderer.WorkProjectCsd != null)
                     {
@@ -152,7 +151,7 @@ namespace Kunai.Window
                             DrawSceneNode(f);
                         }
                     }
-                    EndListBoxCustom();
+                    ImKunai.EndListBoxCustom();
                 }
             }
             ImGui.End();

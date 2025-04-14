@@ -198,8 +198,6 @@ namespace Kunai.ShurikenRenderer
 
         public void ResetCsd()
         {
-            SelectionData.SelectedCast = null;
-            SelectionData.SelectedScene = new();
             Config.WorkFilePath = "";
             //Dispose the old file
             WorkProjectCsd?.BaseFile?.Dispose();
@@ -209,6 +207,8 @@ namespace Kunai.ShurikenRenderer
             VisibilityData = null;
             //Clear quads (shouldnt be necessary)
             Renderer.Quads.Clear();
+            SelectionData.SelectedCast = null;
+            SelectionData.SelectedScene = null;
         }
 
         /// <summary>
